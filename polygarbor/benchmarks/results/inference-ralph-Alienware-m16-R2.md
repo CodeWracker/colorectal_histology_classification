@@ -1,6 +1,6 @@
 # Inference benchmark — polygarbor
 
-Measured at 2026-09-05T15:21:49+00:00 (UTC).
+Measured at 2026-09-05T15:39:32+00:00 (UTC).
 
 ## Machine
 
@@ -38,25 +38,36 @@ Measured at 2026-09-05T15:21:49+00:00 (UTC).
 | Repetitions | 200 measured after 20 warm-up runs |
 | Predicted class | tumor |
 
-## Results
+## Total time per image
 
-| step | mean (ms) | median (ms) | stdev (ms) | best (ms) | worst (ms) | per second |
+Cold totals include Python startup and loading the model; warm totals are what you pay per image once the model is in memory.
+
+| total | mean | median | stdev | best | worst | runs |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Load model from disk (once per process) | 691.98 | 666.37 | 66.17 | 588.19 | 823.04 | 1.4 |
-| Read and decode the image | 0.50 | 0.50 | 0.01 | 0.48 | 0.54 | 2017.7 |
-| Extract descriptor (patch) | 4.49 | 4.43 | 0.17 | 4.29 | 5.33 | 222.8 |
-| Mahalanobis distances (patch) | 16.42 | 16.33 | 0.42 | 15.85 | 19.19 | 60.9 |
-| Patch inference, in-memory array | 20.39 | 20.29 | 0.48 | 19.74 | 25.09 | 49.1 |
-| Patch inference, from file | 20.65 | 20.61 | 0.28 | 20.14 | 21.68 | 48.4 |
-| Extract descriptor (dense 75x75) | 1.53 | 1.51 | 0.05 | 1.47 | 1.72 | 653.5 |
-| Mahalanobis distances (dense) | 955.88 | 937.98 | 58.04 | 876.16 | 1169.65 | 1.0 |
-| Dense inference, in-memory array | 961.17 | 943.14 | 57.83 | 882.93 | 1221.48 | 1.0 |
+| Cold total: new process, import, load model, classify | 1.86 s | 1.74 s | 293.3 ms | 1.68 s | 2.38 s | 5 |
+| Cold total: `polygarbor predict --no-viz` command | 2.00 s | 1.73 s | 518.2 ms | 1.67 s | 2.60 s | 3 |
+| Cold total: `polygarbor predict` with all figures | 5.62 s | 5.18 s | 781.4 ms | 5.16 s | 6.52 s | 3 |
+| Warm total: read file and classify (model in memory) | 20.9 ms | 20.8 ms | 0.5 ms | 20.4 ms | 25.9 ms | 200 |
+| Warm total: classify an array already in memory | 20.1 ms | 20.1 ms | 0.4 ms | 18.9 ms | 22.8 ms | 200 |
+| Warm total, dense mode (similarity maps) | 965.2 ms | 942.1 ms | 58.1 ms | 885.2 ms | 1.20 s | 200 |
+
+## Stage breakdown
+
+| step | mean | median | stdev | best | worst | runs |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Load model from disk (rebuilds the subspaces) | 573.9 ms | 569.9 ms | 43.3 ms | 506.4 ms | 701.0 ms | 20 |
+| Read and decode the image | 0.5 ms | 0.5 ms | 0.1 ms | 0.5 ms | 2.4 ms | 200 |
+| Extract descriptor (patch) | 4.4 ms | 4.3 ms | 0.2 ms | 4.1 ms | 6.7 ms | 200 |
+| Mahalanobis distances (patch) | 16.3 ms | 16.2 ms | 0.3 ms | 15.8 ms | 19.2 ms | 200 |
+| Extract descriptor (dense 75x75) | 1.6 ms | 1.6 ms | 0.0 ms | 1.5 ms | 1.9 ms | 200 |
+| Mahalanobis distances (dense) | 958.8 ms | 942.3 ms | 57.5 ms | 877.0 ms | 1.15 s | 200 |
 
 ## Reading the numbers
 
-- **Classifying one image costs 20.4 ms** (~49 images/s) in `patch` mode, which is the default. Including reading the file from disk, 20.7 ms.
-- `dense` mode costs 961.2 ms, ~47× more: it evaluates 5625 vectors instead of 1. That is the price of the similarity maps.
-- Loading the model takes 692 ms, but it is a one-off cost per process: the subspaces are rebuilt from the samples inside `load()`. A service classifying in batch should load once and reuse the instance.
+- **Warm: 20.9 ms per image** (~48 images/s) reading the file from disk, 20.1 ms if the array is already in memory. This is the number that matters for a service.
+- **Cold: 1.86 s end to end** for a fresh process. Almost all of it is fixed overhead — 573.9 ms to rebuild the subspaces plus interpreter startup and imports — so classifying one image per process wastes 99% of the time on setup.
+- `dense` mode costs 965.2 ms, ~48× the patch mode: it evaluates 5625 vectors instead of 1. That is the price of the similarity maps, not of the decision.
+- The full `predict` command with every figure takes 5.62 s; rendering the five matplotlib figures dominates it, not the classification.
 
 ## How to reproduce
 

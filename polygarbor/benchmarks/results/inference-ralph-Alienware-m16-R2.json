@@ -1,6 +1,7 @@
 {
+  "benchmark": "inference",
   "specs": {
-    "timestamp_utc": "2026-09-05T15:21:49+00:00",
+    "timestamp_utc": "2026-09-05T15:39:32+00:00",
     "hostname": "ralph-Alienware-m16-R2",
     "os": "Linux 6.17.0-14-generic",
     "os_detail": "#14~24.04.1-Ubuntu SMP PREEMPT_DYNAMIC Thu Jan 15 15:52:10 UTC 2",
@@ -41,96 +42,128 @@
     "warmup": 20,
     "prediction": "tumor"
   },
-  "measurements": [
+  "totals": [
     {
-      "name": "Load model from disk (once per process)",
+      "name": "Cold total: new process, import, load model, classify",
+      "runs": 5,
+      "mean_ms": 1857.138,
+      "median_ms": 1742.239,
+      "stdev_ms": 293.33,
+      "min_ms": 1684.779,
+      "max_ms": 2377.389,
+      "per_second": 0.538
+    },
+    {
+      "name": "Cold total: `polygarbor predict --no-viz` command",
+      "runs": 3,
+      "mean_ms": 2000.269,
+      "median_ms": 1731.259,
+      "stdev_ms": 518.176,
+      "min_ms": 1671.921,
+      "max_ms": 2597.625,
+      "per_second": 0.5
+    },
+    {
+      "name": "Cold total: `polygarbor predict` with all figures",
+      "runs": 3,
+      "mean_ms": 5621.044,
+      "median_ms": 5183.805,
+      "stdev_ms": 781.43,
+      "min_ms": 5156.107,
+      "max_ms": 6523.22,
+      "per_second": 0.178
+    },
+    {
+      "name": "Warm total: read file and classify (model in memory)",
+      "runs": 200,
+      "mean_ms": 20.931,
+      "median_ms": 20.848,
+      "stdev_ms": 0.484,
+      "min_ms": 20.442,
+      "max_ms": 25.878,
+      "per_second": 47.775
+    },
+    {
+      "name": "Warm total: classify an array already in memory",
+      "runs": 200,
+      "mean_ms": 20.064,
+      "median_ms": 20.066,
+      "stdev_ms": 0.398,
+      "min_ms": 18.88,
+      "max_ms": 22.762,
+      "per_second": 49.84
+    },
+    {
+      "name": "Warm total, dense mode (similarity maps)",
+      "runs": 200,
+      "mean_ms": 965.151,
+      "median_ms": 942.12,
+      "stdev_ms": 58.063,
+      "min_ms": 885.16,
+      "max_ms": 1199.933,
+      "per_second": 1.036
+    }
+  ],
+  "stages": [
+    {
+      "name": "Load model from disk (rebuilds the subspaces)",
       "runs": 20,
-      "mean_ms": 691.976,
-      "median_ms": 666.369,
-      "stdev_ms": 66.166,
-      "min_ms": 588.187,
-      "max_ms": 823.039,
-      "per_second": 1.4
+      "mean_ms": 573.923,
+      "median_ms": 569.868,
+      "stdev_ms": 43.306,
+      "min_ms": 506.411,
+      "max_ms": 700.987,
+      "per_second": 1.742
     },
     {
       "name": "Read and decode the image",
       "runs": 200,
-      "mean_ms": 0.496,
-      "median_ms": 0.499,
-      "stdev_ms": 0.012,
-      "min_ms": 0.476,
-      "max_ms": 0.542,
-      "per_second": 2017.7
+      "mean_ms": 0.536,
+      "median_ms": 0.545,
+      "stdev_ms": 0.143,
+      "min_ms": 0.45,
+      "max_ms": 2.435,
+      "per_second": 1866.937
     },
     {
       "name": "Extract descriptor (patch)",
       "runs": 200,
-      "mean_ms": 4.488,
-      "median_ms": 4.427,
-      "stdev_ms": 0.168,
-      "min_ms": 4.295,
-      "max_ms": 5.326,
-      "per_second": 222.8
+      "mean_ms": 4.359,
+      "median_ms": 4.319,
+      "stdev_ms": 0.236,
+      "min_ms": 4.074,
+      "max_ms": 6.744,
+      "per_second": 229.408
     },
     {
       "name": "Mahalanobis distances (patch)",
       "runs": 200,
-      "mean_ms": 16.42,
-      "median_ms": 16.329,
-      "stdev_ms": 0.418,
-      "min_ms": 15.848,
-      "max_ms": 19.189,
-      "per_second": 60.9
-    },
-    {
-      "name": "Patch inference, in-memory array",
-      "runs": 200,
-      "mean_ms": 20.386,
-      "median_ms": 20.287,
-      "stdev_ms": 0.48,
-      "min_ms": 19.742,
-      "max_ms": 25.091,
-      "per_second": 49.1
-    },
-    {
-      "name": "Patch inference, from file",
-      "runs": 200,
-      "mean_ms": 20.651,
-      "median_ms": 20.608,
-      "stdev_ms": 0.275,
-      "min_ms": 20.135,
-      "max_ms": 21.683,
-      "per_second": 48.4
+      "mean_ms": 16.272,
+      "median_ms": 16.216,
+      "stdev_ms": 0.335,
+      "min_ms": 15.79,
+      "max_ms": 19.205,
+      "per_second": 61.454
     },
     {
       "name": "Extract descriptor (dense 75x75)",
       "runs": 200,
-      "mean_ms": 1.53,
-      "median_ms": 1.512,
-      "stdev_ms": 0.049,
-      "min_ms": 1.474,
-      "max_ms": 1.718,
-      "per_second": 653.5
+      "mean_ms": 1.591,
+      "median_ms": 1.581,
+      "stdev_ms": 0.045,
+      "min_ms": 1.539,
+      "max_ms": 1.88,
+      "per_second": 628.612
     },
     {
       "name": "Mahalanobis distances (dense)",
       "runs": 200,
-      "mean_ms": 955.88,
-      "median_ms": 937.981,
-      "stdev_ms": 58.038,
-      "min_ms": 876.158,
-      "max_ms": 1169.655,
-      "per_second": 1.0
-    },
-    {
-      "name": "Dense inference, in-memory array",
-      "runs": 200,
-      "mean_ms": 961.173,
-      "median_ms": 943.14,
-      "stdev_ms": 57.831,
-      "min_ms": 882.929,
-      "max_ms": 1221.478,
-      "per_second": 1.0
+      "mean_ms": 958.77,
+      "median_ms": 942.291,
+      "stdev_ms": 57.474,
+      "min_ms": 877.042,
+      "max_ms": 1145.394,
+      "per_second": 1.043
     }
   ]
 }

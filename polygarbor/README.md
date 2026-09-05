@@ -216,20 +216,51 @@ command reproduces exactly the same model.
 
 ---
 
-## Inference benchmark
+## Benchmarks
 
-Classifying one image takes **~20 ms** (~49 images/s) on the reference machine
-(Intel Core Ultra 9 185H, CPU only). The `dense` mode costs ~960 ms because it
-evaluates 5625 vectors instead of 1. Loading the model costs ~690 ms once per
-process, so a batch service should load once and reuse the instance.
+Reference machine: Intel Core Ultra 9 185H (16 cores / 22 logical CPUs), CPU
+only — the pipeline never touches the GPU.
 
-Full numbers and machine specs live in
+**Inference, one 150×150 image**
+
+| total | time |
+| --- | ---: |
+| Warm (model in memory, read from disk) | **20.9 ms** (~48 img/s) |
+| Warm, array already in memory | 20.1 ms |
+| Warm, `dense` mode (similarity maps) | 965 ms |
+| Cold (new process: import + load model + classify) | 1.86 s |
+| Cold, full `predict` command with every figure | 5.62 s |
+
+The cold total is almost all fixed overhead — ~574 ms to rebuild the subspaces
+plus interpreter startup — so a service should load the model once and reuse the
+instance. `dense` mode is ~48× the patch mode because it evaluates 5625 vectors
+instead of 1; that is the price of the maps, not of the decision. Rendering the
+five matplotlib figures dominates the full command.
+
+**Training, 4000 images**
+
+| stage | time |
+| --- | ---: |
+| Load the dataset (TFDS, already materialized) | 1.80 s first run, 112 ms after |
+| Extract descriptors from the training split | 17.58 s |
+| Fit the 8 polynomial subspaces | 569 ms |
+| Save the model | 21 ms |
+| **Total** | **18.84 s** |
+
+Extraction is 93% of the training time (4.4 ms per image) and is the only stage
+that grows with the dataset — it is embarrassingly parallel and currently runs
+single-threaded. Fitting the subspaces is cheap because each one sees at most
+`--max-samples` vectors of 22 dimensions.
+
+Full numbers, per-stage statistics and machine specs live in
 [`benchmarks/results/`](benchmarks/results/). To measure on another machine:
 
 ```bash
 uv run python benchmarks/bench_inference.py \
   --model-dir artifacts/model \
   --image artifacts/dataset/samples/00_tumor_1.png
+
+uv run python benchmarks/bench_training.py --data-dir ./data
 ```
 
 ---
@@ -260,6 +291,8 @@ src/polygarbor/
 └── cli.py         # argparse: dataset / train / evaluate / predict / info
 
 benchmarks/
-├── bench_inference.py  # inference timing + machine specs
+├── _bench_utils.py     # timing, machine specs, report rendering
+├── bench_inference.py  # per-image inference: cold and warm totals + stages
+├── bench_training.py   # full training run: total + stages
 └── results/            # committed reports, one per machine
 ```

@@ -1,0 +1,103 @@
+{
+  "benchmark": "training",
+  "specs": {
+    "timestamp_utc": "2026-09-05T15:41:46+00:00",
+    "hostname": "ralph-Alienware-m16-R2",
+    "os": "Linux 6.17.0-14-generic",
+    "os_detail": "#14~24.04.1-Ubuntu SMP PREEMPT_DYNAMIC Thu Jan 15 15:52:10 UTC 2",
+    "architecture": "x86_64",
+    "cpu": "Intel(R) Core(TM) Ultra 9 185H",
+    "cpu_topology": {
+      "cores_per_socket": "16",
+      "sockets": "1",
+      "threads_per_core": "2",
+      "max_mhz": "5100.0000",
+      "arch": "x86_64"
+    },
+    "logical_cpus": 22,
+    "total_memory_gb": 30.9,
+    "gpus": [
+      "NVIDIA GeForce RTX 4070 Laptop GPU, 8188 MiB"
+    ],
+    "python": "3.11.14",
+    "packages": {
+      "numpy": "2.4.6",
+      "opencv-python-headless": "5.0.0.93",
+      "polymahalanobis": "0.1.1",
+      "scikit-learn": "1.9.0",
+      "tensorflow-cpu": "2.21.0",
+      "tensorflow-datasets": "4.9.10"
+    },
+    "opencv_threads": 22,
+    "thread_env": {}
+  },
+  "setup": {
+    "data_dir": "data",
+    "runs": 3,
+    "patches_per_row": 1,
+    "max_samples_per_class": 350,
+    "images": 4000,
+    "classes": 8,
+    "vectors_extracted": 4000,
+    "vectors_per_class_fitted": 350,
+    "features_per_vector": 22,
+    "patches_per_image": 1,
+    "polynomial_levels": 3
+  },
+  "total": {
+    "name": "Total training time",
+    "runs": 3,
+    "mean_ms": 18840.245,
+    "median_ms": 18264.088,
+    "stdev_ms": 1112.976,
+    "min_ms": 18133.463,
+    "max_ms": 20123.184,
+    "per_second": 0.053
+  },
+  "stages": [
+    {
+      "name": "Load the dataset (TFDS, already materialized)",
+      "runs": 3,
+      "mean_ms": 664.752,
+      "median_ms": 112.12,
+      "stdev_ms": 985.221,
+      "min_ms": 79.901,
+      "max_ms": 1802.235,
+      "per_second": 1.504
+    },
+    {
+      "name": "Extract descriptors from the training split",
+      "runs": 3,
+      "mean_ms": 17576.407,
+      "median_ms": 17553.696,
+      "stdev_ms": 72.556,
+      "min_ms": 17517.924,
+      "max_ms": 17657.602,
+      "per_second": 0.057
+    },
+    {
+      "name": "Fit the polynomial subspaces (one per class)",
+      "runs": 3,
+      "mean_ms": 569.284,
+      "median_ms": 566.39,
+      "stdev_ms": 68.985,
+      "min_ms": 501.791,
+      "max_ms": 639.67,
+      "per_second": 1.757
+    },
+    {
+      "name": "Save the model to disk",
+      "runs": 3,
+      "mean_ms": 20.458,
+      "median_ms": 19.283,
+      "stdev_ms": 2.065,
+      "min_ms": 19.248,
+      "max_ms": 22.842,
+      "per_second": 48.881
+    }
+  ],
+  "derived": {
+    "extraction_ms_per_image": 4.394,
+    "extraction_images_per_second": 227.6
+  }
+}
