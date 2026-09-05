@@ -1,15 +1,16 @@
-"""Extracao do descritor hibrido: energia de Gabor (textura) + estatisticas Lab (cor).
+"""Hybrid descriptor: Gabor energy (texture) + Lab statistics (color).
 
-Dois modos de extracao compartilham exatamente a mesma definicao de feature:
+Two extraction modes share the exact same feature definition:
 
 ``patch_features``
-    Estatisticas por bloco de uma grade regular. E o modo usado no treino e na
-    classificacao, porque produz um vetor por regiao macroscopica.
+    Statistics over the blocks of a regular grid. This is the mode used for
+    training and classification, since it yields one vector per macroscopic
+    region.
 
 ``dense_features``
-    As mesmas estatisticas calculadas por pixel com uma janela deslizante
-    (via ``cv2.blur``), gerando um vetor por posicao. Serve para os mapas de
-    similaridade, que precisam de resolucao espacial.
+    The same statistics computed per pixel with a sliding window (via
+    ``cv2.blur``), yielding one vector per position. Used for the similarity
+    maps, which need spatial resolution.
 """
 
 from __future__ import annotations
@@ -26,7 +27,7 @@ LAB_CHANNELS = ("L", "A", "B")
 
 
 def feature_names(bank: GaborBank) -> list[str]:
-    """Rotulos das colunas do descritor, na mesma ordem em que sao geradas."""
+    """Descriptor column labels, in the order the features are generated."""
     names = [f"G{i + 1}_{s}" for i in range(len(bank)) for s in ("μ", "σ")]
     names += [f"{c}_{s}" for c in LAB_CHANNELS for s in ("μ", "σ")]
     return names
@@ -37,7 +38,7 @@ def n_features(bank: GaborBank) -> int:
 
 
 def to_uint8_rgb(image: np.ndarray) -> np.ndarray:
-    """Normaliza qualquer entrada (tensor TF, float [0,1], uint8) para RGB uint8."""
+    """Normalize any input (TF tensor, float [0,1], uint8) to RGB uint8."""
     if hasattr(image, "numpy"):
         image = image.numpy()
     image = np.asarray(image)
@@ -53,7 +54,7 @@ def to_uint8_rgb(image: np.ndarray) -> np.ndarray:
 
 @dataclass
 class ImageMaps:
-    """Representacoes intermediarias calculadas uma unica vez por imagem."""
+    """Intermediate representations computed once per image."""
 
     rgb: np.ndarray
     gray: np.ndarray
@@ -70,7 +71,7 @@ def image_maps(image: np.ndarray, bank: GaborBank) -> ImageMaps:
 
 @dataclass
 class PatchView:
-    """Recortes de um patch, guardados apenas quando se quer visualizar."""
+    """Crops of a single patch, kept only when they are going to be plotted."""
 
     index: int
     box: tuple[int, int, int, int]  # (x, y, x_end, y_end)
@@ -81,7 +82,7 @@ class PatchView:
 
 
 def resolve_patch_size(image_size: int, patch_size: int | None, patches_per_row: int) -> int:
-    """Define o lado do patch: valor explicito ou divisao da imagem em N blocos."""
+    """Pick the patch side: an explicit value, or the image split into N blocks."""
     if patch_size:
         return int(patch_size)
     return max(1, int(image_size // max(1, patches_per_row)))
@@ -93,7 +94,7 @@ def patch_features(
     patch_size: int,
     with_views: bool = False,
 ) -> tuple[np.ndarray, list[PatchView]]:
-    """Filtra a imagem inteira e resume cada patch da grade em um vetor de features."""
+    """Filter the whole image, then summarize each grid patch into a feature vector."""
     maps = image_maps(image, bank)
     h, w = maps.gray.shape[:2]
     dim = n_features(bank)
@@ -137,7 +138,7 @@ def patch_features(
 
 
 def _local_mean_std(plane: np.ndarray, win: tuple[int, int]) -> tuple[np.ndarray, np.ndarray]:
-    """Media e desvio padrao locais via filtro de caixa (O(1) por pixel)."""
+    """Local mean and standard deviation via box filter (O(1) per pixel)."""
     mean = cv2.blur(plane, win)
     mean_sq = cv2.blur(plane * plane, win)
     std = np.sqrt(np.maximum(mean_sq - mean * mean, 0.0))
@@ -150,9 +151,9 @@ def dense_features(
     grid_size: int = 75,
     win_size: Sequence[int] = (15, 15),
 ) -> tuple[np.ndarray, tuple[int, int]]:
-    """Descritor por pixel numa grade fixa ``grid_size`` x ``grid_size``.
+    """Per-pixel descriptor on a fixed ``grid_size`` x ``grid_size`` grid.
 
-    Retorna ``(features (grid*grid, D), (altura, largura))``.
+    Returns ``(features (grid*grid, D), (height, width))``.
     """
     rgb = to_uint8_rgb(image)
     small = cv2.resize(rgb, (grid_size, grid_size), interpolation=cv2.INTER_AREA)

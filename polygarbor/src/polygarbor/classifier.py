@@ -1,4 +1,4 @@
-"""Classificador: um subespaco Mahalanobis polinomial por classe."""
+"""Classifier: one polynomial Mahalanobis subspace per class."""
 
 from __future__ import annotations
 
@@ -25,32 +25,33 @@ SAMPLES_DIR = "samples"
 
 @dataclass
 class Prediction:
-    """Resultado da classificacao de uma imagem."""
+    """Outcome of classifying a single image."""
 
     label: int
     class_name: str
     method: str
     aggregation: str
-    votes: np.ndarray            # (n_classes,) unidades vencidas por classe
-    mean_distances: np.ndarray   # (n_classes,) distancia media por classe
-    similarity: np.ndarray       # (n_classes,) similaridade normalizada (soma 1)
-    distances: np.ndarray        # (n_units, n_classes) distancia bruta
-    unit_labels: np.ndarray      # (n_units,) classe vencedora de cada unidade
-    grid: tuple[int, int] | None = None  # forma da grade, quando aplicavel
+    votes: np.ndarray            # (n_classes,) units won by each class
+    mean_distances: np.ndarray   # (n_classes,) mean distance per class
+    similarity: np.ndarray       # (n_classes,) normalized similarity (sums to 1)
+    distances: np.ndarray        # (n_units, n_classes) raw distances
+    unit_labels: np.ndarray      # (n_units,) winning class of each unit
+    grid: tuple[int, int] | None = None  # grid shape, when applicable
 
     @property
     def confidence(self) -> float:
-        """Fracao de unidades (patches ou pixels) que votaram na classe vencedora."""
+        """Fraction of units (patches or pixels) that voted for the winning class."""
         total = float(self.votes.sum())
         return float(self.votes[self.label] / total) if total else 0.0
 
     def ranking(
         self, class_names: Sequence[str]
     ) -> list[tuple[str, float, int, float]]:
-        """Classes da mais para a menos provavel: ``(nome, similaridade, votos, distancia)``.
+        """Classes from most to least likely: ``(name, similarity, votes, distance)``.
 
-        A ordenacao usa a distancia media, nao a similaridade: para classes muito
-        distantes a similaridade satura em zero e deixaria de desempatar.
+        Ordering uses the mean distance rather than the similarity: for very
+        distant classes the similarity saturates at zero and would stop breaking
+        ties.
         """
         order = np.argsort(self.mean_distances)
         return [
@@ -82,14 +83,14 @@ class Prediction:
 
 @dataclass
 class PolyGaborClassifier:
-    """Pipeline completo Gabor + Mahalanobis polinomial.
+    """Full Gabor + polynomial Mahalanobis pipeline.
 
-    Uso tipico como biblioteca::
+    Typical use as a library::
 
         from polygarbor import PolyGaborClassifier
 
-        clf = PolyGaborClassifier.load("modelo")
-        pred = clf.predict("lamina.tif")
+        clf = PolyGaborClassifier.load("model")
+        pred = clf.predict("slide.png")
         print(pred.class_name, pred.confidence)
     """
 
@@ -101,8 +102,8 @@ class PolyGaborClassifier:
     max_samples_per_class: int = 350
     dense_grid: int = 75
     dense_window: tuple[int, int] = (15, 15)
-    similarity_gamma: float = 0.05   # decaimento usado nos mapas de calor
-    similarity_scale: float = 1.0    # decaimento (em escala log) do ranking de classes
+    similarity_gamma: float = 0.05   # decay used by the heatmaps
+    similarity_scale: float = 1.0    # decay (in log space) of the class ranking
     random_state: int = 42
 
     bank: GaborBank = field(init=False)
@@ -112,7 +113,7 @@ class PolyGaborClassifier:
     def __post_init__(self) -> None:
         self.bank = GaborBank(self.gabor)
 
-    # ------------------------------------------------------------------ infra
+    # -------------------------------------------------------------- plumbing
 
     @property
     def n_classes(self) -> int:
@@ -133,10 +134,10 @@ class PolyGaborClassifier:
     def patch_size_for(self, image_size: int) -> int:
         return resolve_patch_size(image_size, self.patch_size, self.patches_per_row)
 
-    # ------------------------------------------------------------- extracao
+    # ------------------------------------------------------------ extraction
 
     def extract(self, image: np.ndarray) -> np.ndarray:
-        """Descritores por patch de uma imagem (n_patches, n_features)."""
+        """Per-patch descriptors of an image, shaped (n_patches, n_features)."""
         from .features import to_uint8_rgb
 
         rgb = to_uint8_rgb(image)
@@ -154,14 +155,14 @@ class PolyGaborClassifier:
     def extract_dense(self, image: np.ndarray) -> tuple[np.ndarray, tuple[int, int]]:
         return dense_features(image, self.bank, self.dense_grid, self.dense_window)
 
-    # --------------------------------------------------------------- treino
+    # -------------------------------------------------------------- training
 
     def fit(
         self,
         samples: Iterable[tuple[np.ndarray, int]],
         progress: Any = None,
     ) -> "PolyGaborClassifier":
-        """Extrai features de um iteravel ``(imagem, rotulo)`` e ajusta os subespacos."""
+        """Extract features from an ``(image, label)`` iterable and fit the subspaces."""
         X_parts: list[np.ndarray] = []
         y_parts: list[np.ndarray] = []
         iterator = progress(samples) if progress else samples
@@ -171,11 +172,11 @@ class PolyGaborClassifier:
                 X_parts.append(feats)
                 y_parts.append(np.full(len(feats), int(label), dtype=np.int32))
         if not X_parts:
-            raise ValueError("Nenhuma feature extraida: verifique o dataset de entrada.")
+            raise ValueError("No features extracted: check the input dataset.")
         return self.fit_features(np.vstack(X_parts), np.concatenate(y_parts))
 
     def fit_features(self, X: np.ndarray, y: np.ndarray) -> "PolyGaborClassifier":
-        """Ajusta um subespaco polinomial por classe a partir de features prontas."""
+        """Fit one polynomial subspace per class from precomputed features."""
         X = np.asarray(X, dtype=np.float32)
         y = np.asarray(y, dtype=np.int32)
         rng = np.random.default_rng(self.random_state)
@@ -186,7 +187,7 @@ class PolyGaborClassifier:
             samples = X[y == idx]
             if len(samples) == 0:
                 raise ValueError(
-                    f"Classe '{self.class_names[idx]}' nao tem amostras de treino."
+                    f"Class '{self.class_names[idx]}' has no training samples."
                 )
             if self.max_samples_per_class and len(samples) > self.max_samples_per_class:
                 pick = rng.choice(len(samples), self.max_samples_per_class, replace=False)
@@ -195,10 +196,10 @@ class PolyGaborClassifier:
             self.models[idx] = _make_space(samples, self.num_levels)
         return self
 
-    # ------------------------------------------------------------- inferencia
+    # ------------------------------------------------------------- inference
 
     def distances(self, features: np.ndarray) -> np.ndarray:
-        """Distancia polinomial de cada vetor para cada classe (n, n_classes)."""
+        """Polynomial distance from each vector to each class, shaped (n, n_classes)."""
         self._check_fitted()
         features = np.asarray(features, dtype=np.float32)
         if features.ndim == 1:
@@ -215,12 +216,12 @@ class PolyGaborClassifier:
         method: str = "patch",
         aggregation: str = "voting",
     ) -> Prediction:
-        """Classifica uma imagem.
+        """Classify one image.
 
-        ``method='patch'`` usa a mesma grade de patches do treino (recomendado).
-        ``method='dense'`` usa o descritor por pixel, coerente com os mapas de
-        similaridade. ``aggregation`` escolhe entre voto majoritario das unidades
-        (``'voting'``) e menor distancia media (``'mean'``).
+        ``method='patch'`` uses the same patch grid as training (recommended).
+        ``method='dense'`` uses the per-pixel descriptor, consistent with the
+        similarity maps. ``aggregation`` picks between majority voting across
+        units (``'voting'``) and smallest mean distance (``'mean'``).
         """
         image = load_image(image)
         if method == "patch":
@@ -229,11 +230,11 @@ class PolyGaborClassifier:
         elif method == "dense":
             feats, grid = self.extract_dense(image)
         else:
-            raise ValueError(f"method invalido: {method!r} (use 'patch' ou 'dense')")
+            raise ValueError(f"invalid method: {method!r} (use 'patch' or 'dense')")
 
         if not len(feats):
             raise ValueError(
-                "Imagem menor que o patch configurado: nenhum descritor extraido."
+                "Image smaller than the configured patch: no descriptor extracted."
             )
         return self.predict_from_distances(
             self.distances(feats), method=method, aggregation=aggregation, grid=grid
@@ -256,11 +257,11 @@ class PolyGaborClassifier:
             label = int(np.argmin(mean_dist))
         else:
             raise ValueError(
-                f"aggregation invalida: {aggregation!r} (use 'voting' ou 'mean')"
+                f"invalid aggregation: {aggregation!r} (use 'voting' or 'mean')"
             )
 
-        # A escala log evita que classes distantes (distancias na casa de 1e5)
-        # colapsem todas para similaridade zero e fiquem indistinguiveis.
+        # The log scale keeps distant classes (distances around 1e5) from all
+        # collapsing to zero similarity and becoming indistinguishable.
         log_dist = np.log1p(np.maximum(mean_dist, 0.0))
         sim = np.exp(-abs(self.similarity_scale) * (log_dist - log_dist.min()))
         sim = sim / sim.sum() if sim.sum() else np.full(self.n_classes, 1 / self.n_classes)
@@ -285,7 +286,7 @@ class PolyGaborClassifier:
         aggregation: str = "voting",
         progress: Any = None,
     ) -> tuple[np.ndarray, np.ndarray]:
-        """Classifica um iteravel ``(imagem, rotulo)``; devolve ``(y_true, y_pred)``."""
+        """Classify an ``(image, label)`` iterable; returns ``(y_true, y_pred)``."""
         y_true, y_pred = [], []
         iterator = progress(samples) if progress else samples
         for image, label in iterator:
@@ -297,10 +298,10 @@ class PolyGaborClassifier:
             y_pred.append(pred.label)
         return np.asarray(y_true), np.asarray(y_pred)
 
-    # ------------------------------------------------------------ persistencia
+    # ----------------------------------------------------------- persistence
 
     def save(self, path: str | Path) -> Path:
-        """Salva configuracao e amostras de treino; o subespaco e reconstruido no load."""
+        """Save config and training samples; the subspace is rebuilt on load."""
         self._check_fitted()
         path = Path(path)
         (path / SAMPLES_DIR).mkdir(parents=True, exist_ok=True)
@@ -335,11 +336,11 @@ class PolyGaborClassifier:
 
     @classmethod
     def load(cls, path: str | Path) -> "PolyGaborClassifier":
-        """Recarrega um modelo salvo, reconstruindo os subespacos das amostras."""
+        """Reload a saved model, rebuilding the subspaces from the samples."""
         path = Path(path)
         meta_file = path / MODEL_FILE
         if not meta_file.exists():
-            raise FileNotFoundError(f"'{meta_file}' nao encontrado: modelo invalido.")
+            raise FileNotFoundError(f"'{meta_file}' not found: invalid model.")
         meta = json.loads(meta_file.read_text())
 
         clf = cls(
@@ -358,7 +359,7 @@ class PolyGaborClassifier:
         for idx in range(clf.n_classes):
             sample_file = path / SAMPLES_DIR / f"class_{idx:02d}.txt"
             if not sample_file.exists():
-                raise FileNotFoundError(f"Amostras ausentes para a classe {idx}: {sample_file}")
+                raise FileNotFoundError(f"Missing samples for class {idx}: {sample_file}")
             samples = np.atleast_2d(np.loadtxt(sample_file, dtype=np.float32))
             clf.train_samples[idx] = samples
             clf.models[idx] = _make_space(samples, clf.num_levels, sample_file)
@@ -367,18 +368,19 @@ class PolyGaborClassifier:
     def _check_fitted(self) -> None:
         if not self.is_fitted:
             raise RuntimeError(
-                "Modelo nao treinado. Use fit()/fit_features() ou "
-                "PolyGaborClassifier.load(<pasta>)."
+                "Model is not trained. Use fit()/fit_features() or "
+                "PolyGaborClassifier.load(<folder>)."
             )
 
 
 def _make_space(
     samples: np.ndarray, num_levels: int, sample_file: Path | None = None
 ) -> PolyMahalanobis:
-    """Ajusta um PolyMahalanobis.
+    """Fit a PolyMahalanobis model.
 
-    A biblioteca so aceita amostras vindas de arquivo texto; quando ja temos o
-    array em memoria gravamos um arquivo temporario para nao duplicar formato.
+    The library only accepts samples coming from a text file, so when the array
+    is already in memory we write a temporary file instead of duplicating the
+    format handling.
     """
     import tempfile
 
@@ -397,7 +399,7 @@ def _make_space(
 
 
 def load_image(source: np.ndarray | str | Path) -> np.ndarray:
-    """Aceita caminho de arquivo, array numpy ou tensor e devolve RGB uint8."""
+    """Accept a file path, a numpy array or a tensor and return RGB uint8."""
     from .features import to_uint8_rgb
 
     if isinstance(source, (str, Path)):
@@ -405,9 +407,9 @@ def load_image(source: np.ndarray | str | Path) -> np.ndarray:
 
         path = Path(source)
         if not path.exists():
-            raise FileNotFoundError(f"Imagem nao encontrada: {path}")
+            raise FileNotFoundError(f"Image not found: {path}")
         bgr = cv2.imread(str(path), cv2.IMREAD_COLOR)
         if bgr is None:
-            raise ValueError(f"Nao foi possivel decodificar a imagem: {path}")
+            raise ValueError(f"Could not decode the image: {path}")
         return cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)
     return to_uint8_rgb(source)

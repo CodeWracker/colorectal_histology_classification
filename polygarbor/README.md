@@ -1,28 +1,30 @@
 # polygarbor
 
-Classificação de histologia colorretal combinando **banco de filtros de Gabor**
-(textura) + **estatísticas no espaço Lab** (cor) como descritor, e um
-**subespaço de Mahalanobis polinomial por classe** como classificador.
+Colorectal histology classification combining a **Gabor filter bank** (texture)
+plus **Lab color statistics** as the descriptor, and a **polynomial Mahalanobis
+subspace per class** as the classifier.
 
-É a versão organizada, testada e executável do protótipo `garbor-downsampling.ipynb`.
+This is the organized, tested and runnable version of the
+`garbor-downsampling.ipynb` prototype.
 
 ---
 
-## Instalação
+## Installation
 
-O projeto usa [uv](https://docs.astral.sh/uv/) e vive inteiramente dentro desta pasta.
+The project uses [uv](https://docs.astral.sh/uv/) and lives entirely inside this
+folder.
 
 ```bash
 cd polygarbor
 
-# inferência apenas (leve, sem TensorFlow)
+# inference only (light, no TensorFlow)
 uv sync
 
-# + fluxo de dataset (baixa TensorFlow CPU e TFDS)
+# + dataset flow (pulls TensorFlow CPU and TFDS)
 uv sync --extra dataset
 ```
 
-Depois, todo comando roda com `uv run`:
+Every command then runs through `uv run`:
 
 ```bash
 uv run polygarbor --help
@@ -30,12 +32,13 @@ uv run polygarbor --help
 
 ---
 
-## Os dois fluxos
+## The two flows
 
-### Fluxo 1 — carregar o dataset (uma vez, permanente)
+### Flow 1 — load the dataset (once, permanently)
 
-Baixa o `colorectal_histology` (5000 imagens 150×150, 8 classes) e o materializa
-na pasta escolhida. O cache é permanente: execuções seguintes só leem do disco.
+Downloads `colorectal_histology` (5000 images of 150×150 px, 8 classes) and
+materializes it in the folder you choose. The cache is permanent: later runs
+only read from disk.
 
 ```bash
 uv run polygarbor dataset \
@@ -44,196 +47,219 @@ uv run polygarbor dataset \
   --export-per-class 1
 ```
 
-A leitura é determinística por padrão (a ordem dos arquivos muda quais vetores
-caem na amostragem de treino); use `--shuffle` se quiser variar a pré-visualização.
+Reading is deterministic by default (the file order changes which vectors end up
+in the training sample); pass `--shuffle` if you want a varied preview.
 
-| opção | efeito |
+| option | effect |
 | --- | --- |
-| `--data-dir` | pasta permanente do TFDS (padrão `data`) |
-| `--preview N` | salva uma grade com N amostras rotuladas |
-| `--export-per-class N` | grava N PNGs por classe para testar o `predict` |
-| `--export-split` | de qual split exportar (`train`/`val`/`test`) |
-| `--shuffle` | embaralha a ordem de leitura (padrão: determinística) |
+| `--data-dir` | permanent TFDS folder (default `data`) |
+| `--preview N` | saves a grid with N labeled samples |
+| `--export-per-class N` | writes N PNGs per class to try out `predict` |
+| `--export-split` | which split to export from (`train`/`val`/`test`) |
+| `--shuffle` | shuffles the read order (default: deterministic) |
 
-Em seguida, treine os subespaços:
+Then train the subspaces:
 
 ```bash
 uv run polygarbor train --data-dir ./data --model-dir ./artifacts/model --figures
 ```
 
-Isso extrai os descritores de treino, ajusta um `PolyMahalanobis` por classe,
-salva o modelo e avalia no split de validação (relatório, matriz de confusão em
-CSV e PNG). Ajustes úteis: `--patches-per-row`, `--levels`, `--max-samples`,
-`--limit` (roda com poucas imagens para um teste rápido) e `--skip-eval`.
+This extracts the training descriptors, fits one `PolyMahalanobis` per class,
+saves the model and evaluates on the validation split (report and confusion
+matrix as CSV and PNG). Useful knobs: `--patches-per-row`, `--levels`,
+`--max-samples`, `--limit` (runs on a handful of images for a quick check) and
+`--skip-eval`.
 
-Avaliação isolada de um modelo salvo:
+Standalone evaluation of a saved model:
 
 ```bash
 uv run polygarbor evaluate --model-dir ./artifacts/model --split test
 ```
 
-### Fluxo 2 — classificar uma imagem e gerar as visualizações
+### Flow 2 — classify one image and generate the visualizations
 
 ```bash
 uv run polygarbor predict \
   -i artifacts/dataset/samples/00_tumor_1.png \
   --model-dir ./artifacts/model \
   --out-dir ./artifacts/predict \
-  --true-label 0        # opcional: destaca acerto/erro
+  --true-label 0        # optional: highlights hit/miss
 ```
 
-Saída no terminal: classe predita, confiança, ranking completo (similaridade,
-votos e distância média por classe). Em `--out-dir/<nome-da-imagem>/`:
+Terminal output: predicted class, confidence and the full ranking (similarity,
+votes and mean distance per class). Under `--out-dir/<image-name>/`:
 
-| arquivo | conteúdo |
+| file | content |
 | --- | --- |
-| `prediction.json` | resultado completo, pronto para consumo por outro programa |
-| `01_resultado.png` | imagem + ranking de classes |
-| `02_banco_gabor.png` | os kernels do banco |
-| `03_decomposicao_patch.png` | patch → cinza → mapas de energia de Gabor |
-| `04_matriz_descritora.png` | heatmap da matriz (patches × features) |
-| `05_mapas_similaridade.png` | mapas densos de similaridade por classe + vencedor por região |
+| `prediction.json` | full result, ready to be consumed by another program |
+| `01_result.png` | image + class ranking |
+| `02_gabor_bank.png` | the kernels of the bank |
+| `03_patch_decomposition.png` | patch → grayscale → Gabor energy maps |
+| `04_descriptor_matrix.png` | heatmap of the matrix (patches × features) |
+| `05_similarity_maps.png` | dense per-class similarity maps + winner per region |
 
-`--no-viz` classifica sem gerar figuras; `--show` abre as janelas em vez de
-apenas gravar os PNGs.
+`--no-viz` classifies without producing figures; `--show` opens the windows
+instead of only writing the PNGs.
 
 ---
 
-## Usar como biblioteca
+## Use as a library
 
-O pacote é importável e **não exige TensorFlow** para classificar — o TFDS só é
-carregado sob demanda pelo fluxo de dataset.
+The package is importable and **does not require TensorFlow** to classify — TFDS
+is only loaded on demand by the dataset flow.
 
 ```python
 from polygarbor import PolyGaborClassifier
 
 clf = PolyGaborClassifier.load("artifacts/model")
 
-pred = clf.predict("minha_lamina.png")        # caminho, ndarray ou tensor
+pred = clf.predict("my_slide.png")            # path, ndarray or tensor
 print(pred.class_name, f"{pred.confidence:.1%}")
-print(pred.ranking(clf.class_names))          # [(classe, similaridade, votos, distancia), ...]
-print(pred.to_dict(clf.class_names))          # dict serializável em JSON
+print(pred.ranking(clf.class_names))          # [(class, similarity, votes, distance), ...]
+print(pred.to_dict(clf.class_names))          # JSON-serializable dict
 ```
 
-Treinando a partir dos seus próprios dados (qualquer iterável de
-`(imagem, rótulo)`):
+Training on your own data (any iterable of `(image, label)`):
 
 ```python
 clf = PolyGaborClassifier(class_names=["a", "b"], patches_per_row=3)
 clf.fit([(img1, 0), (img2, 1), ...])
-clf.save("meu_modelo")
+clf.save("my_model")
 ```
 
-Gerando as figuras programaticamente:
+Generating the figures programmatically:
 
 ```python
 from polygarbor import visualize
 
-visualize.use_headless()                      # só grava PNG, não abre janela
-pred = clf.predict(img, method="dense")       # o modo denso carrega a grade
+visualize.use_headless()                      # only write PNGs, never open a window
+pred = clf.predict(img, method="dense")       # the dense mode carries the grid
 fig = visualize.plot_similarity_maps(img, pred, clf.class_names)
-visualize.save_figure(fig, "mapas.png")
+visualize.save_figure(fig, "maps.png")
 ```
 
-Principais pontos da API:
+Main API surface:
 
-| símbolo | papel |
+| symbol | role |
 | --- | --- |
-| `PolyGaborClassifier` | pipeline completo: `fit`, `predict`, `predict_many`, `save`, `load` |
-| `Prediction` | resultado: `label`, `class_name`, `confidence`, `votes`, `similarity`, `distances` |
-| `GaborConfig` / `GaborBank` | parametrização e construção do banco de filtros |
-| `patch_features` / `dense_features` | extração de descritores fora do classificador |
-| `evaluate` / `EvaluationResult` | acurácia, relatório e matriz de confusão |
+| `PolyGaborClassifier` | full pipeline: `fit`, `predict`, `predict_many`, `save`, `load` |
+| `Prediction` | result: `label`, `class_name`, `confidence`, `votes`, `similarity`, `distances` |
+| `GaborConfig` / `GaborBank` | filter bank parameters and construction |
+| `patch_features` / `dense_features` | descriptor extraction outside the classifier |
+| `evaluate` / `EvaluationResult` | accuracy, report and confusion matrix |
 
 ---
 
-## Como funciona
+## How it works
 
-1. **Filtragem global.** A imagem inteira é convertida para cinza e convoluída
-   com cada par de kernels de Gabor (real e imaginário). A energia é a magnitude
-   do par. Filtrar a imagem inteira antes de recortar evita artefato de borda
-   nos patches.
-2. **Descritor de 22 dimensões.** Por região: média e desvio de cada um dos 8
-   mapas de energia (16 valores) + média e desvio dos 3 canais Lab (6 valores).
-3. **Subespaço por classe.** Cada classe ganha um `PolyMahalanobis` ajustado
-   sobre até `--max-samples` vetores, com expansão polinomial de `--levels` níveis.
-4. **Decisão.** Cada unidade (patch ou pixel) vota na classe de menor distância;
-   a imagem recebe a classe mais votada (`--aggregation voting`) ou a de menor
-   distância média (`--aggregation mean`).
+1. **Global filtering.** The whole image is converted to grayscale and convolved
+   with each Gabor kernel pair (real and imaginary). The energy is the magnitude
+   of the pair. Filtering the whole image before cropping avoids border
+   artifacts in the patches.
+2. **22-dimensional descriptor.** Per region: mean and standard deviation of each
+   of the 8 energy maps (16 values) + mean and standard deviation of the 3 Lab
+   channels (6 values).
+3. **One subspace per class.** Each class gets a `PolyMahalanobis` fitted on up
+   to `--max-samples` vectors, with a polynomial expansion of `--levels` levels.
+4. **Decision.** Each unit (patch or pixel) votes for its nearest class; the
+   image takes the most voted class (`--aggregation voting`) or the one with the
+   smallest mean distance (`--aggregation mean`).
 
 ### `patch` vs `dense`
 
-São duas escalas espaciais do **mesmo** descritor:
+These are two spatial scales of the **same** descriptor:
 
-- `--method patch` (padrão) usa a grade de patches — a mesma escala do treino,
-  e por isso é o modo correto para decidir a classe.
-- `--method dense` calcula as estatísticas por pixel com janela deslizante numa
-  grade 75×75. A escala local difere da vista no treino, então serve bem para
-  **visualizar onde** a imagem se parece com cada classe, mas tende a ser menos
-  fiel como decisão final. O `predict` sempre gera os mapas densos, mesmo quando
-  a decisão vem do modo `patch`.
+- `--method patch` (default) uses the patch grid — the same scale as training,
+  which is why it is the right mode for deciding the class.
+- `--method dense` computes the statistics per pixel with a sliding window on a
+  75×75 grid. Its local scale differs from the one seen during training, so it
+  works well to **visualize where** the image looks like each class, but tends to
+  be less faithful as a final decision. `predict` always produces the dense maps,
+  even when the decision comes from `patch` mode.
 
-Com `--patches-per-row 1` (padrão, fiel ao protótipo) há um único patch por
-imagem: o voto é trivial e a confiança sempre 100%. Use `--patches-per-row 3`
-para que a votação entre patches passe a ter significado.
+With `--patches-per-row 1` (the default, faithful to the prototype) there is a
+single patch per image: the vote is trivial and confidence is always 100%. Use
+`--patches-per-row 3` for the vote across patches to become meaningful.
 
 ---
 
-## Formato do modelo salvo
+## Saved model format
 
 ```
 artifacts/model/
-├── model.json            # configuração, classes e nomes das features
-└── samples/class_NN.txt  # vetores de treino de cada classe
+├── model.json            # configuration, classes and feature names
+└── samples/class_NN.txt  # training vectors of each class
 ```
 
-Os subespaços são **reconstruídos** a partir das amostras no `load()` — não há
-pickle, então o modelo continua legível e portável entre versões da biblioteca.
+The subspaces are **rebuilt** from the samples inside `load()` — there is no
+pickle, so the model stays readable and portable across library versions.
 
 ---
 
-## Resultados de referência
+## Reference results
 
-Configuração padrão (`--patches-per-row 1`, 8 filtros, 3 níveis, 350 amostras
-por classe), treinada nos 4000 exemplos de treino:
+Default configuration (`--patches-per-row 1`, 8 filters, 3 levels, 350 samples
+per class), trained on the 4000 training examples:
 
-| split | acurácia |
+| split | accuracy |
 | --- | --- |
-| validação (500 imagens) | 0.828 |
-| teste (500 imagens) | 0.786 |
+| validation (500 images) | 0.828 |
+| test (500 images) | 0.786 |
 
-`adipose` (recall 1.00), `lympho` (0.94) e `tumor` (0.87) são as classes mais
-sólidas. As duas fracas são `mucosa` (recall 0.45, confundida com `debris`) e
-`complex` (0.51, confundida com `stroma`) — ambas com precisão alta, ou seja, o
-modelo é conservador ao atribuí-las.
+`adipose` (recall 1.00), `lympho` (0.94) and `tumor` (0.87) are the strongest
+classes. The two weak ones are `mucosa` (recall 0.45, confused with `debris`)
+and `complex` (0.51, confused with `stroma`) — both with high precision, meaning
+the model is conservative about assigning them.
 
-Como o treino é determinístico (sem embaralhamento e com `--seed` fixo), repetir
-o comando reproduz exatamente o mesmo modelo.
+Since training is deterministic (no shuffling, fixed `--seed`), repeating the
+command reproduces exactly the same model.
 
 ---
 
-## Testes
+## Inference benchmark
+
+Classifying one image takes **~20 ms** (~49 images/s) on the reference machine
+(Intel Core Ultra 9 185H, CPU only). The `dense` mode costs ~960 ms because it
+evaluates 5625 vectors instead of 1. Loading the model costs ~690 ms once per
+process, so a batch service should load once and reuse the instance.
+
+Full numbers and machine specs live in
+[`benchmarks/results/`](benchmarks/results/). To measure on another machine:
+
+```bash
+uv run python benchmarks/bench_inference.py \
+  --model-dir artifacts/model \
+  --image artifacts/dataset/samples/00_tumor_1.png
+```
+
+---
+
+## Tests
 
 ```bash
 uv run pytest
 ```
 
-A suíte usa imagens sintéticas e cobre descritor, treino, ida-e-volta do
-`save`/`load`, predição nos dois modos e geração de todas as figuras — sem
-precisar do dataset nem do TensorFlow.
+The suite uses synthetic images and covers the descriptor, training, the
+`save`/`load` round trip, prediction in both modes and the generation of every
+figure — without needing the dataset or TensorFlow.
 
 ---
 
-## Estrutura
+## Layout
 
 ```
 src/polygarbor/
-├── gabor.py       # GaborConfig e GaborBank
-├── features.py    # descritor por patch e denso
-├── classifier.py  # PolyGaborClassifier e Prediction
-├── dataset.py     # carga permanente via TFDS (import preguiçoso)
-├── evaluation.py  # métricas por imagem
-├── visualize.py   # todas as figuras
-├── console.py     # saída formatada no terminal
+├── gabor.py       # GaborConfig and GaborBank
+├── features.py    # patch and dense descriptors
+├── classifier.py  # PolyGaborClassifier and Prediction
+├── dataset.py     # permanent TFDS loading (lazy import)
+├── evaluation.py  # per-image metrics
+├── visualize.py   # every figure
+├── console.py     # formatted terminal output
 └── cli.py         # argparse: dataset / train / evaluate / predict / info
+
+benchmarks/
+├── bench_inference.py  # inference timing + machine specs
+└── results/            # committed reports, one per machine
 ```

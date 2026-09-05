@@ -1,7 +1,7 @@
 [project]
 name = "polygarbor"
 version = "0.1.0"
-description = "Classificacao de histologia colorretal com filtros de Gabor + Distancia de Mahalanobis Polinomial"
+description = "Colorectal histology classification with Gabor filters + polynomial Mahalanobis distance"
 readme = "README.md"
 authors = [{ name = "CodeWracker", email = "dev.rodrigofs@gmail.com" }]
 requires-python = ">=3.10,<3.13"
@@ -18,8 +18,8 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# Necessario apenas para o fluxo de dataset (`polygarbor dataset` / `polygarbor train`).
-# O fluxo de inferencia (`polygarbor predict`) roda sem TensorFlow.
+# Only needed for the dataset flow (`polygarbor dataset` / `polygarbor train`).
+# The inference flow (`polygarbor predict`) runs without TensorFlow.
 dataset = [
     "tensorflow-cpu>=2.16",
     "tensorflow-datasets>=4.9",

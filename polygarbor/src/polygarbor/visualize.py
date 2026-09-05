@@ -1,4 +1,4 @@
-"""Figuras do pipeline: banco de filtros, decomposicao de patch, mapas densos e metricas."""
+"""Pipeline figures: filter bank, patch decomposition, dense maps and metrics."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ import numpy as np
 
 
 def use_headless() -> None:
-    """Forca o backend Agg (usado quando o CLI apenas grava PNGs)."""
+    """Force the Agg backend (used when the CLI only writes PNGs)."""
     import matplotlib
 
     matplotlib.use("Agg")
@@ -34,7 +34,7 @@ def plot_dataset_grid(
     class_names: Sequence[str],
     n: int = 9,
 ):
-    """Grade de amostras do dataset com o rotulo de cada uma."""
+    """Grid of dataset samples with each one's label."""
     plt = _plt()
     items = [s for _, s in zip(range(n), samples)]
     cols = int(np.ceil(np.sqrt(len(items)))) or 1
@@ -45,13 +45,13 @@ def plot_dataset_grid(
     for ax, (image, label) in zip(axes.ravel(), items):
         ax.imshow(image)
         ax.set_title(f"{class_names[label]} (ID: {label})", fontsize=9)
-    fig.suptitle("Amostras do conjunto de treino", fontweight="bold")
+    fig.suptitle("Training set samples", fontweight="bold")
     fig.tight_layout()
     return fig
 
 
 def plot_gabor_bank(bank):
-    """Parte real de cada kernel do banco."""
+    """Real part of every kernel in the bank."""
     plt = _plt()
     n = len(bank)
     cols = min(4, n)
@@ -64,7 +64,7 @@ def plot_gabor_bank(bank):
         ax.imshow(k_real, cmap="gray")
         ax.set_title(f"Kernel {i + 1}\n{meta}", fontsize=9)
     fig.suptitle(
-        "Banco de Filtros de Gabor (frequencia x orientacao)",
+        "Gabor filter bank (frequency x orientation)",
         fontsize=12, fontweight="bold",
     )
     fig.tight_layout()
@@ -72,17 +72,17 @@ def plot_gabor_bank(bank):
 
 
 def plot_feature_matrix(features: np.ndarray, feature_names: Sequence[str]):
-    """Heatmap da matriz descritora (linhas: patches, colunas: features)."""
+    """Heatmap of the descriptor matrix (rows: patches, columns: features)."""
     plt = _plt()
     fig, ax = plt.subplots(figsize=(14, max(3.0, len(features) * 0.35 + 1.5)))
     im = ax.imshow(features, aspect="auto", cmap="viridis")
-    fig.colorbar(im, ax=ax, label="Valor")
+    fig.colorbar(im, ax=ax, label="Value")
     ax.set_xticks(np.arange(len(feature_names)))
     ax.set_xticklabels(feature_names, rotation=45, ha="right")
     ax.set_yticks(np.arange(len(features)))
     ax.set_yticklabels([f"Patch {i}" for i in range(len(features))])
     ax.set_title(
-        f"Matriz Descritora Hibrida ({len(features)} patches x {features.shape[1]} features)",
+        f"Hybrid descriptor matrix ({len(features)} patches x {features.shape[1]} features)",
         fontweight="bold",
     )
     fig.tight_layout()
@@ -90,7 +90,7 @@ def plot_feature_matrix(features: np.ndarray, feature_names: Sequence[str]):
 
 
 def plot_patch_decomposition(view, kernel_labels: Sequence[str], title: str = ""):
-    """Patch original -> escala de cinza -> mapas de energia de Gabor."""
+    """Original patch -> grayscale -> Gabor energy maps."""
     plt = _plt()
     n_maps = len(view.energy)
     total = n_maps + 2
@@ -104,13 +104,13 @@ def plot_patch_decomposition(view, kernel_labels: Sequence[str], title: str = ""
     flat[0].imshow(view.rgb)
     flat[0].set_title(f"Patch {view.index}", fontsize=9)
     flat[1].imshow(view.gray, cmap="gray")
-    flat[1].set_title("Escala de cinza", fontsize=9)
+    flat[1].set_title("Grayscale", fontsize=9)
     for i, (emap, meta) in enumerate(zip(view.energy, kernel_labels)):
         ax = flat[i + 2]
         ax.imshow(emap, cmap="inferno")
         ax.set_title(f"G{i + 1}: {meta}", fontsize=8)
 
-    fig.suptitle(title or "Decomposicao do patch em canais de Gabor", fontweight="bold")
+    fig.suptitle(title or "Patch decomposition into Gabor channels", fontweight="bold")
     fig.tight_layout()
     return fig
 
@@ -120,14 +120,14 @@ def distances_to_similarity(
     gamma: float = 0.05,
     reference: tuple[float, float] | None = None,
 ) -> np.ndarray:
-    """Converte distancias em similaridade [0, 255] com decaimento exponencial.
+    """Turn distances into a [0, 255] similarity with exponential decay.
 
-    Sem ``reference`` aplica ``exp(-gamma * d)`` diretamente, como no prototipo.
-    Com ``reference=(lo, escala)`` a distancia passa por ``log1p`` e e reescalada
-    antes da exponencial. Isso importa porque as distancias polinomiais variam por
-    varias ordens de grandeza entre as classes (de ~1 a ~1e6): na escala linear as
-    classes proximas viram um bloco saturado. A referencia precisa ser a mesma
-    para todas as classes, senao os mapas deixam de ser comparaveis entre si.
+    Without ``reference`` it applies ``exp(-gamma * d)`` directly, as in the
+    prototype. With ``reference=(lo, scale)`` the distance goes through ``log1p``
+    and is rescaled first. That matters because polynomial distances span several
+    orders of magnitude across classes (from ~1 to ~1e6): on a linear scale the
+    nearby classes collapse into one saturated block. The reference must be the
+    same for every class, otherwise the maps stop being comparable to each other.
     """
     d = np.asarray(distances, dtype=np.float64)
     if reference is not None:
@@ -139,7 +139,7 @@ def distances_to_similarity(
 
 
 def shared_reference(distances: np.ndarray) -> tuple[float, float]:
-    """Faixa robusta em escala log (percentis 1 e 99) compartilhada pelos mapas."""
+    """Robust log-space range (1st and 99th percentiles) shared by all maps."""
     log_d = np.log1p(np.maximum(np.asarray(distances, dtype=np.float64), 0.0))
     lo, hi = np.percentile(log_d, [1.0, 99.0])
     return float(lo), float(max(hi - lo, 1e-9))
@@ -154,16 +154,16 @@ def plot_similarity_maps(
     alpha: float = 0.55,
     normalize: bool = True,
 ):
-    """Mapas densos de similaridade por classe + mapa de decisao por regiao.
+    """Dense per-class similarity maps plus the per-region decision map.
 
-    Requer uma predicao feita com ``method='dense'`` (que carrega a grade).
-    Com ``normalize=True`` a escala de cor e derivada dos percentis das proprias
-    distancias, garantindo contraste util mesmo quando o descritor denso opera
-    numa escala espacial diferente da usada no treino.
+    Requires a prediction made with ``method='dense'`` (which carries the grid).
+    With ``normalize=True`` the color scale comes from the percentiles of the
+    distances themselves, which keeps the contrast useful even though the dense
+    descriptor works at a different spatial scale than the one used in training.
     """
     if prediction.grid is None:
         raise ValueError(
-            "plot_similarity_maps precisa de uma predicao densa "
+            "plot_similarity_maps needs a dense prediction "
             "(clf.predict(img, method='dense'))."
         )
     plt = _plt()
@@ -183,7 +183,7 @@ def plot_similarity_maps(
         title += f"\nGT: {class_names[true_label]}"
         color = accent
     else:
-        title += f"\nconfianca: {prediction.confidence:.1%}"
+        title += f"\nconfidence: {prediction.confidence:.1%}"
         color = "black"
     axes[0].set_title(title, fontsize=11, fontweight="bold", color=color)
 
@@ -196,7 +196,7 @@ def plot_similarity_maps(
         heat_full = cv2.resize(heat, (w, h), interpolation=cv2.INTER_CUBIC)
         ax.imshow(image)
         im = ax.imshow(heat_full, cmap="inferno", alpha=alpha, vmin=0, vmax=255)
-        ax.set_title(f"Similaridade:\n{name}", fontsize=10)
+        ax.set_title(f"Similarity:\n{name}", fontsize=10)
         ax.axis("off")
         if idx == prediction.label:
             ax.axis("on")
@@ -215,7 +215,7 @@ def plot_similarity_maps(
     im_disc = ax_last.imshow(
         decision_full, cmap=cmap, alpha=0.6, vmin=0, vmax=n_classes - 1
     )
-    ax_last.set_title(f"Vencedor por regiao\n({gh}x{gw})", fontsize=10)
+    ax_last.set_title(f"Winner per region\n({gh}x{gw})", fontsize=10)
     ax_last.axis("off")
     cbar = fig.colorbar(
         im_disc, ax=ax_last, ticks=range(n_classes), fraction=0.046, pad=0.04
@@ -232,7 +232,7 @@ def plot_prediction_summary(
     class_names: Sequence[str],
     true_label: int | None = None,
 ):
-    """Imagem + ranking de similaridade e votos por classe."""
+    """Image plus the similarity ranking and per-class votes."""
     plt = _plt()
     fig, (ax_img, ax_bar) = plt.subplots(
         1, 2, figsize=(13, 4.8), gridspec_kw={"width_ratios": [1, 2]}
@@ -246,7 +246,7 @@ def plot_prediction_summary(
     ax_img.axis("off")
     header = (
         f"{prediction.class_name}\n"
-        f"voto {prediction.confidence:.1%} · similaridade "
+        f"vote {prediction.confidence:.1%} · similarity "
         f"{prediction.similarity[prediction.label]:.3f}"
     )
     if true_label is not None:
@@ -262,13 +262,13 @@ def plot_prediction_summary(
         ax_bar.text(
             bar.get_width() + values.max() * 0.01,
             bar.get_y() + bar.get_height() / 2,
-            f"{prediction.similarity[i]:.3f}  ({int(prediction.votes[i])} votos)",
+            f"{prediction.similarity[i]:.3f}  ({int(prediction.votes[i])} votes)",
             va="center", fontsize=8,
         )
     ax_bar.set_xlim(0, values.max() * 1.35)
-    ax_bar.set_xlabel("Similaridade normalizada")
+    ax_bar.set_xlabel("Normalized similarity")
     ax_bar.set_title(
-        f"Ranking de classes ({prediction.method}/{prediction.aggregation})",
+        f"Class ranking ({prediction.method}/{prediction.aggregation})",
         fontweight="bold",
     )
     fig.tight_layout()
@@ -276,7 +276,7 @@ def plot_prediction_summary(
 
 
 def plot_confusion_matrix(cm: np.ndarray, class_names: Sequence[str], title: str = ""):
-    """Matriz de confusao normalizada por linha (ground truth)."""
+    """Row-normalized (ground truth) confusion matrix."""
     plt = _plt()
     from sklearn.metrics import ConfusionMatrixDisplay
 
@@ -285,10 +285,10 @@ def plot_confusion_matrix(cm: np.ndarray, class_names: Sequence[str], title: str
         cmap="Blues", values_format=".2f", ax=ax, colorbar=True
     )
     ax.set_title(
-        title or "Matriz de Confusao Normalizada", fontsize=13, fontweight="bold", pad=12
+        title or "Normalized confusion matrix", fontsize=13, fontweight="bold", pad=12
     )
-    ax.set_xlabel("Classe predita")
-    ax.set_ylabel("Classe real (GT)")
+    ax.set_xlabel("Predicted class")
+    ax.set_ylabel("True class (GT)")
     plt.setp(ax.get_xticklabels(), rotation=45, ha="right")
     fig.tight_layout()
     return fig

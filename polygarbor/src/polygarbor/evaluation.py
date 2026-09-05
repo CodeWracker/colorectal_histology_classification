@@ -1,4 +1,4 @@
-"""Metricas de classificacao por imagem."""
+"""Per-image classification metrics."""
 
 from __future__ import annotations
 
@@ -50,7 +50,7 @@ class EvaluationResult:
         )
 
     def save(self, out_dir: str | Path) -> dict[str, Path]:
-        """Grava relatorio (csv/txt) e matriz de confusao (csv)."""
+        """Write the report (csv/txt) and the confusion matrix (csv)."""
         import pandas as pd
 
         out_dir = Path(out_dir)
@@ -75,7 +75,7 @@ def evaluate(
     aggregation: str = "voting",
     progress=None,
 ) -> EvaluationResult:
-    """Roda o classificador sobre um iteravel ``(imagem, rotulo)``."""
+    """Run the classifier over an ``(image, label)`` iterable."""
     y_true, y_pred = classifier.predict_many(
         samples, method=method, aggregation=aggregation, progress=progress
     )

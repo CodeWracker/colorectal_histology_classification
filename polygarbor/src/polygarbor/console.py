@@ -1,4 +1,4 @@
-"""Saida de terminal: cabecalhos, passos e tabelas simples, sem dependencias extras."""
+"""Terminal output: headings, steps and simple tables, with no extra dependency."""
 
 from __future__ import annotations
 
@@ -41,7 +41,7 @@ def warn(text: str) -> None:
 
 
 def error(text: str) -> None:
-    print(f"{_c('1;31', '✖ erro:')} {text}", file=sys.stderr)
+    print(f"{_c('1;31', '✖ error:')} {text}", file=sys.stderr)
 
 
 def bullet(text: str) -> None:
@@ -49,7 +49,7 @@ def bullet(text: str) -> None:
 
 
 def table(rows: Sequence[Sequence[object]], headers: Sequence[str]) -> None:
-    """Tabela alinhada em texto puro."""
+    """Plain-text aligned table."""
     data = [[str(c) for c in row] for row in rows]
     widths = [
         max(len(str(headers[i])), *(len(r[i]) for r in data)) if data else len(headers[i])
@@ -64,8 +64,8 @@ def table(rows: Sequence[Sequence[object]], headers: Sequence[str]) -> None:
 
 @contextmanager
 def step(text: str):
-    """Cronometra um bloco e imprime o tempo gasto."""
+    """Time a block and print how long it took."""
     print(f"\n{_c('1;34', '▸ ' + text)}")
     start = time.perf_counter()
     yield
-    print(f"  {_c('32', '✔')} concluido em {time.perf_counter() - start:.1f}s")
+    print(f"  {_c('32', '✔')} done in {time.perf_counter() - start:.1f}s")

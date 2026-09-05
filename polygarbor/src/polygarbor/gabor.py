@@ -1,4 +1,4 @@
-"""Banco de filtros de Gabor (canais de frequencia x orientacao)."""
+"""Gabor filter bank (frequency x orientation channels)."""
 
 from __future__ import annotations
 
@@ -11,10 +11,11 @@ import numpy as np
 
 @dataclass(frozen=True)
 class GaborConfig:
-    """Parametros do banco de filtros de Gabor.
+    """Parameters of the Gabor filter bank.
 
-    O banco final tem ``len(lambdas) * len(thetas)`` filtros; cada filtro rende
-    duas features por regiao (media e desvio padrao do mapa de energia).
+    The resulting bank holds ``len(lambdas) * len(thetas)`` filters; each filter
+    contributes two features per region (mean and standard deviation of its
+    energy map).
     """
 
     ksize: int = 21
@@ -45,7 +46,7 @@ class GaborConfig:
 
 @dataclass
 class GaborBank:
-    """Par de kernels (real, imaginario) por combinacao de lambda e theta."""
+    """One (real, imaginary) kernel pair per lambda/theta combination."""
 
     config: GaborConfig = field(default_factory=GaborConfig)
     kernels: list[tuple[np.ndarray, np.ndarray]] = field(default_factory=list)
@@ -63,14 +64,14 @@ class GaborBank:
 
     @property
     def n_features(self) -> int:
-        """Numero de features de textura geradas pelo banco (media + desvio)."""
+        """Number of texture features produced by the bank (mean + std)."""
         return 2 * len(self.kernels)
 
     def energy_maps(self, gray: np.ndarray) -> list[np.ndarray]:
-        """Aplica todos os filtros na imagem inteira e devolve os mapas de energia.
+        """Apply every filter to the whole image and return the energy maps.
 
-        A convolucao e feita na imagem completa (nao por recorte) para evitar
-        artefatos de borda nos patches.
+        Convolution runs on the full image rather than on individual crops, so
+        patches do not pick up border artifacts.
         """
         gray = gray.astype(np.float32, copy=False)
         maps = []

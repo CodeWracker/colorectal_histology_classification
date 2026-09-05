@@ -1,4 +1,4 @@
-"""Testes do pipeline com imagens sinteticas (sem dependencia do TFDS)."""
+"""Pipeline tests on synthetic images (no TFDS dependency)."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ from polygarbor import PolyGaborClassifier, evaluate, visualize
 from polygarbor.features import dense_features, patch_features, to_uint8_rgb
 from polygarbor.gabor import GaborBank, GaborConfig
 
-CLASSES = ["listras_h", "listras_v", "ruido"]
+CLASSES = ["stripes_h", "stripes_v", "noise"]
 SIZE = 150
 
 
@@ -93,12 +93,12 @@ def test_save_load_roundtrip(fitted, tmp_path):
 
 
 def test_predict_requires_fitted_model():
-    with pytest.raises(RuntimeError, match="nao treinado"):
+    with pytest.raises(RuntimeError, match="not trained"):
         PolyGaborClassifier(class_names=CLASSES).predict(np.zeros((150, 150, 3), np.uint8))
 
 
 def test_invalid_method(fitted):
-    with pytest.raises(ValueError, match="method invalido"):
+    with pytest.raises(ValueError, match="invalid method"):
         fitted.predict(np.zeros((150, 150, 3), np.uint8), method="xyz")
 
 
@@ -127,5 +127,5 @@ def test_figures_are_created(fitted, tmp_path):
 
 def test_similarity_maps_reject_patch_prediction(fitted):
     pred = fitted.predict(synth(0, np.random.default_rng(2)))
-    with pytest.raises(ValueError, match="predicao densa"):
+    with pytest.raises(ValueError, match="dense prediction"):
         visualize.plot_similarity_maps(np.zeros((150, 150, 3), np.uint8), pred, CLASSES)

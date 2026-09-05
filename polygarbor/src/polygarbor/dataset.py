@@ -1,8 +1,8 @@
-"""Carga permanente do dataset via TensorFlow Datasets.
+"""Permanent dataset loading through TensorFlow Datasets.
 
-O TFDS baixa e materializa o dataset uma unica vez em ``data_dir``; execucoes
-seguintes apenas leem o cache dessa pasta. TensorFlow so e importado aqui
-(sob demanda), para que o fluxo de inferencia funcione sem ele instalado.
+TFDS downloads and materializes the dataset once into ``data_dir``; later runs
+only read from that folder's cache. TensorFlow is imported here (lazily) so the
+inference flow works without it installed.
 """
 
 from __future__ import annotations
@@ -19,17 +19,17 @@ SPLIT_NAMES = ("train", "val", "test")
 
 
 def _import_tfds():
-    # Silencia os logs de inicializacao do TensorFlow antes do import.
+    # Silence TensorFlow's startup logs before the import.
     import os
 
     os.environ.setdefault("TF_CPP_MIN_LOG_LEVEL", "3")
     os.environ.setdefault("TF_ENABLE_ONEDNN_OPTS", "0")
     try:
         import tensorflow_datasets as tfds  # noqa: PLC0415
-    except ImportError as exc:  # pragma: no cover - depende do ambiente
+    except ImportError as exc:  # pragma: no cover - environment dependent
         raise ImportError(
-            "O fluxo de dataset precisa do TensorFlow Datasets.\n"
-            "Instale com:  uv sync --extra dataset"
+            "The dataset flow requires TensorFlow Datasets.\n"
+            "Install it with:  uv sync --extra dataset"
         ) from exc
     from absl import logging as absl_logging
 
@@ -40,7 +40,7 @@ def _import_tfds():
 
 @dataclass
 class DatasetBundle:
-    """Splits carregados + metadados do dataset."""
+    """Loaded splits plus dataset metadata."""
 
     splits: dict[str, Any]
     class_names: list[str]
@@ -63,10 +63,10 @@ def load(
     splits: Sequence[str] = DEFAULT_SPLITS,
     shuffle_files: bool = False,
 ) -> DatasetBundle:
-    """Baixa (se necessario) e carrega o dataset em ``data_dir``, de forma permanente.
+    """Download (if needed) and load the dataset into ``data_dir``, permanently.
 
-    ``shuffle_files`` fica desligado por padrao: a ordem de leitura muda quais
-    vetores caem na amostragem de treino, e com ela o resultado do modelo.
+    ``shuffle_files`` is off by default: the read order changes which vectors end
+    up in the training sample, and with them the resulting model.
     """
     tfds = _import_tfds()
     data_dir = Path(data_dir).expanduser().resolve()
@@ -96,7 +96,7 @@ def load(
 
 
 def iter_numpy(dataset: Any, limit: int | None = None) -> Iterator[tuple[np.ndarray, int]]:
-    """Itera um split como pares ``(imagem uint8 RGB, rotulo int)``."""
+    """Iterate a split as ``(RGB uint8 image, int label)`` pairs."""
     if limit:
         dataset = dataset.take(limit)
     for image, label in dataset.as_numpy_iterator():
@@ -109,7 +109,7 @@ def export_samples(
     split: str = "test",
     per_class: int = 1,
 ) -> list[Path]:
-    """Grava algumas imagens em PNG para servir de entrada ao fluxo de predicao."""
+    """Write a few images as PNG to feed the prediction flow."""
     import cv2
 
     out_dir = Path(out_dir)

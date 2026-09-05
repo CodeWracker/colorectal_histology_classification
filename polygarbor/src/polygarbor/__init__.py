@@ -1,11 +1,11 @@
-"""polygarbor - Gabor + Distancia de Mahalanobis Polinomial para histologia colorretal.
+"""polygarbor - Gabor + polynomial Mahalanobis distance for colorectal histology.
 
-Uso como biblioteca::
+Use as a library::
 
     from polygarbor import PolyGaborClassifier
 
     clf = PolyGaborClassifier.load("artifacts/model")
-    pred = clf.predict("minha_lamina.png")
+    pred = clf.predict("my_slide.png")
     print(pred.class_name, pred.confidence)
 """
 
