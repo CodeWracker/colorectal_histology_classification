@@ -1,0 +1,37 @@
+[project]
+name = "polygarbor"
+version = "0.1.0"
+description = "Classificacao de histologia colorretal com filtros de Gabor + Distancia de Mahalanobis Polinomial"
+readme = "README.md"
+authors = [{ name = "CodeWracker", email = "dev.rodrigofs@gmail.com" }]
+requires-python = ">=3.10,<3.13"
+
+dependencies = [
+    "numpy>=1.26",
+    "opencv-python-headless>=4.9",
+    "matplotlib>=3.8",
+    "scikit-learn>=1.4",
+    "pandas>=2.1",
+    "tqdm>=4.66",
+    "polymahalanobis>=0.1.1",
+    "pillow>=10.2",
+]
+
+[project.optional-dependencies]
+# Necessario apenas para o fluxo de dataset (`polygarbor dataset` / `polygarbor train`).
+# O fluxo de inferencia (`polygarbor predict`) roda sem TensorFlow.
+dataset = [
+    "tensorflow-cpu>=2.16",
+    "tensorflow-datasets>=4.9",
+    "importlib-resources>=6.0",
+]
+
+[project.scripts]
+polygarbor = "polygarbor.cli:main"
+
+[build-system]
+requires = ["uv_build>=0.9.18,<0.10.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = ["pytest>=8.0"]
