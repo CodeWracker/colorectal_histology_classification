@@ -1,0 +1,136 @@
+{
+  "specs": {
+    "timestamp_utc": "2026-09-05T15:21:49+00:00",
+    "hostname": "ralph-Alienware-m16-R2",
+    "os": "Linux 6.17.0-14-generic",
+    "os_detail": "#14~24.04.1-Ubuntu SMP PREEMPT_DYNAMIC Thu Jan 15 15:52:10 UTC 2",
+    "architecture": "x86_64",
+    "cpu": "Intel(R) Core(TM) Ultra 9 185H",
+    "cpu_topology": {
+      "cores_per_socket": "16",
+      "sockets": "1",
+      "threads_per_core": "2",
+      "max_mhz": "5100.0000",
+      "arch": "x86_64"
+    },
+    "logical_cpus": 22,
+    "total_memory_gb": 30.9,
+    "gpus": [
+      "NVIDIA GeForce RTX 4070 Laptop GPU, 8188 MiB"
+    ],
+    "python": "3.11.14",
+    "packages": {
+      "numpy": "2.4.6",
+      "opencv-python-headless": "5.0.0.93",
+      "polymahalanobis": "0.1.1",
+      "scikit-learn": "1.9.0"
+    },
+    "opencv_threads": 22,
+    "thread_env": {}
+  },
+  "setup": {
+    "image": "artifacts/dataset/samples/00_tumor_1.png",
+    "dimensions": "150x150",
+    "model": "artifacts/model",
+    "classes": 8,
+    "features_per_vector": 22,
+    "patches_per_image": 1,
+    "dense_vectors_per_image": 5625,
+    "polynomial_levels": 3,
+    "runs": 200,
+    "warmup": 20,
+    "prediction": "tumor"
+  },
+  "measurements": [
+    {
+      "name": "Load model from disk (once per process)",
+      "runs": 20,
+      "mean_ms": 691.976,
+      "median_ms": 666.369,
+      "stdev_ms": 66.166,
+      "min_ms": 588.187,
+      "max_ms": 823.039,
+      "per_second": 1.4
+    },
+    {
+      "name": "Read and decode the image",
+      "runs": 200,
+      "mean_ms": 0.496,
+      "median_ms": 0.499,
+      "stdev_ms": 0.012,
+      "min_ms": 0.476,
+      "max_ms": 0.542,
+      "per_second": 2017.7
+    },
+    {
+      "name": "Extract descriptor (patch)",
+      "runs": 200,
+      "mean_ms": 4.488,
+      "median_ms": 4.427,
+      "stdev_ms": 0.168,
+      "min_ms": 4.295,
+      "max_ms": 5.326,
+      "per_second": 222.8
+    },
+    {
+      "name": "Mahalanobis distances (patch)",
+      "runs": 200,
+      "mean_ms": 16.42,
+      "median_ms": 16.329,
+      "stdev_ms": 0.418,
+      "min_ms": 15.848,
+      "max_ms": 19.189,
+      "per_second": 60.9
+    },
+    {
+      "name": "Patch inference, in-memory array",
+      "runs": 200,
+      "mean_ms": 20.386,
+      "median_ms": 20.287,
+      "stdev_ms": 0.48,
+      "min_ms": 19.742,
+      "max_ms": 25.091,
+      "per_second": 49.1
+    },
+    {
+      "name": "Patch inference, from file",
+      "runs": 200,
+      "mean_ms": 20.651,
+      "median_ms": 20.608,
+      "stdev_ms": 0.275,
+      "min_ms": 20.135,
+      "max_ms": 21.683,
+      "per_second": 48.4
+    },
+    {
+      "name": "Extract descriptor (dense 75x75)",
+      "runs": 200,
+      "mean_ms": 1.53,
+      "median_ms": 1.512,
+      "stdev_ms": 0.049,
+      "min_ms": 1.474,
+      "max_ms": 1.718,
+      "per_second": 653.5
+    },
+    {
+      "name": "Mahalanobis distances (dense)",
+      "runs": 200,
+      "mean_ms": 955.88,
+      "median_ms": 937.981,
+      "stdev_ms": 58.038,
+      "min_ms": 876.158,
+      "max_ms": 1169.655,
+      "per_second": 1.0
+    },
+    {
+      "name": "Dense inference, in-memory array",
+      "runs": 200,
+      "mean_ms": 961.173,
+      "median_ms": 943.14,
+      "stdev_ms": 57.831,
+      "min_ms": 882.929,
+      "max_ms": 1221.478,
+      "per_second": 1.0
+    }
+  ]
+}
