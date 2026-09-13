@@ -4,19 +4,21 @@ Foram avaliados 20 mosaicos de validação e 30 de teste, todos 4×4 e 600×600 
 
 ![Métricas de localização](localization_metrics.png)
 
-| Método | Seed | AUROC pixels | AP pixels | Dice | IoU | AUROC médio/mosaico (IC95%) | Dice médio/mosaico (IC95%) |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| polygarbor | 42 | 0.6408 | 0.1891 | 0.2594 | 0.1490 | 0.6480 (0.5972–0.7009) | 0.2668 (0.2221–0.3160) |
-| polygarbor | 43 | 0.6387 | 0.1858 | 0.2588 | 0.1487 | 0.6455 (0.5946–0.6985) | 0.2668 (0.2222–0.3161) |
-| resnet18 | 42 | 0.8964 | 0.4523 | 0.5584 | 0.3873 | 0.8988 (0.8763–0.9197) | 0.5742 (0.5304–0.6178) |
-| resnet18 | 43 | 0.8977 | 0.5775 | 0.5889 | 0.4174 | 0.8974 (0.8732–0.9180) | 0.5897 (0.5496–0.6276) |
+| Método | Seed | AUROC explicação/patch | AP explicação/patch | Recall top-2 | Ambos no top-2 | AUROC classificador/patch | AUROC região fraca | Dice região fraca |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| polygarbor | 42 | 0.8274 | 0.3640 | 0.4667 | 0.1667 | 0.9638 | 0.7702 | 0.4000 |
+| polygarbor | 43 | 0.8233 | 0.3543 | 0.4500 | 0.1667 | 0.9641 | 0.7669 | 0.3938 |
+| resnet18 | 42 | 0.9703 | 0.7195 | 0.7833 | 0.5667 | 0.9981 | 0.9433 | 0.6804 |
+| resnet18 | 43 | 0.9860 | 0.9158 | 0.8500 | 0.7000 | 0.9984 | 0.9457 | 0.7077 |
 
-O threshold de cada método e seed maximiza Dice somente na validação. AUROC e average precision não usam threshold. O baseline aleatório de AUROC é 0,5; marcar todos os pixels como tumor produz Dice 0,2222 nesta prevalência. Os intervalos reamostram os 30 mosaicos inteiros por 5.000 draws.
+A análise principal usa o rótulo conhecido de cada patch. AUROC e AP verificam se a evidência média do mapa ordena patches tumorais acima dos demais. Recall top-2 mede quantos dos dois tumores aparecem entre os dois patches de maior evidência; ambos no top-2 exige acerto perfeito do par. AUROC do classificador usa seu escore de tumor para cada patch isolado e permite distinguir erro da decisão e erro do mapa explicativo.
 
-![Exemplos de mosaicos, máscaras e mapas](localization_examples.png)
+![Exemplos de mosaicos, rótulos e mapas](localization_examples.png)
 
-O escore PolyGabor é `-log1p(distância para tumor)` na grade densa 75×75. O CAM da ResNet é calculado antes do softmax a partir das ativações espaciais e dos pesos da classe tumor, com ReLU. A ResNet foi estendida de forma totalmente convolucional para 600×600; a maior diferença observada em 128×128 fica registrada em raw_metrics.json. Os dois mapas foram interpolados linearmente para a resolução do mosaico.
+Cada patch é processado isoladamente e somente então os mapas são remontados. Assim, nenhum campo receptivo nem interpolação cruza as bordas artificiais do mosaico. Na figura, verde identifica a verdade tumor, amarelo tracejado mostra os dois patches com maior evidência do mapa e ciano mostra o limiar selecionado na validação. Os contornos cianos também são calculados separadamente em cada patch.
 
-Esta avaliação mede separação espacial em uma construção sintética cujas regiões de 150×150 já possuem rótulo de classe. Ela não usa contornos celulares ou anotação de tumor dentro de uma lâmina e não valida segmentação clínica. A interpolação, o campo receptivo e as bordas entre patches afetam as métricas em pixels. A comparação pareada por mosaico está em paired_comparison.csv; mapas nativos e layouts auditáveis estão no diretório da execução.
+O escore PolyGabor é a distância logarítmica negativa para tumor em uma grade densa 75×75 por patch. O CAM da ResNet é calculado em sua entrada treinada de 128×128, antes do softmax, a partir das ativações espaciais 4×4 e dos pesos da classe tumor, com ReLU. Cada mapa é interpolado apenas dentro do respectivo patch de 150×150.
 
-Artefatos brutos: `runs/2026-09-12/localization`. Tempos e recursos estão em timings.json e resources.json. A parte qualitativa nas imagens grandes não foi executada porque o arquivo local contém os 5.000 patches, sem o dataset separado `colorectal_histology_large`.
+O threshold de cada método e seed maximiza Dice exclusivamente na validação. As métricas em pixels foram mantidas como análise secundária de região fracamente anotada: toda a área de um patch tumor é positiva porque não há contorno histopatológico dentro dele. Elas não medem segmentação celular ou tumoral real. O baseline aleatório de AUROC é 0,5 e a prevalência positiva é 12,5%. Os intervalos reamostram os 30 mosaicos inteiros por 5.000 draws.
+
+Artefatos brutos: runs/2026-09-12/localization. Tempos e recursos estão em timings.json e resources.json. A parte qualitativa nas imagens grandes não foi executada porque o arquivo local contém os 5.000 patches, sem o dataset separado colorectal_histology_large.

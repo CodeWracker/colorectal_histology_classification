@@ -246,10 +246,11 @@ def main():
 
     localization_path = out / "localization/metrics.csv"
     localization = pd.read_csv(localization_path) if localization_path.exists() else pd.DataFrame()
+    localization_display = localization[["method", "model_seed", "test_patch_auc", "test_patch_average_precision", "test_patch_tumor_recall_at_2", "test_patch_both_tumors_top2_rate", "test_classifier_patch_auc"]].rename(columns={"method": "método", "model_seed": "seed", "test_patch_auc": "AUROC explicação", "test_patch_average_precision": "AP explicação", "test_patch_tumor_recall_at_2": "recall top-2", "test_patch_both_tumors_top2_rate": "ambos no top-2", "test_classifier_patch_auc": "AUROC classificador"}) if not localization.empty else localization
     localization_section = [] if localization.empty else [
-        "## Localização quantitativa", "", "![Localização de tumor em mosaicos](localization/localization_metrics.png)", "",
-        markdown_table(localization[["method", "model_seed", "test_pooled_auc", "test_pooled_average_precision", "test_pooled_dice", "test_pooled_iou"]]), "",
-        "O threshold de Dice foi escolhido exclusivamente em 20 mosaicos de validação e aplicado a 30 mosaicos de teste. Cada mosaico 4×4 contém dois patches de tumor e quatorze das demais classes, sem repetição de patches dentro de cada split. AUROC/AP são calculados em pixels; intervalos por mosaico, protocolo, exemplos e limitações estão no [relatório de localização](localization/README.md).", ""]
+        "## Localização quantitativa", "", "![Identificação dos patches de tumor](localization/localization_metrics.png)", "",
+        markdown_table(localization_display), "",
+        "Cada mosaico 4×4 contém dois patches de tumor e quatorze das demais classes, sem repetição dentro do split. Os mapas são calculados em cada patch isolado e remontados sem mistura entre vizinhos. A avaliação primária compara a evidência explicativa com os rótulos conhecidos por patch; métricas de região em pixels são secundárias porque não há anotação interna. Protocolo, exemplos e limitações estão no [relatório de localização](localization/README.md).", ""]
 
     sections = ["# Comparação de classificadores de histopatologia colorretal", "",
         f"Campanha `{args.campaign}`. Este arquivo é gerado dos artefatos salvos; a avaliação visual e a interpretação detalhada estão em [DISCUSSION.md](DISCUSSION.md). Há {len(index)} runs registradas e {len(runs)} concluídas. Consultar `run_index.csv` para falhas e caminhos, `metrics.csv` para todas as métricas e `../../PROTOCOL.md` para o protocolo.", "",

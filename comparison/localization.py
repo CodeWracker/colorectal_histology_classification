@@ -17,6 +17,10 @@ ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT.parent / "cnn/src"))
 sys.path.insert(0, str(ROOT.parent / "polygarbor/src"))
 
+PROTOCOL_VERSION = 2
+GRID_SIZE = 4
+TILE_SIZE = 150
+
 
 def make_layouts(labels, count, tumors_per_mosaic=2, seed=42):
     """Return unique patch indices and labels for deterministic 4x4 mosaics."""
@@ -89,7 +93,34 @@ def flatten_scores(native_maps, layouts, output_size=600):
     return np.concatenate(masks), np.concatenate(scores)
 
 
-def evaluate_maps(val_maps, test_maps, val_layouts, test_layouts):
+def patch_scores_from_map(score):
+    """Mean explanation evidence in each mosaic tile, in row-major order."""
+    score = np.asarray(score)
+    if score.ndim != 2 or score.shape[0] != score.shape[1] or score.shape[0] % GRID_SIZE:
+        raise ValueError("score must be a square 2D mosaic divisible by the grid size")
+    side = score.shape[0] // GRID_SIZE
+    return score.reshape(GRID_SIZE, side, GRID_SIZE, side).mean(axis=(1, 3)).ravel()
+
+
+def flatten_patch_scores(maps, layouts):
+    labels = np.concatenate([np.asarray(layout["labels"]) == 0 for layout in layouts])
+    scores = np.concatenate([patch_scores_from_map(score) for score in maps])
+    return labels, scores
+
+
+def retrieval_metrics(scores, layouts):
+    recalls, exact = [], []
+    for score, layout in zip(scores, layouts):
+        truth = np.asarray(layout["labels"]) == 0
+        top = np.argsort(-np.asarray(score), kind="stable")[:int(truth.sum())]
+        recall = float(truth[top].sum() / truth.sum())
+        recalls.append(recall)
+        exact.append(float(recall == 1.0))
+    return recalls, exact
+
+
+def evaluate_maps(val_maps, test_maps, val_layouts, test_layouts, val_classifier_scores, test_classifier_scores):
+    """Evaluate weak regions, patch evidence, and the classifier's tumor score."""
     val_y, val_scores = flatten_scores(val_maps, val_layouts)
     threshold, val_dice = best_dice_threshold(val_y, val_scores)
     test_y, test_scores = flatten_scores(test_maps, test_layouts)
@@ -102,48 +133,97 @@ def evaluate_maps(val_maps, test_maps, val_layouts, test_layouts):
         d, i = dice_iou(y, score, threshold)
         per_dice.append(d)
         per_iou.append(i)
+    val_patch_y, val_patch_scores = flatten_patch_scores(val_maps, val_layouts)
+    patch_threshold, validation_patch_dice = best_dice_threshold(val_patch_y, val_patch_scores)
+    test_patch_y, test_patch_scores = flatten_patch_scores(test_maps, test_layouts)
+    test_patch_dice, test_patch_iou = dice_iou(test_patch_y, test_patch_scores, patch_threshold)
+    per_patch_auc, per_patch_dice = [], []
+    explanation_scores = []
+    for score, layout in zip(test_maps, test_layouts):
+        patch_score = patch_scores_from_map(score)
+        truth = np.asarray(layout["labels"]) == 0
+        explanation_scores.append(patch_score)
+        per_patch_auc.append(roc_auc_score(truth, patch_score))
+        per_patch_dice.append(dice_iou(truth, patch_score, patch_threshold)[0])
+    explanation_recall, explanation_exact = retrieval_metrics(explanation_scores, test_layouts)
+    classifier_recall, classifier_exact = retrieval_metrics(test_classifier_scores, test_layouts)
+    validation_classifier_y = np.concatenate([np.asarray(layout["labels"]) == 0 for layout in val_layouts])
+    validation_classifier_scores = np.asarray(val_classifier_scores).ravel()
+    classifier_y = np.concatenate([np.asarray(layout["labels"]) == 0 for layout in test_layouts])
+    classifier_scores = np.asarray(test_classifier_scores).ravel()
     return dict(threshold=threshold, validation_pooled_auc=float(roc_auc_score(val_y, val_scores)), validation_pooled_dice=val_dice,
                 test_pooled_auc=float(roc_auc_score(test_y, test_scores)), test_pooled_average_precision=float(average_precision_score(test_y, test_scores)),
                 test_pooled_dice=float(test_dice), test_pooled_iou=float(test_iou), test_mosaic_auc_mean=float(np.mean(per_auc)),
                 test_mosaic_auc_ci95=bootstrap_mean(per_auc), test_mosaic_average_precision_mean=float(np.mean(per_ap)),
                 test_mosaic_dice_mean=float(np.mean(per_dice)), test_mosaic_dice_ci95=bootstrap_mean(per_dice),
                 test_mosaic_iou_mean=float(np.mean(per_iou)), per_mosaic_auc=list(map(float, per_auc)),
-                per_mosaic_dice=list(map(float, per_dice)))
+                per_mosaic_dice=list(map(float, per_dice)), patch_threshold=patch_threshold,
+                validation_patch_dice=validation_patch_dice, test_patch_auc=float(roc_auc_score(test_patch_y, test_patch_scores)),
+                test_patch_average_precision=float(average_precision_score(test_patch_y, test_patch_scores)),
+                test_patch_dice=float(test_patch_dice), test_patch_iou=float(test_patch_iou),
+                test_patch_auc_mean=float(np.mean(per_patch_auc)), test_patch_auc_ci95=bootstrap_mean(per_patch_auc),
+                test_patch_dice_mean=float(np.mean(per_patch_dice)), test_patch_dice_ci95=bootstrap_mean(per_patch_dice),
+                test_patch_tumor_recall_at_2=float(np.mean(explanation_recall)),
+                test_patch_both_tumors_top2_rate=float(np.mean(explanation_exact)),
+                test_classifier_patch_auc=float(roc_auc_score(classifier_y, classifier_scores)),
+                test_classifier_patch_average_precision=float(average_precision_score(classifier_y, classifier_scores)),
+                validation_classifier_patch_auc=float(roc_auc_score(validation_classifier_y, validation_classifier_scores)),
+                test_classifier_tumor_recall_at_2=float(np.mean(classifier_recall)),
+                test_classifier_both_tumors_top2_rate=float(np.mean(classifier_exact)),
+                per_mosaic_patch_auc=list(map(float, per_patch_auc)), per_mosaic_patch_dice=list(map(float, per_patch_dice)),
+                per_mosaic_patch_recall_at_2=explanation_recall)
+
+
+def stitch_tile_maps(tile_maps, tile_size=TILE_SIZE):
+    """Resize within each tile and stitch without interpolation across boundaries."""
+    output = np.empty((GRID_SIZE * tile_size, GRID_SIZE * tile_size), dtype=np.float32)
+    for position, tile_map in enumerate(tile_maps):
+        row, col = divmod(position, GRID_SIZE)
+        resized = cv2.resize(np.asarray(tile_map, dtype=np.float32), (tile_size, tile_size), interpolation=cv2.INTER_LINEAR)
+        output[row * tile_size:(row + 1) * tile_size, col * tile_size:(col + 1) * tile_size] = resized
+    return output
 
 
 def polygarbor_maps(model_dir, images, layouts):
     from polygarbor import PolyGaborClassifier
     classifier = PolyGaborClassifier.load(model_dir)
-    maps = []
+    maps, classifier_scores = [], []
     for layout in layouts:
-        mosaic, _ = build_mosaic(images, layout)
-        features, grid = classifier.extract_dense(mosaic)
-        distances = classifier.distances(features)
-        maps.append((-np.log1p(np.maximum(distances[:, 0], 0))).reshape(grid).astype(np.float32))
-    return np.stack(maps)
+        tile_maps, tile_scores = [], []
+        for index in layout["indices"]:
+            image = images[index]
+            features, grid = classifier.extract_dense(image)
+            distances = classifier.distances(features)
+            tile_maps.append((-np.log1p(np.maximum(distances[:, 0], 0))).reshape(grid).astype(np.float32))
+            tile_scores.append(float(classifier.predict(image).similarity[0]))
+        maps.append(stitch_tile_maps(tile_maps))
+        classifier_scores.append(tile_scores)
+    return np.stack(maps), np.asarray(classifier_scores, dtype=np.float32), list(tile_maps[0].shape)
 
 
 def resnet_maps(model_dir, images, layouts):
-    from cnn.classifier import CNNClassifier, build_resnet18, configure_tensorflow
+    from cnn.classifier import CNNClassifier, configure_tensorflow
     tf = configure_tensorflow("gpu", 4, 42)
     classifier = CNNClassifier.load(model_dir, device="gpu")
-    dynamic = build_resnet18(None, classifier.n_classes)
-    dynamic.set_weights(classifier.model.get_weights())
-    sample = tf.image.resize(images[0], (128, 128))[None] / 255.
-    max_difference = float(np.max(np.abs(classifier.model(sample, training=False).numpy() - dynamic(sample, training=False).numpy())))
-    feature_model = tf.keras.Model(dynamic.inputs, dynamic.get_layer("spatial_features").output)
-    weights = tf.constant(dynamic.get_layer("classifier").get_weights()[0][:, 0])
+    feature_model = tf.keras.Model(classifier.model.inputs, classifier.model.get_layer("spatial_features").output)
+    weights = tf.constant(classifier.model.get_layer("classifier").get_weights()[0][:, 0])
 
-    @tf.function(input_signature=[tf.TensorSpec([1, None, None, 3], tf.float32)])
+    @tf.function(input_signature=[tf.TensorSpec([None, 128, 128, 3], tf.float32)])
     def cam(x):
-        features = feature_model(x, training=False)[0]
-        return tf.nn.relu(tf.tensordot(features, weights, axes=1))
+        features = feature_model(x, training=False)
+        maps = tf.nn.relu(tf.tensordot(features, weights, axes=[[3], [0]]))
+        return maps, classifier.model(x, training=False)
 
-    maps = []
+    maps, classifier_scores = [], []
+    native_shape = None
     for layout in layouts:
-        mosaic, _ = build_mosaic(images, layout)
-        maps.append(cam(tf.convert_to_tensor(mosaic[None], tf.float32) / 255.).numpy().astype(np.float32))
-    return np.stack(maps), max_difference
+        tiles = tf.image.resize(np.asarray(images[layout["indices"]]), (128, 128)) / 255.
+        tile_maps, probabilities = cam(tf.cast(tiles, tf.float32))
+        tile_maps = tile_maps.numpy().astype(np.float32)
+        native_shape = list(tile_maps.shape[1:])
+        maps.append(stitch_tile_maps(tile_maps))
+        classifier_scores.append(probabilities.numpy()[:, 0])
+    return np.stack(maps), np.asarray(classifier_scores, dtype=np.float32), native_shape
 
 
 def plot_results(result_dir, rows, saved, test_images, test_layouts):
@@ -154,8 +234,15 @@ def plot_results(result_dir, rows, saved, test_images, test_layouts):
     methods = ("polygarbor", "resnet18")
     labels = {"polygarbor": "PolyGabor", "resnet18": "ResNet-18 CAM"}
     colors = {"polygarbor": "#1b9e77", "resnet18": "#d95f02"}
-    fig, axes = plt.subplots(1, 2, figsize=(9, 4))
-    for ax, metric, title in zip(axes, ("test_pooled_auc", "test_pooled_dice"), ("AUROC em pixels", "Dice no threshold de validação")):
+    from matplotlib.patches import Rectangle
+
+    fig, axes = plt.subplots(1, 3, figsize=(12, 4))
+    chart_metrics = (
+        ("test_patch_auc", "AUROC da explicação por patch"),
+        ("test_patch_tumor_recall_at_2", "Tumores recuperados no top-2"),
+        ("test_classifier_patch_auc", "AUROC da classificação por patch"),
+    )
+    for ax, (metric, title) in zip(axes, chart_metrics):
         for x, method in enumerate(methods):
             values = [r[metric] for r in rows if r["method"] == method]
             ax.scatter([x] * len(values), values, color=colors[method], alpha=.45, s=45)
@@ -163,42 +250,79 @@ def plot_results(result_dir, rows, saved, test_images, test_layouts):
             ax.annotate(f"{np.mean(values):.3f}", (x, np.mean(values)), xytext=(7, 0), textcoords="offset points", va="center")
         ax.set(title=title, xticks=range(2), xticklabels=[labels[m] for m in methods], ylim=(0, 1))
         ax.grid(axis="y", alpha=.2)
-    fig.suptitle("Localização de tumor em 30 mosaicos de teste")
+    fig.suptitle("Identificação dos patches de tumor em 30 mosaicos de teste")
     fig.tight_layout()
     fig.savefig(result_dir / "localization_metrics.png", dpi=180)
     plt.close(fig)
+
+    class_names = json.loads((ROOT / "dataset_manifest.json").read_text())["class_names"]
+
+    def draw_grid(ax):
+        for edge in (TILE_SIZE, 2 * TILE_SIZE, 3 * TILE_SIZE):
+            ax.axhline(edge, color="white", linewidth=.7)
+            ax.axvline(edge, color="white", linewidth=.7)
+
+    def draw_truth(ax, layout, show_labels=False):
+        for position, label in enumerate(layout["labels"]):
+            row, col = divmod(position, GRID_SIZE)
+            x, y = col * TILE_SIZE, row * TILE_SIZE
+            if label == 0:
+                ax.add_patch(Rectangle((x + 2, y + 2), TILE_SIZE - 4, TILE_SIZE - 4, fill=False, edgecolor="#39ff14", linewidth=2.5))
+                ax.text(x + 6, y + 18, "TUMOR", color="#39ff14", fontsize=7, weight="bold", bbox=dict(facecolor="black", alpha=.72, pad=1, edgecolor="none"))
+            elif show_labels:
+                ax.text(x + 6, y + 18, class_names[label], color="white", fontsize=6.5, bbox=dict(facecolor="black", alpha=.62, pad=1, edgecolor="none"))
+
+    def draw_top2(ax, score):
+        for rank, position in enumerate(np.argsort(-patch_scores_from_map(score), kind="stable")[:2], 1):
+            row, col = divmod(int(position), GRID_SIZE)
+            x, y = col * TILE_SIZE, row * TILE_SIZE
+            ax.add_patch(Rectangle((x + 6, y + 6), TILE_SIZE - 12, TILE_SIZE - 12, fill=False, edgecolor="#ffd92f", linewidth=2, linestyle="--"))
+            ax.text(x + TILE_SIZE - 8, y + 18, f"P{rank}", ha="right", color="#ffd92f", fontsize=7, weight="bold", bbox=dict(facecolor="black", alpha=.72, pad=1, edgecolor="none"))
+
+    def contour_patchwise(ax, score, threshold):
+        for position in range(GRID_SIZE * GRID_SIZE):
+            row, col = divmod(position, GRID_SIZE)
+            y, x = row * TILE_SIZE, col * TILE_SIZE
+            local = score[y:y + TILE_SIZE, x:x + TILE_SIZE]
+            if local.min() < threshold <= local.max():
+                ax.contour(np.arange(x, x + TILE_SIZE), np.arange(y, y + TILE_SIZE), local >= threshold, levels=[.5], colors=["cyan"], linewidths=.8)
 
     fig, axes = plt.subplots(3, 4, figsize=(14, 11), layout="constrained")
     seed_rows = {r["method"]: r for r in rows if r["model_seed"] == 42}
     for row, index in enumerate((0, 1, 2)):
         mosaic, mask = build_mosaic(test_images, test_layouts[index])
         axes[row, 0].imshow(mosaic)
-        for edge in (150, 300, 450):
-            axes[row, 0].axhline(edge, color="white", linewidth=.5)
-            axes[row, 0].axvline(edge, color="white", linewidth=.5)
-        axes[row, 0].set_title(f"Mosaico {index}")
+        draw_grid(axes[row, 0])
+        draw_truth(axes[row, 0], test_layouts[index])
+        axes[row, 0].set_title(f"Mosaico {index}\nverdade em verde")
         axes[row, 1].imshow(mosaic)
         axes[row, 1].imshow(mask, cmap="Greens", alpha=.45, vmin=0, vmax=1)
-        axes[row, 1].set_title("Máscara conhecida")
+        draw_grid(axes[row, 1])
+        draw_truth(axes[row, 1], test_layouts[index], show_labels=True)
+        axes[row, 1].set_title("Rótulo conhecido por patch")
         for col, method in enumerate(methods, 2):
-            native = saved[(method, 42)]["test"][index]
-            score = cv2.resize(native, (600, 600), interpolation=cv2.INTER_LINEAR)
+            score = saved[(method, 42)]["test"][index]
             threshold = seed_rows[method]["threshold"]
             axes[row, col].imshow(mosaic)
             axes[row, col].imshow(score, cmap="magma", alpha=.55, vmin=np.percentile(saved[(method, 42)]["val"], 1), vmax=np.percentile(saved[(method, 42)]["val"], 99))
-            axes[row, col].contour(score >= threshold, levels=[.5], colors=["cyan"], linewidths=1)
-            y = mask.ravel()
-            auc = roc_auc_score(y, score.ravel())
-            dice, _ = dice_iou(y, score.ravel(), threshold)
-            axes[row, col].set_title(f"{labels[method]}\nAUROC={auc:.3f}; Dice={dice:.3f}")
+            contour_patchwise(axes[row, col], score, threshold)
+            draw_grid(axes[row, col])
+            draw_truth(axes[row, col], test_layouts[index])
+            draw_top2(axes[row, col], score)
+            truth = np.asarray(test_layouts[index]["labels"]) == 0
+            patch_score = patch_scores_from_map(score)
+            auc = roc_auc_score(truth, patch_score)
+            recall = truth[np.argsort(-patch_score)[:2]].sum() / 2
+            axes[row, col].set_title(f"{labels[method]}\nAUROC patch={auc:.3f}; top-2={recall:.0%}")
         for ax in axes[row]:
             ax.axis("off")
+    fig.suptitle("Verde: verdade tumor | amarelo tracejado: dois patches com maior evidência | ciano: limiar de validação", fontsize=12)
     fig.savefig(result_dir / "localization_examples.png", dpi=160)
     plt.close(fig)
 
 
 def write_report(result_dir, rows, comparisons, run_dir):
-    headers = ["method", "model_seed", "test_pooled_auc", "test_pooled_average_precision", "test_pooled_dice", "test_pooled_iou", "test_mosaic_auc_mean", "test_mosaic_auc_ci95", "test_mosaic_dice_mean", "test_mosaic_dice_ci95", "threshold", "map_seconds"]
+    headers = ["method", "model_seed", "test_patch_auc", "test_patch_average_precision", "test_patch_dice", "test_patch_iou", "test_patch_tumor_recall_at_2", "test_patch_both_tumors_top2_rate", "test_classifier_patch_auc", "test_classifier_patch_average_precision", "test_classifier_tumor_recall_at_2", "test_classifier_both_tumors_top2_rate", "test_pooled_auc", "test_pooled_average_precision", "test_pooled_dice", "test_pooled_iou", "patch_threshold", "threshold", "map_seconds"]
     with (result_dir / "metrics.csv").open("w") as handle:
         writer = csv.DictWriter(handle, fieldnames=headers)
         writer.writeheader()
@@ -207,10 +331,10 @@ def write_report(result_dir, rows, comparisons, run_dir):
         writer = csv.DictWriter(handle, fieldnames=comparisons[0])
         writer.writeheader()
         writer.writerows(comparisons)
-    table = ["| Método | Seed | AUROC pixels | AP pixels | Dice | IoU | AUROC médio/mosaico (IC95%) | Dice médio/mosaico (IC95%) |", "| --- | --- | --- | --- | --- | --- | --- | --- |"]
+    table = ["| Método | Seed | AUROC explicação/patch | AP explicação/patch | Recall top-2 | Ambos no top-2 | AUROC classificador/patch | AUROC região fraca | Dice região fraca |", "| --- | --- | --- | --- | --- | --- | --- | --- | --- |"]
     for r in rows:
-        table.append(f"| {r['method']} | {r['model_seed']} | {r['test_pooled_auc']:.4f} | {r['test_pooled_average_precision']:.4f} | {r['test_pooled_dice']:.4f} | {r['test_pooled_iou']:.4f} | {r['test_mosaic_auc_mean']:.4f} ({r['test_mosaic_auc_ci95'][0]:.4f}–{r['test_mosaic_auc_ci95'][1]:.4f}) | {r['test_mosaic_dice_mean']:.4f} ({r['test_mosaic_dice_ci95'][0]:.4f}–{r['test_mosaic_dice_ci95'][1]:.4f}) |")
-    text = ["# Localização quantitativa de tumor em mosaicos", "", "Foram avaliados 20 mosaicos de validação e 30 de teste, todos 4×4 e 600×600 pixels, com dois patches de tumor e quatorze não tumorais. Os 800 patches utilizados são únicos dentro de cada split. Os modelos completos das seeds 42 e 43 foram reutilizados sem retreino.", "", "![Métricas de localização](localization_metrics.png)", "", *table, "", "O threshold de cada método e seed maximiza Dice somente na validação. AUROC e average precision não usam threshold. O baseline aleatório de AUROC é 0,5; marcar todos os pixels como tumor produz Dice 0,2222 nesta prevalência. Os intervalos reamostram os 30 mosaicos inteiros por 5.000 draws.", "", "![Exemplos de mosaicos, máscaras e mapas](localization_examples.png)", "", "O escore PolyGabor é `-log1p(distância para tumor)` na grade densa 75×75. O CAM da ResNet é calculado antes do softmax a partir das ativações espaciais e dos pesos da classe tumor, com ReLU. A ResNet foi estendida de forma totalmente convolucional para 600×600; a maior diferença observada em 128×128 fica registrada em raw_metrics.json. Os dois mapas foram interpolados linearmente para a resolução do mosaico.", "", "Esta avaliação mede separação espacial em uma construção sintética cujas regiões de 150×150 já possuem rótulo de classe. Ela não usa contornos celulares ou anotação de tumor dentro de uma lâmina e não valida segmentação clínica. A interpolação, o campo receptivo e as bordas entre patches afetam as métricas em pixels. A comparação pareada por mosaico está em paired_comparison.csv; mapas nativos e layouts auditáveis estão no diretório da execução.", "", f"Artefatos brutos: `{run_dir.relative_to(ROOT)}`. Tempos e recursos estão em timings.json e resources.json. A parte qualitativa nas imagens grandes não foi executada porque o arquivo local contém os 5.000 patches, sem o dataset separado `colorectal_histology_large`."]
+        table.append(f"| {r['method']} | {r['model_seed']} | {r['test_patch_auc']:.4f} | {r['test_patch_average_precision']:.4f} | {r['test_patch_tumor_recall_at_2']:.4f} | {r['test_patch_both_tumors_top2_rate']:.4f} | {r['test_classifier_patch_auc']:.4f} | {r['test_pooled_auc']:.4f} | {r['test_pooled_dice']:.4f} |")
+    text = ["# Localização quantitativa de tumor em mosaicos", "", "Foram avaliados 20 mosaicos de validação e 30 de teste, todos 4×4 e 600×600 pixels, com dois patches de tumor e quatorze não tumorais. Os 800 patches utilizados são únicos dentro de cada split. Os modelos completos das seeds 42 e 43 foram reutilizados sem retreino.", "", "![Métricas de localização](localization_metrics.png)", "", *table, "", "A análise principal usa o rótulo conhecido de cada patch. AUROC e AP verificam se a evidência média do mapa ordena patches tumorais acima dos demais. Recall top-2 mede quantos dos dois tumores aparecem entre os dois patches de maior evidência; ambos no top-2 exige acerto perfeito do par. AUROC do classificador usa seu escore de tumor para cada patch isolado e permite distinguir erro da decisão e erro do mapa explicativo.", "", "![Exemplos de mosaicos, rótulos e mapas](localization_examples.png)", "", "Cada patch é processado isoladamente e somente então os mapas são remontados. Assim, nenhum campo receptivo nem interpolação cruza as bordas artificiais do mosaico. Na figura, verde identifica a verdade tumor, amarelo tracejado mostra os dois patches com maior evidência do mapa e ciano mostra o limiar selecionado na validação. Os contornos cianos também são calculados separadamente em cada patch.", "", "O escore PolyGabor é a distância logarítmica negativa para tumor em uma grade densa 75×75 por patch. O CAM da ResNet é calculado em sua entrada treinada de 128×128, antes do softmax, a partir das ativações espaciais 4×4 e dos pesos da classe tumor, com ReLU. Cada mapa é interpolado apenas dentro do respectivo patch de 150×150.", "", "O threshold de cada método e seed maximiza Dice exclusivamente na validação. As métricas em pixels foram mantidas como análise secundária de região fracamente anotada: toda a área de um patch tumor é positiva porque não há contorno histopatológico dentro dele. Elas não medem segmentação celular ou tumoral real. O baseline aleatório de AUROC é 0,5 e a prevalência positiva é 12,5%. Os intervalos reamostram os 30 mosaicos inteiros por 5.000 draws.", "", f"Artefatos brutos: {run_dir.relative_to(ROOT)}. Tempos e recursos estão em timings.json e resources.json. A parte qualitativa nas imagens grandes não foi executada porque o arquivo local contém os 5.000 patches, sem o dataset separado colorectal_histology_large."]
     (result_dir / "README.md").write_text("\n".join(text) + "\n")
 
 
@@ -220,21 +344,23 @@ def main():
     args = parser.parse_args()
     run_dir = ROOT / "runs" / args.campaign / "localization"
     result_dir = ROOT / "results" / args.campaign / "localization"
-    if (run_dir / "status.json").exists() and json.loads((run_dir / "status.json").read_text()).get("status") == "complete":
+    status = json.loads((run_dir / "status.json").read_text()) if (run_dir / "status.json").exists() else {}
+    if status.get("status") == "complete" and status.get("protocol_version") == PROTOCOL_VERSION:
         print(f"SKIP completed {run_dir}")
         return
     run_dir.mkdir(parents=True, exist_ok=True)
     result_dir.mkdir(parents=True, exist_ok=True)
-    (run_dir / "status.json").write_text(json.dumps({"status": "running"}))
+    (run_dir / "status.json").write_text(json.dumps({"status": "running", "protocol_version": PROTOCOL_VERSION}))
     val_images = np.load(ROOT / "cache/val_images.npy", mmap_mode="r")
     val_labels = np.load(ROOT / "cache/val_labels.npy")
     test_images = np.load(ROOT / "cache/test_images.npy", mmap_mode="r")
     test_labels = np.load(ROOT / "cache/test_labels.npy")
     val_layouts = make_layouts(val_labels, 20, seed=20260912)
     test_layouts = make_layouts(test_labels, 30, seed=20260913)
-    protocol = dict(grid=[4, 4], patch_pixels=[150, 150], mosaic_pixels=[600, 600], tumors_per_mosaic=2,
+    protocol = dict(protocol_version=PROTOCOL_VERSION, grid=[4, 4], patch_pixels=[150, 150], mosaic_pixels=[600, 600], tumors_per_mosaic=2,
                     validation_mosaics=20, test_mosaics=30, unique_within_split=True, interpolation="linear",
                     threshold_selection="maximum pooled validation Dice", bootstrap_draws=5000,
+                    primary_evaluation_unit="patch", map_construction="independent explanation per patch, resized within tile, then stitched",
                     validation_layouts=val_layouts, test_layouts=test_layouts)
     (run_dir / "layout_manifest.json").write_text(json.dumps(protocol, indent=2))
     from resources import Monitor
@@ -250,37 +376,37 @@ def main():
                 started = time.perf_counter()
                 with monitor.stage(f"{method}_seed{model_seed}_maps"):
                     if method == "polygarbor":
-                        val_maps = polygarbor_maps(model_dir, val_images, val_layouts)
-                        test_maps = polygarbor_maps(model_dir, test_images, test_layouts)
-                        equivalence = None
+                        val_maps, val_classifier_scores, native_shape = polygarbor_maps(model_dir, val_images, val_layouts)
+                        test_maps, test_classifier_scores, check_shape = polygarbor_maps(model_dir, test_images, test_layouts)
                     else:
-                        val_maps, equivalence = resnet_maps(model_dir, val_images, val_layouts)
-                        test_maps, check = resnet_maps(model_dir, test_images, test_layouts)
-                        equivalence = max(equivalence, check)
+                        val_maps, val_classifier_scores, native_shape = resnet_maps(model_dir, val_images, val_layouts)
+                        test_maps, test_classifier_scores, check_shape = resnet_maps(model_dir, test_images, test_layouts)
+                    if native_shape != check_shape:
+                        raise RuntimeError(f"inconsistent native map shapes: {native_shape} != {check_shape}")
                 map_seconds = time.perf_counter() - started
                 with monitor.stage(f"{method}_seed{model_seed}_metrics"):
-                    metrics = evaluate_maps(val_maps, test_maps, val_layouts, test_layouts)
+                    metrics = evaluate_maps(val_maps, test_maps, val_layouts, test_layouts, val_classifier_scores, test_classifier_scores)
                 row = dict(method=method, model_seed=model_seed, map_seconds=map_seconds,
-                           dynamic_128_max_probability_difference=equivalence, native_shape=list(val_maps.shape[1:]), **metrics)
+                           per_patch_native_shape=native_shape, stitched_shape=list(val_maps.shape[1:]), **metrics)
                 rows.append(row)
-                saved[(method, model_seed)] = {"val": val_maps, "test": test_maps}
-                np.savez_compressed(run_dir / f"{method}_seed{model_seed}_maps.npz", validation=val_maps, test=test_maps)
+                saved[(method, model_seed)] = {"val": val_maps, "test": test_maps, "val_classifier_scores": val_classifier_scores, "test_classifier_scores": test_classifier_scores}
+                np.savez_compressed(run_dir / f"{method}_seed{model_seed}_maps.npz", validation=val_maps, test=test_maps, validation_classifier_scores=val_classifier_scores, test_classifier_scores=test_classifier_scores)
                 (run_dir / "raw_metrics.json").write_text(json.dumps(rows, indent=2))
-                print(f"DONE {method} seed={model_seed}: AUROC={metrics['test_pooled_auc']:.4f} Dice={metrics['test_pooled_dice']:.4f}", flush=True)
+                print(f"DONE {method} seed={model_seed}: patch_AUROC={metrics['test_patch_auc']:.4f} top2_recall={metrics['test_patch_tumor_recall_at_2']:.4f}", flush=True)
         comparisons = []
         rng = np.random.default_rng(321)
         for seed in (42, 43):
             poly = next(r for r in rows if r["method"] == "polygarbor" and r["model_seed"] == seed)
             cnn = next(r for r in rows if r["method"] == "resnet18" and r["model_seed"] == seed)
-            for metric, key in (("AUROC", "per_mosaic_auc"), ("Dice", "per_mosaic_dice")):
+            for metric, key in (("weak_region_AUROC", "per_mosaic_auc"), ("weak_region_Dice", "per_mosaic_dice"), ("patch_AUROC", "per_mosaic_patch_auc"), ("patch_Dice", "per_mosaic_patch_dice"), ("patch_recall_at_2", "per_mosaic_patch_recall_at_2")):
                 delta = np.asarray(poly[key]) - np.asarray(cnn[key])
                 boot = delta[rng.integers(0, len(delta), size=(5000, len(delta)))].mean(1)
                 comparisons.append(dict(model_seed=seed, metric=metric, polygarbor_minus_resnet=float(delta.mean()), ci95_low=float(np.percentile(boot, 2.5)), ci95_high=float(np.percentile(boot, 97.5))))
         plot_results(result_dir, rows, saved, test_images, test_layouts)
         write_report(result_dir, rows, comparisons, run_dir)
-        (run_dir / "status.json").write_text(json.dumps({"status": "complete"}, indent=2))
+        (run_dir / "status.json").write_text(json.dumps({"status": "complete", "protocol_version": PROTOCOL_VERSION}, indent=2))
     except Exception as exc:
-        (run_dir / "status.json").write_text(json.dumps({"status": "failed", "error": repr(exc)}, indent=2))
+        (run_dir / "status.json").write_text(json.dumps({"status": "failed", "protocol_version": PROTOCOL_VERSION, "error": repr(exc)}, indent=2))
         raise
     finally:
         monitor.finish()

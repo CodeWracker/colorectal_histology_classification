@@ -13,7 +13,7 @@ cnn/.venv/bin/python comparison/suite.py --campaign minha-campanha --methods pol
 cnn/.venv/bin/python comparison/finish.py --campaign minha-campanha
 ```
 
-`finish.py` também executa `localization.py`, que reutiliza os modelos completos das duas seeds para medir localização de tumor em mosaicos sintéticos 4×4. O threshold de Dice é escolhido na validação e aplicado uma única vez ao teste. Se quiser executar apenas essa etapa depois dos modelos completos, use `cnn/.venv/bin/python comparison/localization.py --campaign minha-campanha`.
+`finish.py` também executa `localization.py`, que reutiliza os modelos completos das duas seeds para medir identificação de tumor em mosaicos sintéticos 4×4. Cada imagem é explicada isoladamente antes da montagem, impedindo mistura entre patches. A avaliação primária usa AUROC/AP por patch e recuperação dos dois tumores no top-2; Dice de região usa threshold escolhido na validação e é secundário porque não há máscaras internas. Se quiser executar apenas essa etapa depois dos modelos completos, use `cnn/.venv/bin/python comparison/localization.py --campaign minha-campanha`.
 
 O executor prepara caminhos locais das bibliotecas CUDA e inicia um processo por execução. As execuções são sequenciais para evitar competição entre modelos. Os pesos YOLO oficiais são baixados no primeiro uso. `prepare.py` reutiliza o TFDS já disponível em `polygarbor/data` e salva arrays em `comparison/cache`; não modifica o cache original. `dataset_manifest.json` contém classe, quantidade e SHA-256 de cada imagem.
 

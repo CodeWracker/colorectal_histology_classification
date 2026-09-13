@@ -224,16 +224,16 @@ As origens foram recuperadas dos nomes por SHA-256 dos pixels. source_a testa 09
 
 ## Localização quantitativa
 
-![Localização de tumor em mosaicos](localization/localization_metrics.png)
+![Identificação dos patches de tumor](localization/localization_metrics.png)
 
-| method | model_seed | test_pooled_auc | test_pooled_average_precision | test_pooled_dice | test_pooled_iou |
-| --- | --- | --- | --- | --- | --- |
-| polygarbor | 42 | 0.6408 | 0.1891 | 0.2594 | 0.1490 |
-| polygarbor | 43 | 0.6387 | 0.1858 | 0.2588 | 0.1487 |
-| resnet18 | 42 | 0.8964 | 0.4523 | 0.5584 | 0.3873 |
-| resnet18 | 43 | 0.8977 | 0.5775 | 0.5889 | 0.4174 |
+| método | seed | AUROC explicação | AP explicação | recall top-2 | ambos no top-2 | AUROC classificador |
+| --- | --- | --- | --- | --- | --- | --- |
+| polygarbor | 42 | 0.8274 | 0.3640 | 0.4667 | 0.1667 | 0.9638 |
+| polygarbor | 43 | 0.8233 | 0.3543 | 0.4500 | 0.1667 | 0.9641 |
+| resnet18 | 42 | 0.9703 | 0.7195 | 0.7833 | 0.5667 | 0.9981 |
+| resnet18 | 43 | 0.9860 | 0.9158 | 0.8500 | 0.7000 | 0.9984 |
 
-O threshold de Dice foi escolhido exclusivamente em 20 mosaicos de validação e aplicado a 30 mosaicos de teste. Cada mosaico 4×4 contém dois patches de tumor e quatorze das demais classes, sem repetição de patches dentro de cada split. AUROC/AP são calculados em pixels; intervalos por mosaico, protocolo, exemplos e limitações estão no [relatório de localização](localization/README.md).
+Cada mosaico 4×4 contém dois patches de tumor e quatorze das demais classes, sem repetição dentro do split. Os mapas são calculados em cada patch isolado e remontados sem mistura entre vizinhos. A avaliação primária compara a evidência explicativa com os rótulos conhecidos por patch; métricas de região em pixels são secundárias porque não há anotação interna. Protocolo, exemplos e limitações estão no [relatório de localização](localization/README.md).
 
 ## Artefatos e limites
 

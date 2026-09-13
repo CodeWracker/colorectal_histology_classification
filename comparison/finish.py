@@ -7,6 +7,7 @@ import sys
 import time
 
 from suite import ROOT, environment
+from localization import PROTOCOL_VERSION
 
 
 def main():
@@ -45,7 +46,7 @@ def main():
             cold.check_returncode()
     localization = root / "localization"
     status = json.loads((localization / "status.json").read_text()) if (localization / "status.json").exists() else {}
-    if status.get("status") != "complete":
+    if status.get("status") != "complete" or status.get("protocol_version") != PROTOCOL_VERSION:
         subprocess.run([sys.executable, str(ROOT / "localization.py"), "--campaign", args.campaign], env=env, check=True)
     # Avoid test-module name collisions with the existing sibling test suite.
     with (root / "tests.log").open("w") as log:
