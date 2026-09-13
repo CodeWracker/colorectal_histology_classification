@@ -55,6 +55,8 @@ def main():
             str(ROOT.parent / "polygarbor/tests"), "-q"], env=env, stdout=log, stderr=subprocess.STDOUT)
     print("TESTS exit", result.returncode, flush=True)
     result.check_returncode()
+    subprocess.run([sys.executable, str(ROOT / "audit.py"), "--campaign", args.campaign], env=env, check=True)
+    subprocess.run([sys.executable, str(ROOT / "validate.py"), "--campaign", args.campaign], env=env, check=True)
     subprocess.run([sys.executable, str(ROOT / "report.py"), "--campaign", args.campaign], env=env, check=True)
     subprocess.run([sys.executable, str(ROOT / "visual_compare.py"), "--campaign", args.campaign], env=env, check=True)
     subprocess.run([sys.executable, str(ROOT / "refresh_explanations.py"), "--campaign", args.campaign], env=env, check=True)

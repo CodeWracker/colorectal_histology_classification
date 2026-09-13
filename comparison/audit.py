@@ -1,4 +1,5 @@
-"""Audit completed artifacts after relocation without re-running inference."""
+"""Audit completed artifacts without re-running inference."""
+import argparse
 import json
 from pathlib import Path
 import time
@@ -8,8 +9,11 @@ ROOT = Path(__file__).resolve().parent
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--campaign", default="2026-09-12")
+    args = parser.parse_args()
     results = []
-    for folder in sorted((ROOT / "runs/2026-09-12").iterdir()):
+    for folder in sorted((ROOT / "runs" / args.campaign).iterdir()):
         status_path = folder / "status.json"
         if not status_path.exists() or not (folder / "config.json").exists():
             continue

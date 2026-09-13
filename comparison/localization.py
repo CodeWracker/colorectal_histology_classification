@@ -374,11 +374,12 @@ def write_report(result_dir, rows, comparisons, run_dir):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--campaign", default="2026-09-12")
+    parser.add_argument("--refresh", action="store_true", help="rebuild metrics and figures from cached maps")
     args = parser.parse_args()
     run_dir = ROOT / "runs" / args.campaign / "localization"
     result_dir = ROOT / "results" / args.campaign / "localization"
     status = json.loads((run_dir / "status.json").read_text()) if (run_dir / "status.json").exists() else {}
-    if status.get("status") == "complete" and status.get("protocol_version") == PROTOCOL_VERSION:
+    if status.get("status") == "complete" and status.get("protocol_version") == PROTOCOL_VERSION and not args.refresh:
         print(f"SKIP completed {run_dir}")
         return
     previous_rows_list = json.loads((run_dir / "raw_metrics.json").read_text()) if (run_dir / "raw_metrics.json").exists() else []
