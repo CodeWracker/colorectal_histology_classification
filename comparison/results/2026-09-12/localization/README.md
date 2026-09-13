@@ -19,12 +19,12 @@ A análise principal usa o rótulo conhecido de cada patch. AUROC e AP verificam
 
 Cada patch é processado isoladamente e somente então os mapas são remontados. Assim, nenhum campo receptivo nem interpolação cruza as bordas artificiais do mosaico. A figura mostra uma coluna de verdade e, para cada método, uma coluna com o escore classificatório de tumor e outra com o mapa explicativo. Verde identifica a verdade tumor, amarelo tracejado mostra o top-2 de cada painel e ciano mostra o limiar da explicação selecionado na validação. Os valores PolyGabor são similaridades heurísticas e os valores ResNet são softmax não calibrado; servem para ranking dentro do método.
 
-![Comparação de CAM por inicialização](localization_pretraining_examples.png)
+![Comparação de CAM por configuração](localization_pretraining_examples.png)
 
-A comparação de inicialização mantém arquitetura, imagens e layouts e troca os pesos iniciais da ResNet. Ela permite observar separadamente alterações no ranking classificatório e no CAM.
+A comparação mantém arquitetura, imagens e layouts. A configuração ImageNet troca os pesos iniciais e aplica a normalização exigida por esses pesos; portanto o contraste não isola matematicamente somente a inicialização. Ela permite observar alterações no ranking classificatório e no CAM sob a configuração de transferência usada.
 
 O escore PolyGabor é a distância logarítmica negativa para tumor em uma grade densa 75×75 por patch. O CAM da ResNet é calculado em sua entrada treinada de 128×128, antes do softmax, a partir das ativações espaciais 4×4 e dos pesos da classe tumor, com ReLU. Cada mapa é interpolado apenas dentro do respectivo patch de 150×150.
 
 O threshold de cada método e seed maximiza Dice exclusivamente na validação. As métricas em pixels foram mantidas como análise secundária de região fracamente anotada: toda a área de um patch tumor é positiva porque não há contorno histopatológico dentro dele. Elas não medem segmentação celular ou tumoral real. O baseline aleatório de AUROC é 0,5 e a prevalência positiva é 12,5%. Os intervalos reamostram os 30 mosaicos inteiros por 5.000 draws.
 
-Artefatos brutos: runs/2026-09-12/localization. Tempos e recursos estão em timings.json e resources.json. A parte qualitativa nas imagens grandes não foi executada porque o arquivo local contém os 5.000 patches, sem o dataset separado colorectal_histology_large.
+Artefatos brutos: runs/2026-09-12/localization. O manifesto telemetry_manifest.json aponta para a telemetria da versão 2, da extensão ImageNet e das regenerações. A parte qualitativa nas imagens grandes não foi executada porque o arquivo local contém os 5.000 patches, sem o dataset separado colorectal_histology_large.

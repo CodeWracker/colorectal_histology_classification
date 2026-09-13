@@ -1,6 +1,7 @@
 {
   "integrity_audit": {
-    "timestamp": "2026-09-13T17:16:49-0300",
+    "campaign": "2026-09-12",
+    "timestamp": "2026-09-13T17:27:16-0300",
     "checked": 178,
     "valid": 178,
     "runs": [
@@ -897,8 +898,12 @@
     ]
   },
   "tests_log": "comparison/runs/2026-09-12/tests.log",
-  "tests_summary": "21 passed, 108 warnings in 14.83s",
+  "tests_summary": "22 passed, 210 warnings in 19.89s",
+  "cli_commands_expected": 8,
   "cli_commands_passed": 8,
+  "cli_commands_failed": [],
+  "edge_expected": 22,
+  "edge_missing": [],
   "edge": [
     {
       "method": "polygarbor",

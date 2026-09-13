@@ -6,7 +6,7 @@ A melhor média no teste limpo foi da ResNet-18 ImageNet, macro-F1 0,9561, segui
 
 ## Onde encontrar as evidências
 
-O [relatório gerado](REPORT.md) contém todas as tabelas por seed. [metrics.csv](metrics.csv) reúne as métricas de treino, validação, teste e perturbações; [initialization_comparison.csv](initialization_comparison.csv) isola o efeito dos pesos ImageNet; [run_index.csv](run_index.csv) aponta para cada execução; [stage_resources.csv](stage_resources.csv) reúne tempos e recursos por etapa; [edge.csv](edge.csv) contém inferência; e o [relatório de localização](localization/README.md) detalha os mosaicos. O [protocolo](../../PROTOCOL.md), o [diário](../../WORK_LOG.md) e os manifestos [de imagens](../../dataset_manifest.json) e [de origens](../../source_manifest.json) registram decisões e preparação.
+O [relatório gerado](REPORT.md) contém todas as tabelas por seed. [metrics.csv](metrics.csv) reúne as métricas de treino, validação, teste e perturbações; [initialization_comparison.csv](initialization_comparison.csv) compara as configurações aleatória e ImageNet; [run_index.csv](run_index.csv) aponta para cada execução; [stage_resources.csv](stage_resources.csv) reúne tempos e recursos por etapa; [edge.csv](edge.csv) contém inferência; e o [relatório de localização](localization/README.md) detalha os mosaicos. O [protocolo](../../PROTOCOL.md), o [diário](../../WORK_LOG.md) e os manifestos [de imagens](../../dataset_manifest.json) e [de origens](../../source_manifest.json) registram decisões e preparação.
 
 Cada diretório em `comparison/runs/2026-09-12` conserva configuração, seleção de amostras, log, tempos, recursos, modelo, predições individuais, métricas e figuras. Pilotos foram mantidos em campanha separada e não entram nestas tabelas. Modelos e dados grandes estão preservados localmente e ignorados pelo Git.
 
@@ -34,7 +34,7 @@ A calibração usa temperatura escolhida somente na validação e não altera a 
 
 ## Efeito dos pesos ImageNet
 
-O controle dentro de cada família mostra que a maior parte da vantagem das CNNs em baixa disponibilidade de dados vem do pré-treinamento. Na ResNet, os pesos ImageNet elevaram o macro-F1 médio de 0,0414 para 0,2842 com uma imagem por classe, de 0,1667 para 0,5537 com dez, de 0,5679 para 0,8973 com cinquenta e de 0,9078 para 0,9561 no treino completo. Com cem imagens por classe, a média mudou somente de 0,8684 para 0,8711 e as faixas entre seeds se sobrepõem bastante.
+O contraste dentro de cada família mostra uma grande vantagem associada à configuração ImageNet em baixa disponibilidade de dados. Na ResNet, essa configuração combina pesos ImageNet e a normalização de entrada correspondente, enquanto a original usa escala 0–1; o experimento não atribui causalmente o ganho somente aos pesos. O macro-F1 médio subiu de 0,0414 para 0,2842 com uma imagem por classe, de 0,1667 para 0,5537 com dez, de 0,5679 para 0,8973 com cinquenta e de 0,9078 para 0,9561 no treino completo. Com cem imagens por classe, a média mudou somente de 0,8684 para 0,8711 e as faixas entre seeds se sobrepõem bastante.
 
 Na YOLO, ImageNet elevou o macro-F1 médio de 0,0290 para 0,5392 com uma imagem por classe, de 0,2778 para 0,8342 com dez e de 0,8618 para 0,9510 no treino completo. O ganho permaneceu positivo em todos os cenários agregados medidos para essa família. Sob desbalanceamento, a YOLO aleatória teve macro-F1 0,7124 e G-mean zero porque perdeu completamente ao menos uma classe; a pré-treinada atingiu 0,9046 e G-mean 0,8987.
 
@@ -121,7 +121,7 @@ Facilidade de inspecionar uma fórmula ou um mapa não demonstra fidelidade hist
 
 Foram usados 20 mosaicos de validação e 30 de teste, todos 4×4 com dois patches de tumor e quatorze não tumorais. Cada patch é explicado isoladamente na resolução normal do modelo e os mapas são remontados somente depois, sem campo receptivo nem interpolação atravessando bordas. A verdade é o rótulo conhecido de cada patch.
 
-O PolyGabor obteve AUROC de explicação por patch 0,8274/0,8233 e recall top-2 46,7%/45,0%. A ResNet aleatória obteve 0,9703/0,9860 e 78,3%/85,0%. A ResNet ImageNet chegou a 0,9980/0,9964 e 98,3%/96,7%. O pré-treinamento também elevou o Dice da região fracamente anotada de 0,6804/0,7077 para 0,8473/0,8441.
+O PolyGabor obteve AUROC de explicação por patch 0,8274/0,8233 e recall top-2 46,7%/45,0%. A ResNet aleatória obteve 0,9703/0,9860 e 78,3%/85,0%. A ResNet ImageNet chegou a 0,9980/0,9964 e 98,3%/96,7%. A configuração ImageNet também elevou o Dice da região fracamente anotada de 0,6804/0,7077 para 0,8473/0,8441.
 
 O escore classificatório isolado foi melhor que o mapa explicativo em todos os métodos: AUROC 0,9638/0,9641 no PolyGabor, 0,9981/0,9984 na ResNet aleatória e 0,9997/0,9996 na ResNet ImageNet. A diferença mostra que acertar a classe de um patch não garante que a explicação espacial concentre evidência nele.
 
@@ -129,7 +129,7 @@ O escore classificatório isolado foi melhor que o mapa explicativo em todos os 
 
 A primeira coluna mostra o mosaico com todos os rótulos conhecidos e tumor em verde. Para cada modelo há duas colunas diferentes: “classificação” colore cada patch com seu escore de tumor e escreve o valor; “explicação” mostra o mapa espacial interno. Amarelo tracejado é o top-2 daquele painel, e ciano é o threshold explicativo escolhido somente na validação. Essa organização substitui a antiga segunda coluna redundante de máscara conhecida.
 
-![Efeito da inicialização no CAM](localization/localization_pretraining_examples.png)
+![Efeito da configuração ImageNet no CAM](localization/localization_pretraining_examples.png)
 
 A figura pareada mostra que as duas ResNets classificam os patches dos três exemplos muito bem, enquanto o CAM ImageNet concentra o top-2 nos tumores de forma mais consistente. Nas 30 colagens completas, o ganho de ImageNet sobre a ResNet aleatória no AUROC explicativo por mosaico teve intervalos bootstrap inteiramente acima de zero nas duas seeds; o recall top-2 aumentou 0,20 e 0,1167.
 
@@ -175,12 +175,12 @@ O projeto [cnn](../../../cnn/README.md) oferece `dataset`, `train`, `evaluate`, 
 
 Os parâmetros compartilháveis mantêm nomes equivalentes; argumentos específicos são rejeitados quando não se aplicam. TensorFlow/Keras e Ultralytics continuam com pipelines próprios, então arquitetura, augmentations e otimizadores diferem. O ambiente isolado fixa versões de TensorFlow, PyTorch, Ultralytics e CUDA.
 
-Oito smoke tests reais da CLI já existentes passaram, incluindo `info`, `predict` e `evaluate` das duas arquiteturas originais. Os novos controles usam a mesma serialização e foram cobertos pelos testes de roundtrip, pelo carregamento nos 22 benchmarks e pelas 40 execuções novas.
+Oito smoke tests reais da CLI já existentes passaram, incluindo `info`, `predict` e `evaluate` das duas arquiteturas originais. A transferência das 20 convoluções/BatchNorm da ResNet e seu roundtrip ImageNet têm regressão direta; a YOLO aleatória foi verificada pelo registro `pretrained=False`, pelas 20 execuções da variante e pelo carregamento nos três modos edge.
 
 ## Integridade, recuperação e limites
 
 A mudança acidental da pasta interrompeu duas execuções YOLO antigas, label_noise e source_b. Elas foram preservadas em `runs/interrupted` e repetidas com sucesso. A auditoria final verificou rótulos, ordem, probabilidades, coerência de acurácia, arquivos obrigatórios e tamanho de modelo em 178 runs; todas passaram. Há duas falhas conhecidas do PolyGabor original em few1. Os 180 eventos de treino consumiram aproximadamente 4,45 horas de tempo de processo somado, sem contar pilotos, localização, edge e preparação.
 
-A suíte final passou com 21 testes. Os 22 benchmarks aquecidos e os 22 processos frios terminaram com retorno zero. A [síntese de validação](validation_summary.json) registra integridade, testes, comandos CLI, retorno dos benchmarks e concordância de predição.
+A suíte final passou com 22 testes. Os 22 benchmarks aquecidos e os 22 processos frios terminaram com retorno zero. A [síntese de validação](validation_summary.json) registra integridade, testes, comandos CLI, retorno dos benchmarks e concordância de predição.
 
 Os principais limites são duas seeds nos cenários principais, uma seed nos adversos e por origem, validação grande no few-shot, poucas origens, duas classes ausentes da validação agrupada, perturbações de severidade única, teto fixo de vetores PolyGabor, ausência de base externa e ausência de máscaras histopatológicas internas. O teste classifica recortes em oito classes; não demonstra diagnóstico de câncer por paciente.

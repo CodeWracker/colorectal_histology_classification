@@ -25,7 +25,7 @@ Campanha `2026-09-12`. Este arquivo é gerado dos artefatos salvos; a avaliaçã
 | yolo11n_random | 42 | 0.8600 | 0.8640 | 0.8563 | 0.8625 | 0.8406 | 0.3434 | 0.0323 |
 | yolo11n_random | 43 | 0.8580 | 0.8596 | 0.8500 | 0.8585 | 0.8377 | 0.3655 | 0.0549 |
 
-## Efeito controlado da inicialização ImageNet
+## Configuração ImageNet versus aleatória
 
 | family | scenario | seeds | macro_f1_random | macro_f1_imagenet | macro_f1_delta_imagenet_minus_random | gmean_random | gmean_imagenet | gmean_delta_imagenet_minus_random |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -54,7 +54,7 @@ Campanha `2026-09-12`. Este arquivo é gerado dos artefatos salvos; a avaliaçã
 | YOLO11n | source_a | 1 | 0.5637 | 0.8295 | 0.2658 | 0.4467 | 0.8102 | 0.3635 |
 | YOLO11n | source_b | 1 | 0.5063 | 0.8191 | 0.3127 | 0.0000 | 0.8282 | 0.8282 |
 
-Cada linha compara a mesma arquitetura e o mesmo cenário, pareando as seeds disponíveis. Delta positivo favorece os pesos ImageNet. As curvas e as métricas de localização complementam a tabela, pois uma inicialização pode melhorar a classificação média sem melhorar toda condição de mudança de origem.
+Cada linha compara a mesma arquitetura e o mesmo cenário, pareando as seeds disponíveis. Delta positivo favorece a configuração ImageNet. Na ResNet, ela combina pesos ImageNet e a normalização de entrada correspondente; o contraste não isola somente os pesos. Na YOLO, arquitetura e política de treino são mantidas e a diferença pretendida é a origem dos pesos. As curvas e a localização mostram que o ganho médio não se conserva em toda mudança de origem.
 
 ## Custo do treinamento completo
 
