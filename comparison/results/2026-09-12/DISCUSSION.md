@@ -127,7 +127,7 @@ Separar a predição da explicação revelou outro resultado: o escore classific
 
 ![Exemplos dos mapas de localização](localization/localization_examples.png)
 
-Na figura revisada, verde marca cada patch tumor verdadeiro, amarelo tracejado marca os dois patches mais destacados pela explicação e ciano mostra o threshold escolhido na validação, com contornos calculados separadamente dentro de cada patch. Nos três exemplos fixos, a ResNet recuperou os dois tumores em todos; o PolyGabor recuperou zero, um e zero. Os mapas PolyGabor continuam formando regiões internas amplas, mas não existe mais vazamento computacional entre patches. O [relatório específico](localization/README.md) contém todas as métricas, thresholds e artefatos brutos.
+Na figura revisada, a primeira coluna mostra a verdade e cada método recebe uma coluna de classificação e outra de explicação. Verde marca tumor verdadeiro, amarelo tracejado marca o top-2 do painel e ciano mostra o threshold explicativo escolhido na validação. Nos exemplos 0 e 2, o PolyGabor coloca os dois tumores no top-2 da classificação, mas nenhum no top-2 da explicação; no exemplo 1, ambos recuperam somente um. A ResNet recupera os dois tumores nos três exemplos tanto na classificação quanto na explicação. Não existe mais vazamento computacional entre patches. O [relatório específico](localization/README.md) contém todas as métricas, thresholds e artefatos brutos.
 
 O PolyGabor produziu os 800 mapas individuais e suas predições em cerca de 826,4/813,6 s por seed, sem VRAM. A ResNet processou os patches em lote na GPU em 5,3/2,1 s por seed. Esses tempos incluem tanto os mapas quanto os escores classificatórios isolados; refletem as implementações atuais e não uma equivalência de hardware entre CPU e GPU.
 

@@ -15,7 +15,7 @@ A análise principal usa o rótulo conhecido de cada patch. AUROC e AP verificam
 
 ![Exemplos de mosaicos, rótulos e mapas](localization_examples.png)
 
-Cada patch é processado isoladamente e somente então os mapas são remontados. Assim, nenhum campo receptivo nem interpolação cruza as bordas artificiais do mosaico. Na figura, verde identifica a verdade tumor, amarelo tracejado mostra os dois patches com maior evidência do mapa e ciano mostra o limiar selecionado na validação. Os contornos cianos também são calculados separadamente em cada patch.
+Cada patch é processado isoladamente e somente então os mapas são remontados. Assim, nenhum campo receptivo nem interpolação cruza as bordas artificiais do mosaico. A figura mostra uma coluna de verdade e, para cada método, uma coluna com o escore classificatório de tumor e outra com o mapa explicativo. Verde identifica a verdade tumor, amarelo tracejado mostra o top-2 de cada painel e ciano mostra o limiar da explicação selecionado na validação. Os valores PolyGabor são similaridades heurísticas e os valores ResNet são softmax não calibrado; servem para ranking dentro do método.
 
 O escore PolyGabor é a distância logarítmica negativa para tumor em uma grade densa 75×75 por patch. O CAM da ResNet é calculado em sua entrada treinada de 128×128, antes do softmax, a partir das ativações espaciais 4×4 e dos pesos da classe tumor, com ReLU. Cada mapa é interpolado apenas dentro do respectivo patch de 150×150.
 
