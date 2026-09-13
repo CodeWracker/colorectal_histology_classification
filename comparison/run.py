@@ -57,10 +57,15 @@ def main():
         with monitor.stage("read_data"):
             manifest = json.loads((ROOT / "dataset_manifest.json").read_text())
             names = manifest["class_names"]
-            cache = ROOT / "cache" / args.scenario if args.scenario.startswith("source_") else ROOT / "cache"
-            arrays = {s: (np.load(cache / f"{s}_images.npy", mmap_mode="r"),
-                          np.load(cache / f"{s}_labels.npy")) for s in ("train", "val", "test")}
-            indices, labels = select_training(arrays["train"][1], "full" if args.scenario.startswith("source_") else args.scenario, args.seed)
+            if args.scenario.startswith("loso_"):
+                from loso import load_fold
+                arrays = load_fold(args.scenario)
+            else:
+                cache = ROOT / "cache" / args.scenario if args.scenario.startswith("source_") else ROOT / "cache"
+                arrays = {s: (np.load(cache / f"{s}_images.npy", mmap_mode="r"),
+                              np.load(cache / f"{s}_labels.npy")) for s in ("train", "val", "test")}
+            grouped = args.scenario.startswith(("source_", "loso_"))
+            indices, labels = select_training(arrays["train"][1], "full" if grouped else args.scenario, args.seed)
             images = arrays["train"][0][indices]
             (out / "selection.json").write_text(json.dumps(dict(indices=indices.tolist(), labels=labels.tolist(),
                 counts=np.bincount(labels, minlength=len(names)).tolist(), original_labels=arrays["train"][1][indices].tolist()), indent=2))

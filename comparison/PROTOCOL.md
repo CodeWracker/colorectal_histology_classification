@@ -25,6 +25,16 @@ Uma inspeção posterior dos arquivos originais revelou dez códigos CRC-Prim-HE
 
 A classe empty ocorre somente nas origens 06 e 10, impossibilitando cobertura das oito classes simultaneamente em treino, validação e teste sem compartilhar origens. Os splits escolhidos preservam todas as classes no treino e teste; a validação 08 não contém adipose/empty. Essa restrição e a diferença de tamanho e composição dos testes serão relatadas. Os códigos indicam origem/lâmina inferida pelo nome, não identidade clínica confirmada de paciente. O artigo descreve dez lâminas independentes: https://pmc.ncbi.nlm.nih.gov/articles/PMC4910082/.
 
+## Extensão leave-one-source-out
+
+Uma revisão de `source_a` e `source_b` encontrou três limitações. Primeiro, eram duas partições escolhidas manualmente, com uma seed cada. Segundo, `source_b` concentra 590 dos 1.403 recortes de teste na classe empty, com apenas 35 exemplos dessa classe no treino, todos da origem 10. Terceiro, a validação na origem 08 não contém adipose nem empty, enquanto as CNNs usam early stopping por val_accuracy. Esses cenários passam a ser registro histórico e não sustentam comparação entre métodos.
+
+Antes de qualquer treino agrupado novo, `loso.py` fixou dez folds leave-one-source-out em `loso_manifest.json`. Cada fold testa uma origem inteira. A validação é 10% de cada classe das nove origens restantes, com mínimo de um recorte e seed de partição 20260913. O treino usa o restante. Os índices são os mesmos para todos os métodos e seeds. Serão executados polygarbor, resnet18, resnet18_imagenet, yolo11n_random e yolo11n, com os hiperparâmetros, critérios de parada e teto de 350 vetores/classe da campanha principal, nas seeds 42 e 43. Nenhum hiperparâmetro será ajustado pelos testes.
+
+A métrica primária é o macro-F1 sobre as 5.000 predições concatenadas dos dez folds, em que cada recorte é predito por um modelo que não viu sua origem. Também serão reportados G-mean, balanced accuracy, recall por classe e macro-F1 sem os recortes empty. Serão reportados ainda o macro-F1 por fold somente nas classes presentes e a diferença pareada entre PolyGabor e cada CNN, com bootstrap sobre as dez origens. A validação vem das mesmas origens do treino, mas o teste permanece disjunto por origem. Os dados vêm de dez imagens de um único instituto e scanner, portanto o resultado mede generalização entre imagens desse acervo, não validação externa.
+
+Para caber no disco, a cópia de imagens `yolo_dataset` de cada run YOLO LOSO é removida após a conclusão. Ela é derivada integralmente do cache e dos índices do manifesto.
+
 ## Extensão G-mean, augmentation e grade de patches
 
 A pedido do usuário, a comparação acrescenta G-mean multiclasse exato, sem suavização de recall zero, recalculado das predições existentes. Valores sem suporte em todas as classes serão indefinidos. O gráfico contará imagens originais, e um documento separado explicará a diferença para macro-F1.

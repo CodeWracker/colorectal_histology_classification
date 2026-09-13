@@ -17,6 +17,23 @@ def test_nested_subsets_and_corruptions():
         np.testing.assert_array_equal(a, perturb(image, kind, 7))
 
 
+def test_loso_folds_hold_out_whole_sources():
+    from comparison.loso import build_folds
+    groups = np.repeat(["01", "02", "03"], 40)
+    labels = np.tile(np.repeat([0, 1], 20), 3)
+    labels[100:] = 2  # a class that exists in a single source
+    folds = build_folds(groups, labels)
+    assert sorted(np.concatenate([f["test"] for f in folds.values()])) == list(range(120))
+    for fold in folds.values():
+        train, val, test = fold["train"], fold["val"], fold["test"]
+        assert not (set(train) & set(val) or set(train) & set(test) or set(val) & set(test))
+        assert set(groups[test]) == {fold["test_source"]}
+        assert set(groups[np.r_[train, val]]).isdisjoint({fold["test_source"]})
+        assert set(labels[val]) == set(labels[train]) == set(labels[np.r_[train, val]])
+    again = build_folds(groups, labels)
+    assert all(np.array_equal(folds[k]["val"], again[k]["val"]) for k in folds)
+
+
 def test_augmentation_is_train_only_and_reproducible():
     from comparison.variants import CNN_VARIANTS, training_views
     image = np.arange(150 * 150 * 3, dtype=np.uint8).reshape(150, 150, 3)

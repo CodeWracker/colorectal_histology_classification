@@ -25,14 +25,21 @@ def main():
         summary = json.loads((folder / "summary.json").read_text())
         selection = json.loads((folder / "selection.json").read_text())
         cache = ROOT / "cache" / config["scenario"] if config["scenario"].startswith("source_") else ROOT / "cache"
+        fold = None
+        if config["scenario"].startswith("loso_"):
+            from loso import load_fold
+            fold = load_fold(config["scenario"], with_images=False)
         for name, metrics in summary.items():
             data = np.load(folder / "eval" / name / "predictions.npz")
+            split = "val" if name.startswith("val_") else "test"
             if name == "train":
                 expected = selection["labels"]
             elif name == "train_original_labels":
                 expected = selection["original_labels"]
+            elif fold is not None:
+                expected = fold[split][1]
             else:
-                expected = np.load(cache / ("val_labels.npy" if name.startswith("val_") else "test_labels.npy"))
+                expected = np.load(cache / f"{split}_labels.npy")
             if not np.array_equal(data["y_true"], expected):
                 errors.append(name + ": labels/order differ")
             if not np.isfinite(data["probabilities"]).all() or not np.allclose(data["probabilities"].sum(1), 1, atol=1e-5):

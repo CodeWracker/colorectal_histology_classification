@@ -9,8 +9,10 @@ uv sync --project cnn --extra gpu --extra yolo
 cnn/.venv/bin/python comparison/prepare.py
 cnn/.venv/bin/python comparison/prepare_groups.py
 cnn/.venv/bin/python comparison/suite.py --campaign minha-campanha --methods polygarbor polygarbor_aug polygarbor_p3 polygarbor_p3_aug polygarbor_p5 resnet18 resnet18_imagenet yolo11n yolo11n_random
-cnn/.venv/bin/python comparison/suite.py --campaign minha-campanha --methods polygarbor polygarbor_aug polygarbor_p3 polygarbor_p3_aug polygarbor_p5 resnet18 resnet18_imagenet yolo11n yolo11n_random --scenarios source_a source_b --seeds 42
+cnn/.venv/bin/python comparison/loso.py
+cnn/.venv/bin/python comparison/suite.py --campaign minha-campanha --methods polygarbor resnet18 resnet18_imagenet yolo11n yolo11n_random --scenarios loso_01 loso_02 loso_03 loso_04 loso_05 loso_06 loso_07 loso_08 loso_09 loso_10
 cnn/.venv/bin/python comparison/finish.py --campaign minha-campanha
+cnn/.venv/bin/python comparison/loso_report.py --campaign minha-campanha
 cnn/.venv/bin/python comparison/embedded_feasibility.py --model comparison/runs/minha-campanha/full__polygarbor__seed42/model --output comparison/results/minha-campanha/embedded
 ```
 
@@ -47,9 +49,10 @@ comparison/
     error_gallery.png / source_shift_gallery.png / corruption_gallery.png
     localization/README.md / metrics.csv / localization_metrics.png / localization_examples.png / localization_pretraining_examples.png
     embedded/README.md / feasibility.json / feasibility.csv
+    loso/README.md / folds.csv / fold_metrics.csv / pooled_metrics.csv / pooled_recall_per_class.csv / paired_polygarbor_vs_cnn.csv / loso_macro_f1.png / loso_recall_per_class.png
 ```
 
-Interpretação: os cenários de poucos exemplos restringem o treino, mas mantêm 500 exemplos rotulados para validação. O ponto completo do PolyGabor preserva o limite padrão de 350 vetores/classe e registra quantos vetores entram no ajuste. ResNet-18 e YOLO11n têm controles pareados com inicialização aleatória e ImageNet. Os mapas CAM, oclusão e similaridade são explicações computacionais, não segmentação. A simulação edge mede x86 com menos paralelismo; não demonstra desempenho em ARM/Jetson. Os códigos de origem recuperados dos nomes permitem testes agrupados adicionais, mas não identificam clinicamente pacientes. Para reproduzi-los, execute `cnn/.venv/bin/python comparison/prepare_groups.py` e depois `cnn/.venv/bin/python comparison/suite.py --campaign minha-campanha --scenarios source_a source_b --seeds 42`, antes de `finish.py`.
+Interpretação: os cenários de poucos exemplos restringem o treino, mas mantêm 500 exemplos rotulados para validação. O ponto completo do PolyGabor preserva o limite padrão de 350 vetores/classe e registra quantos vetores entram no ajuste. ResNet-18 e YOLO11n têm controles pareados com inicialização aleatória e ImageNet. Os mapas CAM, oclusão e similaridade são explicações computacionais, não segmentação. A simulação edge mede x86 com menos paralelismo; não demonstra desempenho em ARM/Jetson. Os códigos de origem recuperados dos nomes permitem testes agrupados, mas não identificam clinicamente pacientes. A análise por origem usa dez folds leave-one-source-out: `loso.py` lê `source_manifest.json` e confere o manifesto fixo `loso_manifest.json`, e `loso_report.py` gera `results/<campanha>/loso/`. Os cenários `source_a` e `source_b` (`--scenarios source_a source_b --seeds 42`) permanecem reproduzíveis apenas como registro histórico; o [protocolo](PROTOCOL.md) explica por que foram substituídos.
 
 As variantes `p3` e `p5` usam 9 e 25 regiões por imagem; o banco de filtros permanece igual. `_aug` adiciona três vistas por original somente no treino. O teto de 350 vetores/classe permanece e o número de originais efetivamente retidos fica em `effective_training.json`. Consulte [G-mean versus macro-F1](GMEAN_VS_MACRO_F1.md) para interpretar as duas curvas sem confundir recall zero com falha de treinamento.
 

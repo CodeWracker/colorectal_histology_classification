@@ -86,4 +86,10 @@ Foi adicionada uma análise estática reproduzível para ESP32-WROOM-32, Arduino
 
 A implementação OpenCV atual requer pelo menos 1,176 MB para mapas explícitos de uma imagem 150×150. Um porte em fluxo foi estimado em 27,2 kB de espaço de trabalho, incluindo temporários polinomiais float32, e o banco Gabor direto exige aproximadamente 158,76 milhões de multiplicações-acumulações por imagem. O ESP32 tem uma rota plausível após porte, quantização e leitura de coeficientes na flash; Uno e PIC não comportam o estado int8 atual. Treinamento no dispositivo foi classificado como inviável nos três alvos.
 
-O script, JSON, CSV e relatório estão em comparison/embedded_feasibility.py e results/2026-09-12/embedded. A análise é um preflight de memória e operações, não emulação de instruções, latência ou energia. A linha de argumentação do artigo e os limites das alegações foram registrados em ARGUMENTACAO_ARTIGO_POLYGABOR.md na raiz.
+O script, JSON, CSV e relatório estão em comparison/embedded_feasibility.py e results/2026-09-12/embedded. A análise é um preflight de memória e operações, não emulação de instruções, latência ou energia.
+
+## 2026-09-13 — testes e generalização leave-one-source-out
+
+Os dois pacotes tinham `tests/test_pipeline.py`. No modo importlib com a raiz como rootdir, o pytest registrava pacotes vazios `cnn` e `polygarbor` que escondiam os pacotes de `src/`, e a suíte só coletava com caminhos absolutos. Os módulos receberam nomes únicos e um `pytest.ini` na raiz declara `testpaths` e `pythonpath`; `pytest` puro coleta os 22 testes, e `finish.py` não usa mais o override. Registros de ambiente e smoke da CLI deixaram de conter caminhos da máquina local.
+
+A revisão de `source_a`/`source_b` mostrou que eles não sustentam comparação entre métodos: duas partições manuais com uma seed, validação sem adipose e empty usada pelo early stopping das CNNs, e em `source_b` 42% do teste era empty, classe com 35 exemplos no treino. O PolyGabor classificou 99,8% desses recortes como adipose, o que explica sozinho sua G-mean zero. A extensão leave-one-source-out foi registrada no protocolo e seus dez folds foram fixados em `loso_manifest.json` antes do treino.
