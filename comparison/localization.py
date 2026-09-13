@@ -366,8 +366,8 @@ def write_report(result_dir, rows, comparisons, run_dir):
     table = ["| Método | Seed | AUROC explicação/patch | AP explicação/patch | Recall top-2 | Ambos no top-2 | AUROC classificador/patch | AUROC região fraca | Dice região fraca |", "| --- | --- | --- | --- | --- | --- | --- | --- | --- |"]
     for r in rows:
         table.append(f"| {r['method']} | {r['model_seed']} | {r['test_patch_auc']:.4f} | {r['test_patch_average_precision']:.4f} | {r['test_patch_tumor_recall_at_2']:.4f} | {r['test_patch_both_tumors_top2_rate']:.4f} | {r['test_classifier_patch_auc']:.4f} | {r['test_pooled_auc']:.4f} | {r['test_pooled_dice']:.4f} |")
-    pretraining_section = ["![Comparação de CAM por inicialização](localization_pretraining_examples.png)", "", "A comparação de inicialização mantém arquitetura, imagens e layouts e troca os pesos iniciais da ResNet. Ela permite observar separadamente alterações no ranking classificatório e no CAM."] if any(r["method"] == "resnet18_imagenet" for r in rows) else []
-    text = ["# Localização quantitativa de tumor em mosaicos", "", "Foram avaliados 20 mosaicos de validação e 30 de teste, todos 4×4 e 600×600 pixels, com dois patches de tumor e quatorze não tumorais. Os 800 patches utilizados são únicos dentro de cada split. Os modelos completos das seeds 42 e 43 foram reutilizados sem retreino.", "", "![Métricas de localização](localization_metrics.png)", "", *table, "", "A análise principal usa o rótulo conhecido de cada patch. AUROC e AP verificam se a evidência média do mapa ordena patches tumorais acima dos demais. Recall top-2 mede quantos dos dois tumores aparecem entre os dois patches de maior evidência; ambos no top-2 exige acerto perfeito do par. AUROC do classificador usa seu escore de tumor para cada patch isolado e permite distinguir erro da decisão e erro do mapa explicativo.", "", "![Exemplos de mosaicos, rótulos e mapas](localization_examples.png)", "", "Cada patch é processado isoladamente e somente então os mapas são remontados. Assim, nenhum campo receptivo nem interpolação cruza as bordas artificiais do mosaico. A figura mostra uma coluna de verdade e, para cada método, uma coluna com o escore classificatório de tumor e outra com o mapa explicativo. Verde identifica a verdade tumor, amarelo tracejado mostra o top-2 de cada painel e ciano mostra o limiar da explicação selecionado na validação. Os valores PolyGabor são similaridades heurísticas e os valores ResNet são softmax não calibrado; servem para ranking dentro do método.", "", *pretraining_section, "", "O escore PolyGabor é a distância logarítmica negativa para tumor em uma grade densa 75×75 por patch. O CAM da ResNet é calculado em sua entrada treinada de 128×128, antes do softmax, a partir das ativações espaciais 4×4 e dos pesos da classe tumor, com ReLU. Cada mapa é interpolado apenas dentro do respectivo patch de 150×150.", "", "O threshold de cada método e seed maximiza Dice exclusivamente na validação. As métricas em pixels foram mantidas como análise secundária de região fracamente anotada: toda a área de um patch tumor é positiva porque não há contorno histopatológico dentro dele. Elas não medem segmentação celular ou tumoral real. O baseline aleatório de AUROC é 0,5 e a prevalência positiva é 12,5%. Os intervalos reamostram os 30 mosaicos inteiros por 5.000 draws.", "", f"Artefatos brutos: {run_dir.relative_to(ROOT)}. Tempos e recursos estão em timings.json e resources.json. A parte qualitativa nas imagens grandes não foi executada porque o arquivo local contém os 5.000 patches, sem o dataset separado colorectal_histology_large."]
+    pretraining_section = ["![Comparação de CAM por configuração](localization_pretraining_examples.png)", "", "A comparação mantém arquitetura, imagens e layouts. A configuração ImageNet troca os pesos iniciais e aplica a normalização exigida por esses pesos; portanto o contraste não isola matematicamente somente a inicialização. Ela permite observar alterações no ranking classificatório e no CAM sob a configuração de transferência usada."] if any(r["method"] == "resnet18_imagenet" for r in rows) else []
+    text = ["# Localização quantitativa de tumor em mosaicos", "", "Foram avaliados 20 mosaicos de validação e 30 de teste, todos 4×4 e 600×600 pixels, com dois patches de tumor e quatorze não tumorais. Os 800 patches utilizados são únicos dentro de cada split. Os modelos completos das seeds 42 e 43 foram reutilizados sem retreino.", "", "![Métricas de localização](localization_metrics.png)", "", *table, "", "A análise principal usa o rótulo conhecido de cada patch. AUROC e AP verificam se a evidência média do mapa ordena patches tumorais acima dos demais. Recall top-2 mede quantos dos dois tumores aparecem entre os dois patches de maior evidência; ambos no top-2 exige acerto perfeito do par. AUROC do classificador usa seu escore de tumor para cada patch isolado e permite distinguir erro da decisão e erro do mapa explicativo.", "", "![Exemplos de mosaicos, rótulos e mapas](localization_examples.png)", "", "Cada patch é processado isoladamente e somente então os mapas são remontados. Assim, nenhum campo receptivo nem interpolação cruza as bordas artificiais do mosaico. A figura mostra uma coluna de verdade e, para cada método, uma coluna com o escore classificatório de tumor e outra com o mapa explicativo. Verde identifica a verdade tumor, amarelo tracejado mostra o top-2 de cada painel e ciano mostra o limiar da explicação selecionado na validação. Os valores PolyGabor são similaridades heurísticas e os valores ResNet são softmax não calibrado; servem para ranking dentro do método.", "", *pretraining_section, "", "O escore PolyGabor é a distância logarítmica negativa para tumor em uma grade densa 75×75 por patch. O CAM da ResNet é calculado em sua entrada treinada de 128×128, antes do softmax, a partir das ativações espaciais 4×4 e dos pesos da classe tumor, com ReLU. Cada mapa é interpolado apenas dentro do respectivo patch de 150×150.", "", "O threshold de cada método e seed maximiza Dice exclusivamente na validação. As métricas em pixels foram mantidas como análise secundária de região fracamente anotada: toda a área de um patch tumor é positiva porque não há contorno histopatológico dentro dele. Elas não medem segmentação celular ou tumoral real. O baseline aleatório de AUROC é 0,5 e a prevalência positiva é 12,5%. Os intervalos reamostram os 30 mosaicos inteiros por 5.000 draws.", "", f"Artefatos brutos: {run_dir.relative_to(ROOT)}. O manifesto telemetry_manifest.json aponta para a telemetria da versão 2, da extensão ImageNet e das regenerações. A parte qualitativa nas imagens grandes não foi executada porque o arquivo local contém os 5.000 patches, sem o dataset separado colorectal_histology_large."]
     (result_dir / "README.md").write_text("\n".join(text) + "\n")
 
 
@@ -375,6 +375,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--campaign", default="2026-09-12")
     parser.add_argument("--refresh", action="store_true", help="rebuild metrics and figures from cached maps")
+    parser.add_argument("--recompute-method", choices=METHODS, help="recompute one method while refreshing cached results")
     args = parser.parse_args()
     run_dir = ROOT / "runs" / args.campaign / "localization"
     result_dir = ROOT / "results" / args.campaign / "localization"
@@ -406,7 +407,8 @@ def main():
                     validation_layouts=val_layouts, test_layouts=test_layouts)
     (run_dir / "layout_manifest.json").write_text(json.dumps(protocol, indent=2))
     from resources import Monitor
-    monitor = Monitor(run_dir)
+    monitor_dir = run_dir / (f"refresh_{args.recompute_method}" if args.recompute_method else "refresh") if args.refresh else run_dir
+    monitor = Monitor(monitor_dir)
     saved, rows = {}, []
     try:
         for method in METHODS:
@@ -418,7 +420,7 @@ def main():
                 cache_path = run_dir / f"{method}_seed{model_seed}_maps.npz"
                 prior = previous_rows.get((method, model_seed))
                 reused = False
-                if prior and cache_path.exists():
+                if prior and cache_path.exists() and method != args.recompute_method:
                     cached = np.load(cache_path)
                     required = {"validation", "test", "validation_classifier_scores", "test_classifier_scores"}
                     if required <= set(cached.files):
@@ -467,6 +469,9 @@ def main():
         raise
     finally:
         monitor.finish()
+        if args.refresh:
+            telemetry = {"protocol_version": PROTOCOL_VERSION, "base_v2": [name for name in ("timings_v2.json", "resources_v2.json", "resources_v2.csv") if (run_dir / name).exists()], "refresh_or_recomputed": str(monitor_dir.relative_to(run_dir)), "note": "The first v3 refresh overwrote canonical telemetry; v2 telemetry was preserved and the ImageNet extension was remeasured separately."}
+            (run_dir / "telemetry_manifest.json").write_text(json.dumps(telemetry, indent=2))
 
 
 if __name__ == "__main__":

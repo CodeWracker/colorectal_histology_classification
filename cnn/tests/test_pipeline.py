@@ -6,7 +6,7 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 import numpy as np
 import pytest
 
-from cnn.classifier import CNNClassifier, build_resnet18, configure_tensorflow
+from cnn.classifier import CNNClassifier, build_resnet18, configure_tensorflow, initialize_resnet18_imagenet
 from cnn.evaluation import summarize
 from cnn.cli import build_parser
 from cnn.visualize import activation_map
@@ -32,6 +32,29 @@ def test_resnet_roundtrip_and_cam(tmp_path):
         assert not json.loads(archive.read("config.json")).get("compile_config")
     loaded = CNNClassifier.load(tmp_path / "model", device="cpu")
     np.testing.assert_allclose(before, loaded.predict_proba([x]), atol=1e-6)
+
+
+def test_resnet_torchvision_mapping_and_imagenet_roundtrip(tmp_path, monkeypatch):
+    configure_tensorflow("cpu", threads=2, seed=7)
+    import torchvision.models as models
+    source = models.resnet18(weights=None)
+    monkeypatch.setattr(models, "resnet18", lambda weights: source)
+    model = build_resnet18(32, 2)
+    classifier_before = [value.copy() for value in model.get_layer("classifier").get_weights()]
+    metadata = initialize_resnet18_imagenet(model)
+    expected = source.conv1.weight.detach().numpy().transpose(2, 3, 1, 0)
+    np.testing.assert_allclose(model.get_layer("stem_conv").get_weights()[0], expected)
+    for before, after in zip(classifier_before, model.get_layer("classifier").get_weights()):
+        np.testing.assert_array_equal(before, after)
+    assert metadata["loaded_convolutions"] == metadata["loaded_batch_norms"] == 20
+    clf = CNNClassifier(["a", "b"], image_size=32, batch_size=2, device="cpu", threads=2, weights="imagenet")
+    clf.model = model
+    image = np.arange(32 * 32 * 3, dtype=np.uint8).reshape(32, 32, 3)
+    before = clf.predict_proba([image])
+    clf.save(tmp_path / "imagenet_model")
+    loaded = CNNClassifier.load(tmp_path / "imagenet_model", device="cpu")
+    assert loaded.weights == "imagenet"
+    np.testing.assert_allclose(before, loaded.predict_proba([image]), atol=1e-6)
 
 
 def test_metrics_handle_missing_classes_and_validate():

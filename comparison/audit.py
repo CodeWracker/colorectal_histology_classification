@@ -46,7 +46,7 @@ def main():
         if model_bytes != json.loads((folder / "model_size.json").read_text())["bytes"]:
             errors.append("model size mismatch")
         results.append(dict(run=folder.name, evaluations=len(summary), errors=errors))
-    payload = dict(timestamp=time.strftime("%Y-%m-%dT%H:%M:%S%z"), checked=len(results),
+    payload = dict(campaign=args.campaign, timestamp=time.strftime("%Y-%m-%dT%H:%M:%S%z"), checked=len(results),
                    valid=sum(not r["errors"] for r in results), runs=results)
     (ROOT / "integrity_audit.json").write_text(json.dumps(payload, indent=2))
     print({k: v for k, v in payload.items() if k != "runs"})
