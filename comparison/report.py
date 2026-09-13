@@ -7,6 +7,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT.parent / "cnn/src"))
+sys.path.insert(0, str(ROOT.parent / "polygarbor/src"))
 
 import numpy as np
 import pandas as pd
@@ -318,7 +319,7 @@ def main():
         "cpu1 restringe afinidade a um processador lógico e bibliotecas a uma thread; cpu4 usa quatro threads; gpu usa a RTX local. Cada medição carrega novamente o modelo em processo separado e aquece antes da latência. As imagens já estão em RAM: a latência inclui pré-processamento e execução, mas exclui leitura de arquivo e visualizações. Não há emulação de ARM nem limite artificial de RAM. O processo serve como aproximação de restrição computacional em x86, não como benchmark de dispositivo edge real.", "",
         "## Generalização por origem", "",
         markdown_table(test[test.scenario.str.startswith("source_")][["method", "scenario", "n_train", "accuracy", "macro_f1", "multiclass_gmean", "balanced_accuracy"]]), "",
-        "As origens foram recuperadas dos nomes por SHA-256 dos pixels. source_a testa 09/10 e source_b testa 06/09; validação em 08, com demais origens no treino. A classe empty só existe em 06/10, impossibilitando sua presença simultânea em três splits disjuntos. A validação 08 não contém adipose/empty; treino e teste preservam oito classes. Os testes têm tamanhos/composições diferentes do teste aleatório, logo diferenças não isolam somente efeito de origem. A identidade de paciente por código não foi confirmada.", "",
+        "As origens foram recuperadas dos nomes por SHA-256 dos pixels. source_a testa 09/10 e source_b testa 06/09; validação em 08, com demais origens no treino. A classe empty só existe em 06/10, impossibilitando sua presença simultânea em três splits disjuntos. A validação 08 não contém adipose/empty; treino e teste preservam oito classes. Os testes têm tamanhos/composições diferentes do teste aleatório, logo diferenças não isolam somente efeito de origem. A identidade de paciente por código não foi confirmada." + (" A análise principal por origem passou a ser leave-one-source-out, em [loso/README.md](loso/README.md); source_a/source_b ficam como registro histórico." if (out / "loso/README.md").exists() else ""), "",
         *localization_section,
         "## Artefatos e limites", "",
         "Os splits são os originais do TFDS (4000/500/500) com ordem determinística, hashes auditáveis e nenhuma duplicata exata entre splits. O carregamento supervisionado expõe imagem/rótulo. A auditoria recuperou dez origens dos filenames e acrescentou splits source_a/source_b com origens separadas, descritos em source_manifest.json. Não há identificação clínica de paciente nem teste em base externa. ResNet-18 e YOLO11n foram executadas com inicialização aleatória e ImageNet; a política de augmentations e o otimizador continuam próprios de cada pipeline.", "",
