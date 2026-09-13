@@ -48,9 +48,8 @@ def main():
     status = json.loads((localization / "status.json").read_text()) if (localization / "status.json").exists() else {}
     if status.get("status") != "complete" or status.get("protocol_version") != PROTOCOL_VERSION:
         subprocess.run([sys.executable, str(ROOT / "localization.py"), "--campaign", args.campaign], env=env, check=True)
-    # Avoid test-module name collisions with the existing sibling test suite.
     with (root / "tests.log").open("w") as log:
-        result = subprocess.run([sys.executable, "-m", "pytest", "--import-mode=importlib",
+        result = subprocess.run([sys.executable, "-m", "pytest",
             str(ROOT.parent / "cnn/tests"), str(ROOT / "test_scenarios.py"),
             str(ROOT.parent / "polygarbor/tests"), "-q"], env=env, stdout=log, stderr=subprocess.STDOUT)
     print("TESTS exit", result.returncode, flush=True)
