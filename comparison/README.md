@@ -11,6 +11,7 @@ cnn/.venv/bin/python comparison/prepare_groups.py
 cnn/.venv/bin/python comparison/suite.py --campaign minha-campanha --methods polygarbor polygarbor_aug polygarbor_p3 polygarbor_p3_aug polygarbor_p5 resnet18 resnet18_imagenet yolo11n yolo11n_random
 cnn/.venv/bin/python comparison/suite.py --campaign minha-campanha --methods polygarbor polygarbor_aug polygarbor_p3 polygarbor_p3_aug polygarbor_p5 resnet18 resnet18_imagenet yolo11n yolo11n_random --scenarios source_a source_b --seeds 42
 cnn/.venv/bin/python comparison/finish.py --campaign minha-campanha
+cnn/.venv/bin/python comparison/embedded_feasibility.py --model comparison/runs/minha-campanha/full__polygarbor__seed42/model --output comparison/results/minha-campanha/embedded
 ```
 
 `finish.py` também executa `localization.py`, que reutiliza os modelos completos das duas seeds para medir identificação de tumor em mosaicos sintéticos 4×4. Cada imagem é explicada isoladamente antes da montagem, impedindo mistura entre patches. A avaliação primária usa AUROC/AP por patch e recuperação dos dois tumores no top-2; Dice de região usa threshold escolhido na validação e é secundário porque não há máscaras internas. A versão 3 compara PolyGabor, ResNet aleatória e ResNet ImageNet e separa em cada figura os escores classificatórios dos mapas explicativos. Se quiser executar apenas essa etapa depois dos modelos completos, use `cnn/.venv/bin/python comparison/localization.py --campaign minha-campanha`; `--refresh` regenera métricas e figuras a partir dos mapas salvos e grava sua telemetria em subdiretório separado.
@@ -45,6 +46,7 @@ comparison/
     stage_resources.csv / edge.csv / aggregation_comparison.csv
     error_gallery.png / source_shift_gallery.png / corruption_gallery.png
     localization/README.md / metrics.csv / localization_metrics.png / localization_examples.png / localization_pretraining_examples.png
+    embedded/README.md / feasibility.json / feasibility.csv
 ```
 
 Interpretação: os cenários de poucos exemplos restringem o treino, mas mantêm 500 exemplos rotulados para validação. O ponto completo do PolyGabor preserva o limite padrão de 350 vetores/classe e registra quantos vetores entram no ajuste. ResNet-18 e YOLO11n têm controles pareados com inicialização aleatória e ImageNet. Os mapas CAM, oclusão e similaridade são explicações computacionais, não segmentação. A simulação edge mede x86 com menos paralelismo; não demonstra desempenho em ARM/Jetson. Os códigos de origem recuperados dos nomes permitem testes agrupados adicionais, mas não identificam clinicamente pacientes. Para reproduzi-los, execute `cnn/.venv/bin/python comparison/prepare_groups.py` e depois `cnn/.venv/bin/python comparison/suite.py --campaign minha-campanha --scenarios source_a source_b --seeds 42`, antes de `finish.py`.
@@ -52,3 +54,5 @@ Interpretação: os cenários de poucos exemplos restringem o treino, mas mantê
 As variantes `p3` e `p5` usam 9 e 25 regiões por imagem; o banco de filtros permanece igual. `_aug` adiciona três vistas por original somente no treino. O teto de 350 vetores/classe permanece e o número de originais efetivamente retidos fica em `effective_training.json`. Consulte [G-mean versus macro-F1](GMEAN_VS_MACRO_F1.md) para interpretar as duas curvas sem confundir recall zero com falha de treinamento.
 
 Os totais e o estado final da campanha estão em [integrity_audit.json](integrity_audit.json) e no relatório gerado. As duas execuções interrompidas pela mudança da pasta foram arquivadas e repetidas com sucesso.
+
+A pré-avaliação embarcada compara o modelo PolyGabor treinado com os limites de flash e SRAM do ESP32-WROOM-32, Arduino Uno R3 e PIC16F877A. Ela contabiliza o artefato salvo, o estado polinomial reconstruído, estimativas float32/int16/int8, buffers de imagem e operações Gabor. É uma análise estática reproduzível; simulação de instruções e medição de energia dependem de um porte C/C++ e hardware.
