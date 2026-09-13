@@ -2,7 +2,7 @@
 ============================================================
 MODEL INFORMATION
 ============================================================
-  folder:                            /home/ralph/projects/ufsc/colorectal_histology_classification/comparison/runs/2026-09-12/full__polygarbor__seed42/model
+  folder:                            comparison/runs/2026-09-12/full__polygarbor__seed42/model
   classes:                           8 -> tumor, stroma, complex, lympho, debris, mucosa, adipose, empty
   features per vector:               22
   gabor filters:                     8
