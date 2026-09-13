@@ -3,9 +3,11 @@ from __future__ import annotations
 
 import argparse
 import csv
+import itertools
 import json
 import os
 from pathlib import Path
+import shutil
 import sys
 import time
 
@@ -17,9 +19,10 @@ ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT.parent / "cnn/src"))
 sys.path.insert(0, str(ROOT.parent / "polygarbor/src"))
 
-PROTOCOL_VERSION = 2
+PROTOCOL_VERSION = 3
 GRID_SIZE = 4
 TILE_SIZE = 150
+METHODS = ("polygarbor", "resnet18", "resnet18_imagenet")
 
 
 def make_layouts(labels, count, tumors_per_mosaic=2, seed=42):
@@ -218,6 +221,8 @@ def resnet_maps(model_dir, images, layouts):
     native_shape = None
     for layout in layouts:
         tiles = tf.image.resize(np.asarray(images[layout["indices"]]), (128, 128)) / 255.
+        if classifier.weights == "imagenet":
+            tiles = (tiles - tf.constant([.485, .456, .406])) / tf.constant([.229, .224, .225])
         tile_maps, probabilities = cam(tf.cast(tiles, tf.float32))
         tile_maps = tile_maps.numpy().astype(np.float32)
         native_shape = list(tile_maps.shape[1:])
@@ -231,9 +236,9 @@ def plot_results(result_dir, rows, saved, test_images, test_layouts):
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
 
-    methods = ("polygarbor", "resnet18")
-    labels = {"polygarbor": "PolyGabor", "resnet18": "ResNet-18 CAM"}
-    colors = {"polygarbor": "#1b9e77", "resnet18": "#d95f02"}
+    methods = tuple(method for method in METHODS if any(row["method"] == method for row in rows))
+    labels = {"polygarbor": "PolyGabor", "resnet18": "ResNet-18 random", "resnet18_imagenet": "ResNet-18 ImageNet"}
+    colors = {"polygarbor": "#1b9e77", "resnet18": "#d95f02", "resnet18_imagenet": "#e41a1c"}
     from matplotlib.patches import Rectangle
 
     fig, axes = plt.subplots(1, 3, figsize=(12, 4))
@@ -248,7 +253,7 @@ def plot_results(result_dir, rows, saved, test_images, test_layouts):
             ax.scatter([x] * len(values), values, color=colors[method], alpha=.45, s=45)
             ax.scatter(x, np.mean(values), color=colors[method], marker="D", edgecolor="white", s=80, zorder=3)
             ax.annotate(f"{np.mean(values):.3f}", (x, np.mean(values)), xytext=(7, 0), textcoords="offset points", va="center")
-        ax.set(title=title, xticks=range(2), xticklabels=[labels[m] for m in methods], ylim=(0, 1))
+        ax.set(title=title, xticks=range(len(methods)), xticklabels=[labels[m] for m in methods], ylim=(0, 1))
         ax.grid(axis="y", alpha=.2)
     fig.suptitle("Identificação dos patches de tumor em 30 mosaicos de teste")
     fig.tight_layout()
@@ -300,45 +305,52 @@ def plot_results(result_dir, rows, saved, test_images, test_layouts):
             if local.min() < threshold <= local.max():
                 ax.contour(np.arange(x, x + TILE_SIZE), np.arange(y, y + TILE_SIZE), local >= threshold, levels=[.5], colors=["cyan"], linewidths=.8)
 
-    fig, axes = plt.subplots(3, 5, figsize=(18, 11), layout="constrained")
     seed_rows = {r["method"]: r for r in rows if r["model_seed"] == 42}
-    for row, index in enumerate((0, 1, 2)):
-        mosaic, _ = build_mosaic(test_images, test_layouts[index])
-        axes[row, 0].imshow(mosaic)
-        draw_grid(axes[row, 0])
-        draw_truth(axes[row, 0], test_layouts[index], show_labels=True)
-        axes[row, 0].set_title(f"Mosaico {index}: rótulos conhecidos\nverde = tumor")
-        for method_index, method in enumerate(methods):
-            classifier_col = 1 + method_index * 2
-            explanation_col = classifier_col + 1
-            classifier_scores = saved[(method, 42)]["test_classifier_scores"][index]
-            truth = np.asarray(test_layouts[index]["labels"]) == 0
-            classifier_auc = roc_auc_score(truth, classifier_scores)
-            classifier_recall = truth[np.argsort(-classifier_scores)[:2]].sum() / 2
-            axes[row, classifier_col].imshow(mosaic)
-            axes[row, classifier_col].imshow(classification_map(classifier_scores), cmap="magma", alpha=.6, vmin=0, vmax=1)
-            draw_grid(axes[row, classifier_col])
-            draw_truth(axes[row, classifier_col], test_layouts[index])
-            draw_top2(axes[row, classifier_col], classifier_scores)
-            draw_scores(axes[row, classifier_col], classifier_scores)
-            axes[row, classifier_col].set_title(f"{labels[method]}: classificação\nAUROC={classifier_auc:.3f}; top-2={classifier_recall:.0%}")
-            score = saved[(method, 42)]["test"][index]
-            threshold = seed_rows[method]["threshold"]
-            axes[row, explanation_col].imshow(mosaic)
-            axes[row, explanation_col].imshow(score, cmap="magma", alpha=.55, vmin=np.percentile(saved[(method, 42)]["val"], 1), vmax=np.percentile(saved[(method, 42)]["val"], 99))
-            contour_patchwise(axes[row, explanation_col], score, threshold)
-            draw_grid(axes[row, explanation_col])
-            draw_truth(axes[row, explanation_col], test_layouts[index])
-            draw_top2(axes[row, explanation_col], score)
-            patch_score = patch_scores_from_map(score)
-            auc = roc_auc_score(truth, patch_score)
-            recall = truth[np.argsort(-patch_score)[:2]].sum() / 2
-            axes[row, explanation_col].set_title(f"{labels[method]}: explicação\nAUROC={auc:.3f}; top-2={recall:.0%}")
-        for ax in axes[row]:
-            ax.axis("off")
-    fig.suptitle("Classificação versus explicação | verde: tumor verdadeiro | amarelo: top-2 | ciano: limiar da explicação", fontsize=12)
-    fig.savefig(result_dir / "localization_examples.png", dpi=160)
-    plt.close(fig)
+
+    def plot_examples(panel_methods, filename):
+        fig, axes = plt.subplots(3, 1 + 2 * len(panel_methods), figsize=(18, 11))
+        for row, index in enumerate((0, 1, 2)):
+            mosaic, _ = build_mosaic(test_images, test_layouts[index])
+            axes[row, 0].imshow(mosaic)
+            draw_grid(axes[row, 0])
+            draw_truth(axes[row, 0], test_layouts[index], show_labels=True)
+            axes[row, 0].set_title(f"Mosaico {index}: rótulos conhecidos\nverde = tumor")
+            for method_index, method in enumerate(panel_methods):
+                classifier_col = 1 + method_index * 2
+                explanation_col = classifier_col + 1
+                classifier_scores = saved[(method, 42)]["test_classifier_scores"][index]
+                truth = np.asarray(test_layouts[index]["labels"]) == 0
+                classifier_auc = roc_auc_score(truth, classifier_scores)
+                classifier_recall = truth[np.argsort(-classifier_scores)[:2]].sum() / 2
+                axes[row, classifier_col].imshow(mosaic)
+                axes[row, classifier_col].imshow(classification_map(classifier_scores), cmap="magma", alpha=.6, vmin=0, vmax=1)
+                draw_grid(axes[row, classifier_col])
+                draw_truth(axes[row, classifier_col], test_layouts[index])
+                draw_top2(axes[row, classifier_col], classifier_scores)
+                draw_scores(axes[row, classifier_col], classifier_scores)
+                axes[row, classifier_col].set_title(f"{labels[method]} · classificação\nAUC={classifier_auc:.3f}; top-2={classifier_recall:.0%}", fontsize=9)
+                score = saved[(method, 42)]["test"][index]
+                threshold = seed_rows[method]["threshold"]
+                axes[row, explanation_col].imshow(mosaic)
+                axes[row, explanation_col].imshow(score, cmap="magma", alpha=.55, vmin=np.percentile(saved[(method, 42)]["val"], 1), vmax=np.percentile(saved[(method, 42)]["val"], 99))
+                contour_patchwise(axes[row, explanation_col], score, threshold)
+                draw_grid(axes[row, explanation_col])
+                draw_truth(axes[row, explanation_col], test_layouts[index])
+                draw_top2(axes[row, explanation_col], score)
+                patch_score = patch_scores_from_map(score)
+                auc = roc_auc_score(truth, patch_score)
+                recall = truth[np.argsort(-patch_score)[:2]].sum() / 2
+                axes[row, explanation_col].set_title(f"{labels[method]} · explicação\nAUC={auc:.3f}; top-2={recall:.0%}", fontsize=9)
+            for ax in axes[row]:
+                ax.axis("off")
+        fig.suptitle("Classificação versus explicação · verde: tumor · amarelo: top-2 · ciano: limiar explicativo", fontsize=11)
+        fig.subplots_adjust(left=.015, right=.995, bottom=.015, top=.94, wspace=.08, hspace=.2)
+        fig.savefig(result_dir / filename, dpi=160)
+        plt.close(fig)
+
+    plot_examples(("polygarbor", "resnet18"), "localization_examples.png")
+    if "resnet18_imagenet" in methods:
+        plot_examples(("resnet18", "resnet18_imagenet"), "localization_pretraining_examples.png")
 
 
 def write_report(result_dir, rows, comparisons, run_dir):
@@ -354,7 +366,8 @@ def write_report(result_dir, rows, comparisons, run_dir):
     table = ["| Método | Seed | AUROC explicação/patch | AP explicação/patch | Recall top-2 | Ambos no top-2 | AUROC classificador/patch | AUROC região fraca | Dice região fraca |", "| --- | --- | --- | --- | --- | --- | --- | --- | --- |"]
     for r in rows:
         table.append(f"| {r['method']} | {r['model_seed']} | {r['test_patch_auc']:.4f} | {r['test_patch_average_precision']:.4f} | {r['test_patch_tumor_recall_at_2']:.4f} | {r['test_patch_both_tumors_top2_rate']:.4f} | {r['test_classifier_patch_auc']:.4f} | {r['test_pooled_auc']:.4f} | {r['test_pooled_dice']:.4f} |")
-    text = ["# Localização quantitativa de tumor em mosaicos", "", "Foram avaliados 20 mosaicos de validação e 30 de teste, todos 4×4 e 600×600 pixels, com dois patches de tumor e quatorze não tumorais. Os 800 patches utilizados são únicos dentro de cada split. Os modelos completos das seeds 42 e 43 foram reutilizados sem retreino.", "", "![Métricas de localização](localization_metrics.png)", "", *table, "", "A análise principal usa o rótulo conhecido de cada patch. AUROC e AP verificam se a evidência média do mapa ordena patches tumorais acima dos demais. Recall top-2 mede quantos dos dois tumores aparecem entre os dois patches de maior evidência; ambos no top-2 exige acerto perfeito do par. AUROC do classificador usa seu escore de tumor para cada patch isolado e permite distinguir erro da decisão e erro do mapa explicativo.", "", "![Exemplos de mosaicos, rótulos e mapas](localization_examples.png)", "", "Cada patch é processado isoladamente e somente então os mapas são remontados. Assim, nenhum campo receptivo nem interpolação cruza as bordas artificiais do mosaico. A figura mostra uma coluna de verdade e, para cada método, uma coluna com o escore classificatório de tumor e outra com o mapa explicativo. Verde identifica a verdade tumor, amarelo tracejado mostra o top-2 de cada painel e ciano mostra o limiar da explicação selecionado na validação. Os valores PolyGabor são similaridades heurísticas e os valores ResNet são softmax não calibrado; servem para ranking dentro do método.", "", "O escore PolyGabor é a distância logarítmica negativa para tumor em uma grade densa 75×75 por patch. O CAM da ResNet é calculado em sua entrada treinada de 128×128, antes do softmax, a partir das ativações espaciais 4×4 e dos pesos da classe tumor, com ReLU. Cada mapa é interpolado apenas dentro do respectivo patch de 150×150.", "", "O threshold de cada método e seed maximiza Dice exclusivamente na validação. As métricas em pixels foram mantidas como análise secundária de região fracamente anotada: toda a área de um patch tumor é positiva porque não há contorno histopatológico dentro dele. Elas não medem segmentação celular ou tumoral real. O baseline aleatório de AUROC é 0,5 e a prevalência positiva é 12,5%. Os intervalos reamostram os 30 mosaicos inteiros por 5.000 draws.", "", f"Artefatos brutos: {run_dir.relative_to(ROOT)}. Tempos e recursos estão em timings.json e resources.json. A parte qualitativa nas imagens grandes não foi executada porque o arquivo local contém os 5.000 patches, sem o dataset separado colorectal_histology_large."]
+    pretraining_section = ["![Comparação de CAM por inicialização](localization_pretraining_examples.png)", "", "A comparação de inicialização mantém arquitetura, imagens e layouts e troca os pesos iniciais da ResNet. Ela permite observar separadamente alterações no ranking classificatório e no CAM."] if any(r["method"] == "resnet18_imagenet" for r in rows) else []
+    text = ["# Localização quantitativa de tumor em mosaicos", "", "Foram avaliados 20 mosaicos de validação e 30 de teste, todos 4×4 e 600×600 pixels, com dois patches de tumor e quatorze não tumorais. Os 800 patches utilizados são únicos dentro de cada split. Os modelos completos das seeds 42 e 43 foram reutilizados sem retreino.", "", "![Métricas de localização](localization_metrics.png)", "", *table, "", "A análise principal usa o rótulo conhecido de cada patch. AUROC e AP verificam se a evidência média do mapa ordena patches tumorais acima dos demais. Recall top-2 mede quantos dos dois tumores aparecem entre os dois patches de maior evidência; ambos no top-2 exige acerto perfeito do par. AUROC do classificador usa seu escore de tumor para cada patch isolado e permite distinguir erro da decisão e erro do mapa explicativo.", "", "![Exemplos de mosaicos, rótulos e mapas](localization_examples.png)", "", "Cada patch é processado isoladamente e somente então os mapas são remontados. Assim, nenhum campo receptivo nem interpolação cruza as bordas artificiais do mosaico. A figura mostra uma coluna de verdade e, para cada método, uma coluna com o escore classificatório de tumor e outra com o mapa explicativo. Verde identifica a verdade tumor, amarelo tracejado mostra o top-2 de cada painel e ciano mostra o limiar da explicação selecionado na validação. Os valores PolyGabor são similaridades heurísticas e os valores ResNet são softmax não calibrado; servem para ranking dentro do método.", "", *pretraining_section, "", "O escore PolyGabor é a distância logarítmica negativa para tumor em uma grade densa 75×75 por patch. O CAM da ResNet é calculado em sua entrada treinada de 128×128, antes do softmax, a partir das ativações espaciais 4×4 e dos pesos da classe tumor, com ReLU. Cada mapa é interpolado apenas dentro do respectivo patch de 150×150.", "", "O threshold de cada método e seed maximiza Dice exclusivamente na validação. As métricas em pixels foram mantidas como análise secundária de região fracamente anotada: toda a área de um patch tumor é positiva porque não há contorno histopatológico dentro dele. Elas não medem segmentação celular ou tumoral real. O baseline aleatório de AUROC é 0,5 e a prevalência positiva é 12,5%. Os intervalos reamostram os 30 mosaicos inteiros por 5.000 draws.", "", f"Artefatos brutos: {run_dir.relative_to(ROOT)}. Tempos e recursos estão em timings.json e resources.json. A parte qualitativa nas imagens grandes não foi executada porque o arquivo local contém os 5.000 patches, sem o dataset separado colorectal_histology_large."]
     (result_dir / "README.md").write_text("\n".join(text) + "\n")
 
 
@@ -368,8 +381,16 @@ def main():
     if status.get("status") == "complete" and status.get("protocol_version") == PROTOCOL_VERSION:
         print(f"SKIP completed {run_dir}")
         return
+    previous_rows_list = json.loads((run_dir / "raw_metrics.json").read_text()) if (run_dir / "raw_metrics.json").exists() else []
+    previous_rows = {(row["method"], row["model_seed"]): row for row in previous_rows_list}
     run_dir.mkdir(parents=True, exist_ok=True)
     result_dir.mkdir(parents=True, exist_ok=True)
+    if status.get("protocol_version") == 2:
+        for name in ("status.json", "raw_metrics.json", "timings.json", "resources.json", "resources.csv"):
+            source = run_dir / name
+            target = run_dir / f"{source.stem}_v2{source.suffix}"
+            if source.exists() and not target.exists():
+                shutil.copy2(source, target)
     (run_dir / "status.json").write_text(json.dumps({"status": "running", "protocol_version": PROTOCOL_VERSION}))
     val_images = np.load(ROOT / "cache/val_images.npy", mmap_mode="r")
     val_labels = np.load(ROOT / "cache/val_labels.npy")
@@ -377,7 +398,7 @@ def main():
     test_labels = np.load(ROOT / "cache/test_labels.npy")
     val_layouts = make_layouts(val_labels, 20, seed=20260912)
     test_layouts = make_layouts(test_labels, 30, seed=20260913)
-    protocol = dict(protocol_version=PROTOCOL_VERSION, grid=[4, 4], patch_pixels=[150, 150], mosaic_pixels=[600, 600], tumors_per_mosaic=2,
+    protocol = dict(protocol_version=PROTOCOL_VERSION, methods=list(METHODS), grid=[4, 4], patch_pixels=[150, 150], mosaic_pixels=[600, 600], tumors_per_mosaic=2,
                     validation_mosaics=20, test_mosaics=30, unique_within_split=True, interpolation="linear",
                     threshold_selection="maximum pooled validation Dice", bootstrap_draws=5000,
                     primary_evaluation_unit="patch", map_construction="independent explanation per patch, resized within tile, then stitched",
@@ -387,23 +408,37 @@ def main():
     monitor = Monitor(run_dir)
     saved, rows = {}, []
     try:
-        for method in ("polygarbor", "resnet18"):
+        for method in METHODS:
             for model_seed in (42, 43):
                 print(f"LOCALIZATION {method} seed={model_seed}", flush=True)
                 model_dir = ROOT / "runs" / args.campaign / f"full__{method}__seed{model_seed}" / "model"
                 if not model_dir.exists():
                     raise FileNotFoundError(model_dir)
-                started = time.perf_counter()
-                with monitor.stage(f"{method}_seed{model_seed}_maps"):
-                    if method == "polygarbor":
-                        val_maps, val_classifier_scores, native_shape = polygarbor_maps(model_dir, val_images, val_layouts)
-                        test_maps, test_classifier_scores, check_shape = polygarbor_maps(model_dir, test_images, test_layouts)
-                    else:
-                        val_maps, val_classifier_scores, native_shape = resnet_maps(model_dir, val_images, val_layouts)
-                        test_maps, test_classifier_scores, check_shape = resnet_maps(model_dir, test_images, test_layouts)
-                    if native_shape != check_shape:
-                        raise RuntimeError(f"inconsistent native map shapes: {native_shape} != {check_shape}")
-                map_seconds = time.perf_counter() - started
+                cache_path = run_dir / f"{method}_seed{model_seed}_maps.npz"
+                prior = previous_rows.get((method, model_seed))
+                reused = False
+                if prior and cache_path.exists():
+                    cached = np.load(cache_path)
+                    required = {"validation", "test", "validation_classifier_scores", "test_classifier_scores"}
+                    if required <= set(cached.files):
+                        val_maps, test_maps = cached["validation"], cached["test"]
+                        val_classifier_scores, test_classifier_scores = cached["validation_classifier_scores"], cached["test_classifier_scores"]
+                        native_shape = prior["per_patch_native_shape"]
+                        map_seconds = prior["map_seconds"]
+                        reused = True
+                        print(f"REUSE {method} seed={model_seed}", flush=True)
+                if not reused:
+                    started = time.perf_counter()
+                    with monitor.stage(f"{method}_seed{model_seed}_maps"):
+                        if method == "polygarbor":
+                            val_maps, val_classifier_scores, native_shape = polygarbor_maps(model_dir, val_images, val_layouts)
+                            test_maps, test_classifier_scores, check_shape = polygarbor_maps(model_dir, test_images, test_layouts)
+                        else:
+                            val_maps, val_classifier_scores, native_shape = resnet_maps(model_dir, val_images, val_layouts)
+                            test_maps, test_classifier_scores, check_shape = resnet_maps(model_dir, test_images, test_layouts)
+                        if native_shape != check_shape:
+                            raise RuntimeError(f"inconsistent native map shapes: {native_shape} != {check_shape}")
+                    map_seconds = time.perf_counter() - started
                 with monitor.stage(f"{method}_seed{model_seed}_metrics"):
                     metrics = evaluate_maps(val_maps, test_maps, val_layouts, test_layouts, val_classifier_scores, test_classifier_scores)
                 row = dict(method=method, model_seed=model_seed, map_seconds=map_seconds,
@@ -416,12 +451,13 @@ def main():
         comparisons = []
         rng = np.random.default_rng(321)
         for seed in (42, 43):
-            poly = next(r for r in rows if r["method"] == "polygarbor" and r["model_seed"] == seed)
-            cnn = next(r for r in rows if r["method"] == "resnet18" and r["model_seed"] == seed)
-            for metric, key in (("weak_region_AUROC", "per_mosaic_auc"), ("weak_region_Dice", "per_mosaic_dice"), ("patch_AUROC", "per_mosaic_patch_auc"), ("patch_Dice", "per_mosaic_patch_dice"), ("patch_recall_at_2", "per_mosaic_patch_recall_at_2")):
-                delta = np.asarray(poly[key]) - np.asarray(cnn[key])
-                boot = delta[rng.integers(0, len(delta), size=(5000, len(delta)))].mean(1)
-                comparisons.append(dict(model_seed=seed, metric=metric, polygarbor_minus_resnet=float(delta.mean()), ci95_low=float(np.percentile(boot, 2.5)), ci95_high=float(np.percentile(boot, 97.5))))
+            for method_a, method_b in itertools.combinations(METHODS, 2):
+                row_a = next(r for r in rows if r["method"] == method_a and r["model_seed"] == seed)
+                row_b = next(r for r in rows if r["method"] == method_b and r["model_seed"] == seed)
+                for metric, key in (("weak_region_AUROC", "per_mosaic_auc"), ("weak_region_Dice", "per_mosaic_dice"), ("patch_AUROC", "per_mosaic_patch_auc"), ("patch_Dice", "per_mosaic_patch_dice"), ("patch_recall_at_2", "per_mosaic_patch_recall_at_2")):
+                    delta = np.asarray(row_a[key]) - np.asarray(row_b[key])
+                    boot = delta[rng.integers(0, len(delta), size=(5000, len(delta)))].mean(1)
+                    comparisons.append(dict(model_seed=seed, method_a=method_a, method_b=method_b, metric=metric, difference_a_minus_b=float(delta.mean()), ci95_low=float(np.percentile(boot, 2.5)), ci95_high=float(np.percentile(boot, 97.5))))
         plot_results(result_dir, rows, saved, test_images, test_layouts)
         write_report(result_dir, rows, comparisons, run_dir)
         (run_dir / "status.json").write_text(json.dumps({"status": "complete", "protocol_version": PROTOCOL_VERSION}, indent=2))

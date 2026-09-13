@@ -90,6 +90,25 @@ def main():
     test = frame[frame.evaluation == "test_clean"]
     full = test[test.scenario == "full"]
 
+    initialization_rows = []
+    initialization_pairs = (("ResNet-18", "resnet18", "resnet18_imagenet"), ("YOLO11n", "yolo11n_random", "yolo11n"))
+    scenario_order = ["few1", "few2", "few5", "few10", "few20", "few50", "few100", "full", "imbalance", "label_noise", "source_a", "source_b"]
+    for family, random_method, imagenet_method in initialization_pairs:
+        random_rows = test[test.method == random_method][["scenario", "seed", "macro_f1", "multiclass_gmean"]]
+        imagenet_rows = test[test.method == imagenet_method][["scenario", "seed", "macro_f1", "multiclass_gmean"]]
+        paired = random_rows.merge(imagenet_rows, on=["scenario", "seed"], suffixes=("_random", "_imagenet"))
+        for scenario in scenario_order:
+            group = paired[paired.scenario == scenario]
+            if group.empty:
+                continue
+            initialization_rows.append(dict(family=family, scenario=scenario, seeds=len(group),
+                macro_f1_random=group.macro_f1_random.mean(), macro_f1_imagenet=group.macro_f1_imagenet.mean(),
+                macro_f1_delta_imagenet_minus_random=(group.macro_f1_imagenet - group.macro_f1_random).mean(),
+                gmean_random=group.multiclass_gmean_random.mean(), gmean_imagenet=group.multiclass_gmean_imagenet.mean(),
+                gmean_delta_imagenet_minus_random=(group.multiclass_gmean_imagenet - group.multiclass_gmean_random).mean()))
+    initialization_frame = pd.DataFrame(initialization_rows)
+    initialization_frame.to_csv(out / "initialization_comparison.csv", index=False)
+
     # Two seeds give a range, not a stable estimate of population variance.
     curve = test[test.scenario.str.startswith("few") | (test.scenario == "full")].copy()
     curve["examples_per_class"] = curve.scenario.map(lambda x: int(x[3:]) if x.startswith("few") else 500)
@@ -246,11 +265,19 @@ def main():
     edge_frame.to_csv(out / "edge.csv", index=False)
     if not edge_frame.empty:
         edge_pivot = edge_frame.pivot(index="mode", columns="method", values="median_ms")
-        ax = edge_pivot.plot.bar(figsize=(9, 4), rot=0, color=[COLORS[c] for c in edge_pivot.columns])
-        ax.set(ylabel="Latência mediana batch 1 (ms)", xlabel="Ambiente de inferência")
-        ax.figure.tight_layout()
-        ax.figure.savefig(out / "edge.png", dpi=180)
-        plt.close(ax.figure)
+        edge_panels = (("Métodos e inicialização", ("polygarbor", "resnet18", "resnet18_imagenet", "yolo11n_random", "yolo11n")),
+                       ("Ablações do PolyGabor", ("polygarbor", "polygarbor_aug", "polygarbor_p3", "polygarbor_p3_aug", "polygarbor_p5")))
+        fig, axes = plt.subplots(2, 1, figsize=(12, 8), sharex=True, sharey=True)
+        for ax, (title, selected) in zip(axes, edge_panels):
+            columns = [method for method in selected if method in edge_pivot.columns]
+            edge_pivot[columns].plot.bar(ax=ax, color=[COLORS[c] for c in columns], rot=0)
+            ax.set(title=title, ylabel="Latência mediana batch 1 (ms)", xlabel="")
+            ax.legend(fontsize=8)
+            ax.grid(axis="y", alpha=.2)
+        axes[-1].set_xlabel("Ambiente de inferência")
+        fig.tight_layout()
+        fig.savefig(out / "edge.png", dpi=180)
+        plt.close(fig)
 
     localization_path = out / "localization/metrics.csv"
     localization = pd.read_csv(localization_path) if localization_path.exists() else pd.DataFrame()
@@ -258,12 +285,16 @@ def main():
     localization_section = [] if localization.empty else [
         "## Localização quantitativa", "", "![Identificação dos patches de tumor](localization/localization_metrics.png)", "",
         markdown_table(localization_display), "",
+        "![Efeito da inicialização no CAM](localization/localization_pretraining_examples.png)", "",
         "Cada mosaico 4×4 contém dois patches de tumor e quatorze das demais classes, sem repetição dentro do split. Os mapas são calculados em cada patch isolado e remontados sem mistura entre vizinhos. A avaliação primária compara a evidência explicativa com os rótulos conhecidos por patch; métricas de região em pixels são secundárias porque não há anotação interna. Protocolo, exemplos e limitações estão no [relatório de localização](localization/README.md).", ""]
 
     sections = ["# Comparação de classificadores de histopatologia colorretal", "",
         f"Campanha `{args.campaign}`. Este arquivo é gerado dos artefatos salvos; a avaliação visual e a interpretação detalhada estão em [DISCUSSION.md](DISCUSSION.md). Há {len(index)} runs registradas e {len(runs)} concluídas. Consultar `run_index.csv` para falhas e caminhos, `metrics.csv` para todas as métricas e `../../PROTOCOL.md` para o protocolo.", "",
         "## Teste limpo após treinamento completo", "",
         markdown_table(full[["method", "seed", "accuracy", "macro_f1", "multiclass_gmean", "balanced_accuracy", "mcc", "nll", "ece"]]), "",
+        "## Efeito controlado da inicialização ImageNet", "",
+        markdown_table(initialization_frame), "",
+        "Cada linha compara a mesma arquitetura e o mesmo cenário, pareando as seeds disponíveis. Delta positivo favorece os pesos ImageNet. As curvas e as métricas de localização complementam a tabela, pois uma inicialização pode melhorar a classificação média sem melhorar toda condição de mudança de origem.", "",
         "## Custo do treinamento completo", "",
         markdown_table(full[["method", "seed", "n_train", "originals_retained", "fitted_vectors_or_images", "epochs", "train_seconds", "model_mb", "rss_peak_mb", "vram_peak_mb"]]), "",
         "MB usa 1.000.000 bytes. RAM e VRAM são picos do processo completo, incluindo avaliação e figuras; custos por etapa estão em [stage_resources.csv](stage_resources.csv) e em resources.json/timings.json de cada run. GPU-% é global do dispositivo, incluindo o desktop. CPU-% usa 100% por núcleo. O PolyGabor padrão extrai 4000 vetores, mas ajusta no máximo 2800. Nas variantes, 9/25 patches e augmentation ampliam os vetores candidatos mantendo o teto de 350 por classe; originals_retained informa quantas imagens originais distintas chegam ao ajuste. effective_training.json detalha os valores por classe. Isso altera simultaneamente escala espacial e diversidade retida, devendo ser considerado na interpretação das ablações.", "",
@@ -290,7 +321,7 @@ def main():
         "As origens foram recuperadas dos nomes por SHA-256 dos pixels. source_a testa 09/10 e source_b testa 06/09; validação em 08, com demais origens no treino. A classe empty só existe em 06/10, impossibilitando sua presença simultânea em três splits disjuntos. A validação 08 não contém adipose/empty; treino e teste preservam oito classes. Os testes têm tamanhos/composições diferentes do teste aleatório, logo diferenças não isolam somente efeito de origem. A identidade de paciente por código não foi confirmada.", "",
         *localization_section,
         "## Artefatos e limites", "",
-        "Os splits são os originais do TFDS (4000/500/500) com ordem determinística, hashes auditáveis e nenhuma duplicata exata entre splits. O carregamento supervisionado expõe imagem/rótulo. A auditoria recuperou dez origens dos filenames e acrescentou splits source_a/source_b com origens separadas, descritos em source_manifest.json. Não há identificação clínica de paciente nem teste em base externa. ResNet inicia do zero; YOLO usa ImageNet e política de augmentations/otimizador do Ultralytics. A comparação mede pipelines com esses recursos diferentes.", "",
+        "Os splits são os originais do TFDS (4000/500/500) com ordem determinística, hashes auditáveis e nenhuma duplicata exata entre splits. O carregamento supervisionado expõe imagem/rótulo. A auditoria recuperou dez origens dos filenames e acrescentou splits source_a/source_b com origens separadas, descritos em source_manifest.json. Não há identificação clínica de paciente nem teste em base externa. ResNet-18 e YOLO11n foram executadas com inicialização aleatória e ImageNet; a política de augmentations e o otimizador continuam próprios de cada pipeline.", "",
         "Cada run tem config.json, selection.json, status.json, run.log, timings.json, resources.csv/json, modelo, métricas/predições por imagem e figuras. Histórico e épocas são salvos para CNN. Pilotos ficam em campanhas distintas e não entram nas tabelas. Modelos e dados grandes permanecem no disco, ignorados pelo Git.", "",
         "Fontes: [dataset TFDS](https://www.tensorflow.org/datasets/catalog/colorectal_histology), [dados originais](https://zenodo.org/records/53169), [Ultralytics classificação](https://docs.ultralytics.com/tasks/classify/), [referência de mapas de ativação](https://keras.io/examples/vision/grad_cam/).", ""]
     (out / "REPORT.md").write_text("\n".join(sections))

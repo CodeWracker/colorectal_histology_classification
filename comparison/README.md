@@ -13,7 +13,7 @@ cnn/.venv/bin/python comparison/suite.py --campaign minha-campanha --methods pol
 cnn/.venv/bin/python comparison/finish.py --campaign minha-campanha
 ```
 
-`finish.py` também executa `localization.py`, que reutiliza os modelos completos das duas seeds para medir identificação de tumor em mosaicos sintéticos 4×4. Cada imagem é explicada isoladamente antes da montagem, impedindo mistura entre patches. A avaliação primária usa AUROC/AP por patch e recuperação dos dois tumores no top-2; Dice de região usa threshold escolhido na validação e é secundário porque não há máscaras internas. Se quiser executar apenas essa etapa depois dos modelos completos, use `cnn/.venv/bin/python comparison/localization.py --campaign minha-campanha`.
+`finish.py` também executa `localization.py`, que reutiliza os modelos completos das duas seeds para medir identificação de tumor em mosaicos sintéticos 4×4. Cada imagem é explicada isoladamente antes da montagem, impedindo mistura entre patches. A avaliação primária usa AUROC/AP por patch e recuperação dos dois tumores no top-2; Dice de região usa threshold escolhido na validação e é secundário porque não há máscaras internas. A versão 3 compara PolyGabor, ResNet aleatória e ResNet ImageNet e separa em cada figura os escores classificatórios dos mapas explicativos. Se quiser executar apenas essa etapa depois dos modelos completos, use `cnn/.venv/bin/python comparison/localization.py --campaign minha-campanha`.
 
 O executor prepara caminhos locais das bibliotecas CUDA e inicia um processo por execução. As execuções são sequenciais para evitar competição entre modelos. Os pesos YOLO oficiais são baixados no primeiro uso. `prepare.py` reutiliza o TFDS já disponível em `polygarbor/data` e salva arrays em `comparison/cache`; não modifica o cache original. `dataset_manifest.json` contém classe, quantidade e SHA-256 de cada imagem.
 
@@ -40,15 +40,15 @@ comparison/
     edge/resnet18__cpu1/
   results/2026-09-12/
     REPORT.md / DISCUSSION.md
-    run_index.csv / metrics.csv / learning_curve.csv / paired_tests.csv
+    run_index.csv / metrics.csv / learning_curve.csv / paired_tests.csv / initialization_comparison.csv
     learning_curve.png / learning_curve_gmean.png / robustness.png / tradeoffs.png / edge.png
     stage_resources.csv / edge.csv / aggregation_comparison.csv
     error_gallery.png / source_shift_gallery.png / corruption_gallery.png
-    localization/README.md / metrics.csv / localization_metrics.png / localization_examples.png
+    localization/README.md / metrics.csv / localization_metrics.png / localization_examples.png / localization_pretraining_examples.png
 ```
 
-Interpretação: os cenários de poucos exemplos restringem o treino, mas mantêm 500 exemplos rotulados para validação. O ponto completo do PolyGabor preserva o limite padrão de 350 vetores/classe e registra quantos vetores entram no ajuste. ResNet começa do zero, YOLO usa pré-treino externo. Os mapas CAM, oclusão e similaridade são explicações computacionais, não segmentação. A simulação edge mede x86 com menos paralelismo; não demonstra desempenho em ARM/Jetson. Os códigos de origem recuperados dos nomes permitem testes agrupados adicionais, mas não identificam clinicamente pacientes. Para reproduzi-los, execute `cnn/.venv/bin/python comparison/prepare_groups.py` e depois `cnn/.venv/bin/python comparison/suite.py --campaign minha-campanha --scenarios source_a source_b --seeds 42`, antes de `finish.py`.
+Interpretação: os cenários de poucos exemplos restringem o treino, mas mantêm 500 exemplos rotulados para validação. O ponto completo do PolyGabor preserva o limite padrão de 350 vetores/classe e registra quantos vetores entram no ajuste. ResNet-18 e YOLO11n têm controles pareados com inicialização aleatória e ImageNet. Os mapas CAM, oclusão e similaridade são explicações computacionais, não segmentação. A simulação edge mede x86 com menos paralelismo; não demonstra desempenho em ARM/Jetson. Os códigos de origem recuperados dos nomes permitem testes agrupados adicionais, mas não identificam clinicamente pacientes. Para reproduzi-los, execute `cnn/.venv/bin/python comparison/prepare_groups.py` e depois `cnn/.venv/bin/python comparison/suite.py --campaign minha-campanha --scenarios source_a source_b --seeds 42`, antes de `finish.py`.
 
 As variantes `p3` e `p5` usam 9 e 25 regiões por imagem; o banco de filtros permanece igual. `_aug` adiciona três vistas por original somente no treino. O teto de 350 vetores/classe permanece e o número de originais efetivamente retidos fica em `effective_training.json`. Consulte [G-mean versus macro-F1](GMEAN_VS_MACRO_F1.md) para interpretar as duas curvas sem confundir recall zero com falha de treinamento.
 
-Campanha concluída: 138 execuções válidas, duas falhas conhecidas de ajuste PolyGabor com uma imagem por classe, 16 benchmarks de inferência e 16 execuções frias. As duas execuções interrompidas pela mudança da pasta foram arquivadas e repetidas com sucesso. A auditoria está em [integrity_audit.json](integrity_audit.json).
+Os totais e o estado final da campanha estão em [integrity_audit.json](integrity_audit.json) e no relatório gerado. As duas execuções interrompidas pela mudança da pasta foram arquivadas e repetidas com sucesso.
