@@ -36,30 +36,57 @@ def configure_tensorflow(device="auto", threads=4, seed=42):
 def build_resnet18(image_size=128, num_classes=8):
     from tensorflow.keras import layers, Model
 
-    def conv(x, filters, kernel, strides=1):
-        x = layers.Conv2D(filters, kernel, strides=strides, padding="same", use_bias=False)(x)
-        return layers.ReLU()(layers.BatchNormalization()(x))
+    def conv(x, filters, kernel, name, strides=1):
+        x = layers.Conv2D(filters, kernel, strides=strides, padding="same", use_bias=False, name=f"{name}_conv")(x)
+        return layers.ReLU(name=f"{name}_relu")(layers.BatchNormalization(name=f"{name}_bn")(x))
 
-    def block(x, filters, strides=1):
+    def block(x, filters, name, strides=1):
         shortcut = x
-        y = conv(x, filters, 3, strides)
-        y = layers.Conv2D(filters, 3, padding="same", use_bias=False)(y)
-        y = layers.BatchNormalization()(y)
+        y = conv(x, filters, 3, f"{name}_1", strides)
+        y = layers.Conv2D(filters, 3, padding="same", use_bias=False, name=f"{name}_2_conv")(y)
+        y = layers.BatchNormalization(name=f"{name}_2_bn")(y)
         if strides != 1 or x.shape[-1] != filters:
-            shortcut = layers.Conv2D(filters, 1, strides=strides, padding="same", use_bias=False)(x)
-            shortcut = layers.BatchNormalization()(shortcut)
-        return layers.ReLU()(layers.Add()([shortcut, y]))
+            shortcut = layers.Conv2D(filters, 1, strides=strides, padding="same", use_bias=False, name=f"{name}_downsample_conv")(x)
+            shortcut = layers.BatchNormalization(name=f"{name}_downsample_bn")(shortcut)
+        return layers.ReLU(name=f"{name}_out")(layers.Add(name=f"{name}_add")([shortcut, y]))
 
     inputs = layers.Input((image_size, image_size, 3))
-    x = conv(inputs, 64, 7, 2)
-    x = layers.MaxPooling2D(3, strides=2, padding="same")(x)
-    for filters, stride in ((64, 1), (128, 2), (256, 2), (512, 2)):
-        x = block(x, filters, stride)
-        x = block(x, filters)
+    x = conv(inputs, 64, 7, "stem", 2)
+    x = layers.MaxPooling2D(3, strides=2, padding="same", name="stem_pool")(x)
+    for stage, (filters, stride) in enumerate(((64, 1), (128, 2), (256, 2), (512, 2)), 1):
+        x = block(x, filters, f"layer{stage}_0", stride)
+        x = block(x, filters, f"layer{stage}_1")
     x = layers.Activation("linear", name="spatial_features")(x)
     x = layers.GlobalAveragePooling2D(name="pool")(x)
     outputs = layers.Dense(num_classes, activation="softmax", name="classifier")(x)
     return Model(inputs, outputs, name="resnet18")
+
+
+def initialize_resnet18_imagenet(model):
+    """Port the official Torchvision ImageNet backbone into the Keras model."""
+    from torchvision.models import ResNet18_Weights, resnet18
+
+    source = resnet18(weights=ResNet18_Weights.IMAGENET1K_V1).state_dict()
+    pairs = [("stem", "conv1", "bn1")]
+    for stage in range(1, 5):
+        for block in range(2):
+            target = f"layer{stage}_{block}"
+            origin = f"layer{stage}.{block}"
+            pairs.extend([(f"{target}_1", f"{origin}.conv1", f"{origin}.bn1"),
+                          (f"{target}_2", f"{origin}.conv2", f"{origin}.bn2")])
+            if stage > 1 and block == 0:
+                pairs.append((f"{target}_downsample", f"{origin}.downsample.0", f"{origin}.downsample.1"))
+    for target, convolution, batch_norm in pairs:
+        kernel = source[f"{convolution}.weight"].cpu().numpy().transpose(2, 3, 1, 0)
+        model.get_layer(f"{target}_conv").set_weights([kernel])
+        model.get_layer(f"{target}_bn").set_weights([
+            source[f"{batch_norm}.weight"].cpu().numpy(),
+            source[f"{batch_norm}.bias"].cpu().numpy(),
+            source[f"{batch_norm}.running_mean"].cpu().numpy(),
+            source[f"{batch_norm}.running_var"].cpu().numpy(),
+        ])
+    return {"source": "torchvision ResNet18_Weights.IMAGENET1K_V1", "checkpoint": "resnet18-f37072fd.pth",
+            "loaded_convolutions": len(pairs), "loaded_batch_norms": len(pairs), "random_classifier_classes": model.output_shape[-1]}
 
 
 @dataclass
@@ -85,7 +112,7 @@ class Prediction:
 class CNNClassifier:
     def __init__(self, class_names, architecture="resnet18", image_size=128,
                  batch_size=32, learning_rate=1e-3, random_state=42,
-                 device="auto", threads=4, augment=True, weights="yolo11n-cls.pt"):
+                 device="auto", threads=4, augment=True, weights="auto"):
         if architecture not in ("resnet18", "yolo11n"):
             raise ValueError("architecture must be resnet18 or yolo11n")
         if len(class_names) < 2 or len(set(class_names)) != len(class_names):
@@ -97,6 +124,15 @@ class CNNClassifier:
         self.class_names = list(class_names)
         self.architecture, self.image_size, self.batch_size = architecture, image_size, batch_size
         self.learning_rate, self.random_state = learning_rate, random_state
+        if architecture == "resnet18":
+            if weights in ("auto", "yolo11n-cls.pt"):
+                weights = "random"
+            if weights not in ("random", "imagenet"):
+                raise ValueError("ResNet weights must be random or imagenet")
+        elif weights in ("auto", "imagenet"):
+            weights = "yolo11n-cls.pt"
+        elif weights == "random":
+            weights = "yolo11n-cls.yaml"
         self.device, self.threads, self.augment, self.weights = device, threads, augment, weights
         self.model = None
         self.history = {}
@@ -120,6 +156,8 @@ class CNNClassifier:
                 image = tf.image.random_flip_left_right(image)
                 image = tf.image.random_flip_up_down(image)
                 image = tf.image.random_brightness(image, max_delta=0.1)
+            if self.architecture == "resnet18" and self.weights == "imagenet":
+                image = (image - tf.constant([.485, .456, .406])) / tf.constant([.229, .224, .225])
             return image, label
 
         options = tf.data.Options()
@@ -154,6 +192,9 @@ class CNNClassifier:
         with stage("build_model"):
             tf = configure_tensorflow(self.device, self.threads, self.random_state)
             self.model = build_resnet18(self.image_size, self.n_classes)
+            initialization = (initialize_resnet18_imagenet(self.model) if self.weights == "imagenet" else
+                              {"source": "keras random initialization", "random_classifier_classes": self.n_classes})
+            (out / "initialization.json").write_text(json.dumps(initialization, indent=2))
             self.model.compile(optimizer=tf.keras.optimizers.Adam(self.learning_rate),
                                loss="sparse_categorical_crossentropy", metrics=["accuracy"])
         with stage("prepare_pipeline"):
@@ -257,6 +298,8 @@ class CNNClassifier:
         for start in range(0, len(images), self.batch_size):
             x = tf.stack([tf.image.resize(i, (self.image_size, self.image_size))
                           for i in images[start:start + self.batch_size]]) / 255.
+            if self.weights == "imagenet":
+                x = (x - tf.constant([.485, .456, .406])) / tf.constant([.229, .224, .225])
             result.append(self._infer(x).numpy())  # synchronizes GPU
         return np.concatenate(result)
 

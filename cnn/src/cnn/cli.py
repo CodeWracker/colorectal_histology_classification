@@ -36,7 +36,7 @@ def build_parser():
             p.add_argument("--seed", type=int, default=42)
             p.add_argument("--threads", type=int, default=4)
             p.add_argument("--no-augment", action="store_true")
-            p.add_argument("--weights", default="yolo11n-cls.pt")
+            p.add_argument("--weights", default="auto", help="auto, random, imagenet (ResNet), or a YOLO checkpoint/config")
             p.add_argument("--eval-limit", type=int)
             p.add_argument("--skip-eval", action="store_true")
             p.add_argument("--figures", action="store_true")

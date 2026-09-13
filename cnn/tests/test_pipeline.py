@@ -47,8 +47,12 @@ def test_cli_and_empty_data():
     for command in ("dataset", "train", "evaluate", "info"):
         assert parser.parse_args([command]).command == command
     assert parser.parse_args(["predict", "-i", "x.png", "--no-viz"]).no_viz
+    assert parser.parse_args(["train", "--architecture", "resnet18", "--weights", "imagenet"]).weights == "imagenet"
     with pytest.raises(ValueError, match="Empty"):
         CNNClassifier(["a", "b"]).fit([], [])
+    assert CNNClassifier(["a", "b"], architecture="resnet18").weights == "random"
+    assert CNNClassifier(["a", "b"], architecture="resnet18", weights="imagenet").weights == "imagenet"
+    assert CNNClassifier(["a", "b"], architecture="yolo11n", weights="random").weights == "yolo11n-cls.yaml"
 
 
 def test_multiclass_gmean_zero_and_missing_class():

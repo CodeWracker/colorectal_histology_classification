@@ -30,6 +30,8 @@ def activation_map(classifier, image, label=None):
     from polygarbor.classifier import load_image
     rgb = load_image(image)
     x = tf.image.resize(rgb, (classifier.image_size, classifier.image_size))[None] / 255.
+    if classifier.weights == "imagenet":
+        x = (x - tf.constant([.485, .456, .406])) / tf.constant([.229, .224, .225])
     feature_model = tf.keras.Model(classifier.model.inputs,
                                    classifier.model.get_layer("spatial_features").output)
     features = feature_model(x, training=False).numpy()[0]

@@ -1,7 +1,7 @@
 [project]
 name = "cnn"
 version = "0.1.0"
-description = "Colorectal histology: notebook ResNet-18 and YOLO11 classification"
+description = "Colorectal histology: ResNet-18 and YOLO11 classification with controlled initialization"
 readme = "README.md"
 requires-python = ">=3.10,<3.13"
 dependencies = [
@@ -12,6 +12,7 @@ dependencies = [
 [project.optional-dependencies]
 gpu = ["tensorflow[and-cuda]==2.20.0"]
 yolo = ["ultralytics>=8.3,<9", "torch==2.7.1", "torchvision==0.22.1"]
+pretrained = ["torch==2.7.1", "torchvision==0.22.1"]
 
 [project.scripts]
 cnn = "cnn.cli:main"
