@@ -120,7 +120,7 @@ def cmd_dataset(args: argparse.Namespace) -> int:
             console.bullet(str(path))
         console.ok(f"{len(written)} images exported to {target}")
 
-    console.ok("Dataset ready. Next step: `polygarbor train`.")
+    console.ok(f"Dataset ready. Next step: `{getattr(args, 'program', 'polygarbor')} train`.")
     return 0
 
 

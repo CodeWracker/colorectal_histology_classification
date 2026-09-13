@@ -1,0 +1,27 @@
+[project]
+name = "cnn"
+version = "0.1.0"
+description = "Colorectal histology: notebook ResNet-18 and YOLO11 classification"
+readme = "README.md"
+requires-python = ">=3.10,<3.13"
+dependencies = [
+    "polygarbor", "tensorflow==2.20.0", "tensorflow-datasets>=4.9",
+    "psutil>=7", "importlib-resources>=6", "nvidia-ml-py>=12",
+]
+
+[project.optional-dependencies]
+gpu = ["tensorflow[and-cuda]==2.20.0"]
+yolo = ["ultralytics>=8.3,<9", "torch==2.7.1", "torchvision==0.22.1"]
+
+[project.scripts]
+cnn = "cnn.cli:main"
+
+[tool.uv.sources]
+polygarbor = { path = "../polygarbor", editable = true }
+
+[build-system]
+requires = ["uv_build>=0.9.18,<0.10.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = ["pytest>=8"]

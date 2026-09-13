@@ -1,0 +1,4 @@
+/yolo11n-cls.pt
+/weights/
+__pycache__/
+.pytest_cache/
