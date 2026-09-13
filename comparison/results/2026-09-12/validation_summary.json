@@ -1,8 +1,8 @@
 {
   "integrity_audit": {
-    "timestamp": "2026-09-12T20:00:17-0300",
-    "checked": 138,
-    "valid": 138,
+    "timestamp": "2026-09-13T17:16:49-0300",
+    "checked": 178,
+    "valid": 178,
     "runs": [
       {
         "run": "few100__polygarbor__seed42",
@@ -65,12 +65,32 @@
         "errors": []
       },
       {
+        "run": "few100__resnet18_imagenet__seed42",
+        "evaluations": 3,
+        "errors": []
+      },
+      {
+        "run": "few100__resnet18_imagenet__seed43",
+        "evaluations": 3,
+        "errors": []
+      },
+      {
         "run": "few100__yolo11n__seed42",
         "evaluations": 3,
         "errors": []
       },
       {
         "run": "few100__yolo11n__seed43",
+        "evaluations": 3,
+        "errors": []
+      },
+      {
+        "run": "few100__yolo11n_random__seed42",
+        "evaluations": 3,
+        "errors": []
+      },
+      {
+        "run": "few100__yolo11n_random__seed43",
         "evaluations": 3,
         "errors": []
       },
@@ -135,12 +155,32 @@
         "errors": []
       },
       {
+        "run": "few10__resnet18_imagenet__seed42",
+        "evaluations": 3,
+        "errors": []
+      },
+      {
+        "run": "few10__resnet18_imagenet__seed43",
+        "evaluations": 3,
+        "errors": []
+      },
+      {
         "run": "few10__yolo11n__seed42",
         "evaluations": 3,
         "errors": []
       },
       {
         "run": "few10__yolo11n__seed43",
+        "evaluations": 3,
+        "errors": []
+      },
+      {
+        "run": "few10__yolo11n_random__seed42",
+        "evaluations": 3,
+        "errors": []
+      },
+      {
+        "run": "few10__yolo11n_random__seed43",
         "evaluations": 3,
         "errors": []
       },
@@ -195,12 +235,32 @@
         "errors": []
       },
       {
+        "run": "few1__resnet18_imagenet__seed42",
+        "evaluations": 3,
+        "errors": []
+      },
+      {
+        "run": "few1__resnet18_imagenet__seed43",
+        "evaluations": 3,
+        "errors": []
+      },
+      {
         "run": "few1__yolo11n__seed42",
         "evaluations": 3,
         "errors": []
       },
       {
         "run": "few1__yolo11n__seed43",
+        "evaluations": 3,
+        "errors": []
+      },
+      {
+        "run": "few1__yolo11n_random__seed42",
+        "evaluations": 3,
+        "errors": []
+      },
+      {
+        "run": "few1__yolo11n_random__seed43",
         "evaluations": 3,
         "errors": []
       },
@@ -265,12 +325,32 @@
         "errors": []
       },
       {
+        "run": "few20__resnet18_imagenet__seed42",
+        "evaluations": 3,
+        "errors": []
+      },
+      {
+        "run": "few20__resnet18_imagenet__seed43",
+        "evaluations": 3,
+        "errors": []
+      },
+      {
         "run": "few20__yolo11n__seed42",
         "evaluations": 3,
         "errors": []
       },
       {
         "run": "few20__yolo11n__seed43",
+        "evaluations": 3,
+        "errors": []
+      },
+      {
+        "run": "few20__yolo11n_random__seed42",
+        "evaluations": 3,
+        "errors": []
+      },
+      {
+        "run": "few20__yolo11n_random__seed43",
         "evaluations": 3,
         "errors": []
       },
@@ -335,12 +415,32 @@
         "errors": []
       },
       {
+        "run": "few2__resnet18_imagenet__seed42",
+        "evaluations": 3,
+        "errors": []
+      },
+      {
+        "run": "few2__resnet18_imagenet__seed43",
+        "evaluations": 3,
+        "errors": []
+      },
+      {
         "run": "few2__yolo11n__seed42",
         "evaluations": 3,
         "errors": []
       },
       {
         "run": "few2__yolo11n__seed43",
+        "evaluations": 3,
+        "errors": []
+      },
+      {
+        "run": "few2__yolo11n_random__seed42",
+        "evaluations": 3,
+        "errors": []
+      },
+      {
+        "run": "few2__yolo11n_random__seed43",
         "evaluations": 3,
         "errors": []
       },
@@ -405,12 +505,32 @@
         "errors": []
       },
       {
+        "run": "few50__resnet18_imagenet__seed42",
+        "evaluations": 3,
+        "errors": []
+      },
+      {
+        "run": "few50__resnet18_imagenet__seed43",
+        "evaluations": 3,
+        "errors": []
+      },
+      {
         "run": "few50__yolo11n__seed42",
         "evaluations": 3,
         "errors": []
       },
       {
         "run": "few50__yolo11n__seed43",
+        "evaluations": 3,
+        "errors": []
+      },
+      {
+        "run": "few50__yolo11n_random__seed42",
+        "evaluations": 3,
+        "errors": []
+      },
+      {
+        "run": "few50__yolo11n_random__seed43",
         "evaluations": 3,
         "errors": []
       },
@@ -475,12 +595,32 @@
         "errors": []
       },
       {
+        "run": "few5__resnet18_imagenet__seed42",
+        "evaluations": 3,
+        "errors": []
+      },
+      {
+        "run": "few5__resnet18_imagenet__seed43",
+        "evaluations": 3,
+        "errors": []
+      },
+      {
         "run": "few5__yolo11n__seed42",
         "evaluations": 3,
         "errors": []
       },
       {
         "run": "few5__yolo11n__seed43",
+        "evaluations": 3,
+        "errors": []
+      },
+      {
+        "run": "few5__yolo11n_random__seed42",
+        "evaluations": 3,
+        "errors": []
+      },
+      {
+        "run": "few5__yolo11n_random__seed43",
         "evaluations": 3,
         "errors": []
       },
@@ -545,12 +685,32 @@
         "errors": []
       },
       {
+        "run": "full__resnet18_imagenet__seed42",
+        "evaluations": 11,
+        "errors": []
+      },
+      {
+        "run": "full__resnet18_imagenet__seed43",
+        "evaluations": 11,
+        "errors": []
+      },
+      {
         "run": "full__yolo11n__seed42",
         "evaluations": 11,
         "errors": []
       },
       {
         "run": "full__yolo11n__seed43",
+        "evaluations": 11,
+        "errors": []
+      },
+      {
+        "run": "full__yolo11n_random__seed42",
+        "evaluations": 11,
+        "errors": []
+      },
+      {
+        "run": "full__yolo11n_random__seed43",
         "evaluations": 11,
         "errors": []
       },
@@ -585,7 +745,17 @@
         "errors": []
       },
       {
+        "run": "imbalance__resnet18_imagenet__seed42",
+        "evaluations": 3,
+        "errors": []
+      },
+      {
         "run": "imbalance__yolo11n__seed42",
+        "evaluations": 3,
+        "errors": []
+      },
+      {
+        "run": "imbalance__yolo11n_random__seed42",
         "evaluations": 3,
         "errors": []
       },
@@ -620,7 +790,17 @@
         "errors": []
       },
       {
+        "run": "label_noise__resnet18_imagenet__seed42",
+        "evaluations": 4,
+        "errors": []
+      },
+      {
         "run": "label_noise__yolo11n__seed42",
+        "evaluations": 4,
+        "errors": []
+      },
+      {
+        "run": "label_noise__yolo11n_random__seed42",
         "evaluations": 4,
         "errors": []
       },
@@ -655,7 +835,17 @@
         "errors": []
       },
       {
+        "run": "source_a__resnet18_imagenet__seed42",
+        "evaluations": 3,
+        "errors": []
+      },
+      {
         "run": "source_a__yolo11n__seed42",
+        "evaluations": 3,
+        "errors": []
+      },
+      {
+        "run": "source_a__yolo11n_random__seed42",
         "evaluations": 3,
         "errors": []
       },
@@ -690,14 +880,24 @@
         "errors": []
       },
       {
+        "run": "source_b__resnet18_imagenet__seed42",
+        "evaluations": 3,
+        "errors": []
+      },
+      {
         "run": "source_b__yolo11n__seed42",
+        "evaluations": 3,
+        "errors": []
+      },
+      {
+        "run": "source_b__yolo11n_random__seed42",
         "evaluations": 3,
         "errors": []
       }
     ]
   },
   "tests_log": "comparison/runs/2026-09-12/tests.log",
-  "tests_summary": "20 passed, 108 warnings in 15.96s",
+  "tests_summary": "21 passed, 108 warnings in 14.83s",
   "cli_commands_passed": 8,
   "edge": [
     {
@@ -805,6 +1005,30 @@
       "cold_returncode": 0
     },
     {
+      "method": "resnet18_imagenet",
+      "mode": "cpu1",
+      "samples": 100,
+      "prediction_agreement": 1.0,
+      "returncode": 0,
+      "cold_returncode": 0
+    },
+    {
+      "method": "resnet18_imagenet",
+      "mode": "cpu4",
+      "samples": 100,
+      "prediction_agreement": 1.0,
+      "returncode": 0,
+      "cold_returncode": 0
+    },
+    {
+      "method": "resnet18_imagenet",
+      "mode": "gpu",
+      "samples": 100,
+      "prediction_agreement": 0.99,
+      "returncode": 0,
+      "cold_returncode": 0
+    },
+    {
       "method": "yolo11n",
       "mode": "cpu1",
       "samples": 100,
@@ -822,6 +1046,30 @@
     },
     {
       "method": "yolo11n",
+      "mode": "gpu",
+      "samples": 100,
+      "prediction_agreement": 1.0,
+      "returncode": 0,
+      "cold_returncode": 0
+    },
+    {
+      "method": "yolo11n_random",
+      "mode": "cpu1",
+      "samples": 100,
+      "prediction_agreement": 1.0,
+      "returncode": 0,
+      "cold_returncode": 0
+    },
+    {
+      "method": "yolo11n_random",
+      "mode": "cpu4",
+      "samples": 100,
+      "prediction_agreement": 1.0,
+      "returncode": 0,
+      "cold_returncode": 0
+    },
+    {
+      "method": "yolo11n_random",
       "mode": "gpu",
       "samples": 100,
       "prediction_agreement": 1.0,
