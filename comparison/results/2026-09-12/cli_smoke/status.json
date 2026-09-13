@@ -1,0 +1,135 @@
+[
+  {
+    "command": [
+      "/home/ralph/projects/ufsc/colorectal_histology_classification/cnn/.venv/bin/python",
+      "-m",
+      "cnn.cli",
+      "info",
+      "--model-dir",
+      "comparison/runs/2026-09-12/full__resnet18__seed42/model",
+      "--device",
+      "cpu",
+      "--no-color"
+    ],
+    "returncode": 0,
+    "log": "00.log"
+  },
+  {
+    "command": [
+      "/home/ralph/projects/ufsc/colorectal_histology_classification/cnn/.venv/bin/python",
+      "-m",
+      "cnn.cli",
+      "predict",
+      "--model-dir",
+      "comparison/runs/2026-09-12/full__resnet18__seed42/model",
+      "--device",
+      "cpu",
+      "-i",
+      "comparison/results/2026-09-12/cli_smoke/tumor.png",
+      "--true-label",
+      "0",
+      "--out-dir",
+      "comparison/results/2026-09-12/cli_smoke/resnet18"
+    ],
+    "returncode": 0,
+    "log": "01.log"
+  },
+  {
+    "command": [
+      "/home/ralph/projects/ufsc/colorectal_histology_classification/cnn/.venv/bin/python",
+      "-m",
+      "cnn.cli",
+      "evaluate",
+      "--model-dir",
+      "comparison/runs/2026-09-12/full__resnet18__seed42/model",
+      "--device",
+      "cpu",
+      "--data-dir",
+      "polygarbor/data",
+      "--limit",
+      "8",
+      "--out-dir",
+      "comparison/results/2026-09-12/cli_smoke/resnet18_eval"
+    ],
+    "returncode": 0,
+    "log": "02.log"
+  },
+  {
+    "command": [
+      "/home/ralph/projects/ufsc/colorectal_histology_classification/cnn/.venv/bin/python",
+      "-m",
+      "cnn.cli",
+      "info",
+      "--model-dir",
+      "comparison/runs/2026-09-12/full__yolo11n__seed42/model",
+      "--device",
+      "cpu",
+      "--no-color"
+    ],
+    "returncode": 0,
+    "log": "03.log"
+  },
+  {
+    "command": [
+      "/home/ralph/projects/ufsc/colorectal_histology_classification/cnn/.venv/bin/python",
+      "-m",
+      "cnn.cli",
+      "predict",
+      "--model-dir",
+      "comparison/runs/2026-09-12/full__yolo11n__seed42/model",
+      "--device",
+      "cpu",
+      "-i",
+      "comparison/results/2026-09-12/cli_smoke/tumor.png",
+      "--true-label",
+      "0",
+      "--out-dir",
+      "comparison/results/2026-09-12/cli_smoke/yolo11n"
+    ],
+    "returncode": 0,
+    "log": "04.log"
+  },
+  {
+    "command": [
+      "/home/ralph/projects/ufsc/colorectal_histology_classification/cnn/.venv/bin/python",
+      "-m",
+      "cnn.cli",
+      "evaluate",
+      "--model-dir",
+      "comparison/runs/2026-09-12/full__yolo11n__seed42/model",
+      "--device",
+      "cpu",
+      "--data-dir",
+      "polygarbor/data",
+      "--limit",
+      "8",
+      "--out-dir",
+      "comparison/results/2026-09-12/cli_smoke/yolo11n_eval"
+    ],
+    "returncode": 0,
+    "log": "05.log"
+  },
+  {
+    "command": [
+      "/home/ralph/projects/ufsc/colorectal_histology_classification/cnn/.venv/bin/python",
+      "-m",
+      "cnn.cli",
+      "dataset",
+      "--help"
+    ],
+    "returncode": 0,
+    "log": "06.log"
+  },
+  {
+    "command": [
+      "/home/ralph/projects/ufsc/colorectal_histology_classification/cnn/.venv/bin/python",
+      "-m",
+      "polygarbor.cli",
+      "info",
+      "--model-dir",
+      "comparison/runs/2026-09-12/full__polygarbor__seed42/model"
+    ],
+    "returncode": 0,
+    "log": "07.log"
+  }
+]

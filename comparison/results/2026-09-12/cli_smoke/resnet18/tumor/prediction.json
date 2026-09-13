@@ -1,0 +1,16 @@
+{
+  "label": 0,
+  "class_name": "tumor",
+  "confidence": 0.9999567270278931,
+  "confidence_kind": "softmax_uncalibrated",
+  "probabilities": {
+    "tumor": 0.9999567270278931,
+    "stroma": 1.0655414683924391e-07,
+    "complex": 1.580530806677416e-05,
+    "lympho": 2.5937875761883333e-05,
+    "debris": 1.3332988828551606e-06,
+    "mucosa": 5.8338102348898246e-08,
+    "adipose": 2.439443178708922e-12,
+    "empty": 1.4389160085670483e-08
+  }
+}

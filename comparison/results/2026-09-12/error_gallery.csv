@@ -1,0 +1,17 @@
+index,selection,true_class,polygarbor,resnet18,yolo11n
+1,todos acertam,tumor,tumor,tumor,tumor
+3,todos acertam,lympho,lympho,lympho,lympho
+11,todos erram,complex,stroma,stroma,stroma
+13,todos erram,complex,debris,tumor,stroma
+247,só polygarbor acerta,debris,debris,adipose,adipose
+249,só polygarbor acerta,stroma,stroma,debris,debris
+7,só polygarbor erra,tumor,lympho,tumor,tumor
+16,só polygarbor erra,mucosa,debris,mucosa,mucosa
+73,só resnet18 acerta,debris,stroma,debris,stroma
+95,só resnet18 acerta,complex,stroma,complex,stroma
+33,só resnet18 erra,stroma,stroma,complex,stroma
+41,só resnet18 erra,debris,debris,adipose,debris
+0,só yolo11n acerta,stroma,debris,debris,stroma
+2,só yolo11n acerta,mucosa,tumor,tumor,mucosa
+297,só yolo11n erra,debris,debris,debris,stroma
+308,só yolo11n erra,tumor,tumor,tumor,complex

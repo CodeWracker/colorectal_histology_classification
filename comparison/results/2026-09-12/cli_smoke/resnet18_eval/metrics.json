@@ -1,0 +1,140 @@
+{
+  "n": 8,
+  "accuracy": 0.75,
+  "multiclass_gmean": null,
+  "score_argmax_agreement": 1.0,
+  "macro_f1": 0.325,
+  "balanced_accuracy": 0.6666666666666666,
+  "mcc": 0.6956521739130435,
+  "kappa": 0.6666666666666667,
+  "top2_accuracy": 1.0,
+  "nll": 0.21245309261985545,
+  "brier": 0.15698359032852136,
+  "ece": 0.13688745219564247,
+  "auroc_macro": 1.0,
+  "calibration_bins": [
+    {
+      "lower": 0.0,
+      "count": 0,
+      "confidence": null,
+      "accuracy": null
+    },
+    {
+      "lower": 0.1,
+      "count": 0,
+      "confidence": null,
+      "accuracy": null
+    },
+    {
+      "lower": 0.2,
+      "count": 0,
+      "confidence": null,
+      "accuracy": null
+    },
+    {
+      "lower": 0.3,
+      "count": 0,
+      "confidence": null,
+      "accuracy": null
+    },
+    {
+      "lower": 0.4,
+      "count": 1,
+      "confidence": 0.4956928678198849,
+      "accuracy": 0.0
+    },
+    {
+      "lower": 0.5,
+      "count": 1,
+      "confidence": 0.5958135341312808,
+      "accuracy": 0.0
+    },
+    {
+      "lower": 0.6,
+      "count": 0,
+      "confidence": null,
+      "accuracy": null
+    },
+    {
+      "lower": 0.7,
+      "count": 0,
+      "confidence": null,
+      "accuracy": null
+    },
+    {
+      "lower": 0.8,
+      "count": 0,
+      "confidence": null,
+      "accuracy": null
+    },
+    {
+      "lower": 0.9,
+      "count": 6,
+      "confidence": 0.9994011307310043,
+      "accuracy": 1.0
+    }
+  ],
+  "per_class": {
+    "tumor": {
+      "precision": 0.6666666666666666,
+      "recall": 1.0,
+      "f1-score": 0.8,
+      "support": 2.0
+    },
+    "stroma": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1-score": 0.0,
+      "support": 1.0
+    },
+    "complex": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1-score": 0.0,
+      "support": 0.0
+    },
+    "lympho": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 2.0
+    },
+    "debris": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1-score": 0.0,
+      "support": 0.0
+    },
+    "mucosa": {
+      "precision": 1.0,
+      "recall": 0.6666666666666666,
+      "f1-score": 0.8,
+      "support": 3.0
+    },
+    "adipose": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1-score": 0.0,
+      "support": 0.0
+    },
+    "empty": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1-score": 0.0,
+      "support": 0.0
+    },
+    "accuracy": 0.75,
+    "macro avg": {
+      "precision": 0.3333333333333333,
+      "recall": 0.3333333333333333,
+      "f1-score": 0.325,
+      "support": 8.0
+    },
+    "weighted avg": {
+      "precision": 0.7916666666666666,
+      "recall": 0.75,
+      "f1-score": 0.75,
+      "support": 8.0
+    }
+  }
+}

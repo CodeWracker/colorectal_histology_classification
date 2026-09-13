@@ -1,0 +1,26 @@
+
+============================================================
+MODEL INFORMATION
+============================================================
+  folder:                            /home/ralph/projects/ufsc/colorectal_histology_classification/comparison/runs/2026-09-12/full__polygarbor__seed42/model
+  classes:                           8 -> tumor, stroma, complex, lympho, debris, mucosa, adipose, empty
+  features per vector:               22
+  gabor filters:                     8
+  polynomial levels:                 3
+  patch grid:                        1x1
+  dense grid:                        75x75 window (15, 15)
+
+▸ Training samples per class
+  class    samples  dimensions
+  -------  -------  ----------
+  tumor    350      22        
+  stroma   350      22        
+  complex  350      22        
+  lympho   350      22        
+  debris   350      22        
+  mucosa   350      22        
+  adipose  350      22        
+  empty    350      22        
+
+▸ Descriptor features
+  order:                             G1_μ, G1_σ, G2_μ, G2_σ, G3_μ, G3_σ, G4_μ, G4_σ, G5_μ, G5_σ, G6_μ, G6_σ, G7_μ, G7_σ, G8_μ, G8_σ, L_μ, L_σ, A_μ, A_σ, B_μ, B_σ

@@ -1,0 +1,23 @@
+{
+  "class_names": [
+    "tumor",
+    "stroma",
+    "complex",
+    "lympho",
+    "debris",
+    "mucosa",
+    "adipose",
+    "empty"
+  ],
+  "architecture": "resnet18",
+  "image_size": 128,
+  "batch_size": 32,
+  "learning_rate": 0.001,
+  "random_state": 42,
+  "threads": 4,
+  "augment": true,
+  "weights": "yolo11n-cls.pt",
+  "format_version": 1,
+  "parameters": 11190216
+}
+Model size: 45.009 MB

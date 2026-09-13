@@ -1,0 +1,12 @@
+{
+  "cpu": "Intel(R) Core(TM) Ultra 9 185H",
+  "platform": "Linux-6.17.0-14-generic-x86_64-with-glibc2.39",
+  "cpu_count": 22,
+  "memory": [
+    "MemTotal:       32359644 kB",
+    "MemFree:         3200020 kB",
+    "MemAvailable:   14937280 kB"
+  ],
+  "gpu": "NVIDIA GeForce RTX 4070 Laptop GPU, 570.211.01, 8188 MiB",
+  "git_base": "877da1decba59f69e3466fe68c61891ccb030a4e"
+}

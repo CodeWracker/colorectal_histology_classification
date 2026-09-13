@@ -1,0 +1,244 @@
+# Comparação de classificadores de histopatologia colorretal
+
+Campanha `2026-09-12`. Este arquivo é gerado dos artefatos salvos; a avaliação visual e a interpretação detalhada estão em [DISCUSSION.md](DISCUSSION.md). Há 140 runs registradas e 138 concluídas. Consultar `run_index.csv` para falhas e caminhos, `metrics.csv` para todas as métricas e `../../PROTOCOL.md` para o protocolo.
+
+## Teste limpo após treinamento completo
+
+| method | seed | accuracy | macro_f1 | multiclass_gmean | balanced_accuracy | mcc | nll | ece |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| polygarbor | 42 | 0.7860 | 0.7802 | 0.7624 | 0.7887 | 0.7604 | 0.8753 | 0.2759 |
+| polygarbor | 43 | 0.8080 | 0.8054 | 0.7923 | 0.8123 | 0.7850 | 0.8629 | 0.2959 |
+| polygarbor_aug | 42 | 0.8020 | 0.8014 | 0.7884 | 0.8070 | 0.7777 | 0.9841 | 0.3552 |
+| polygarbor_aug | 43 | 0.7620 | 0.7568 | 0.7310 | 0.7690 | 0.7343 | 0.9639 | 0.3021 |
+| polygarbor_p3 | 42 | 0.6020 | 0.5379 | 0.4234 | 0.6010 | 0.5638 | 1.1530 | 0.1940 |
+| polygarbor_p3 | 43 | 0.5660 | 0.5071 | 0.3922 | 0.5665 | 0.5299 | 1.1318 | 0.1616 |
+| polygarbor_p3_aug | 42 | 0.5620 | 0.5090 | 0.3780 | 0.5619 | 0.5297 | 1.1897 | 0.1767 |
+| polygarbor_p3_aug | 43 | 0.6460 | 0.6354 | 0.5827 | 0.6523 | 0.6100 | 1.1781 | 0.2836 |
+| polygarbor_p5 | 42 | 0.4960 | 0.4090 | 0.0000 | 0.4962 | 0.4539 | 1.3149 | 0.1492 |
+| polygarbor_p5 | 43 | 0.5380 | 0.4449 | 0.0000 | 0.5392 | 0.4988 | 1.2855 | 0.1930 |
+| resnet18 | 42 | 0.9060 | 0.9052 | 0.8976 | 0.9062 | 0.8929 | 0.2778 | 0.0179 |
+| resnet18 | 43 | 0.9100 | 0.9103 | 0.9036 | 0.9099 | 0.8977 | 0.2793 | 0.0360 |
+| yolo11n | 42 | 0.9620 | 0.9624 | 0.9627 | 0.9634 | 0.9567 | 0.1583 | 0.0220 |
+| yolo11n | 43 | 0.9380 | 0.9396 | 0.9380 | 0.9403 | 0.9294 | 0.1821 | 0.0162 |
+
+## Custo do treinamento completo
+
+| method | seed | n_train | originals_retained | fitted_vectors_or_images | epochs | train_seconds | model_mb | rss_peak_mb | vram_peak_mb |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| polygarbor | 42 | 4000 | 2800 | 2800 | 0 | 21.1885 | 0.6508 | 1240.3139 | 0.0000 |
+| polygarbor | 43 | 4000 | 2800 | 2800 | 0 | 19.9521 | 0.6507 | 1223.6186 | 0.0000 |
+| polygarbor_aug | 42 | 4000 | 2170 | 2800 | 0 | 87.2951 | 0.6506 | 1263.0958 | 0.0000 |
+| polygarbor_aug | 43 | 4000 | 2164 | 2800 | 0 | 70.0253 | 0.6503 | 1176.3302 | 0.0000 |
+| polygarbor_p3 | 42 | 4000 | 2065 | 2800 | 0 | 29.7417 | 0.6492 | 1511.7230 | 0.0000 |
+| polygarbor_p3 | 43 | 4000 | 2061 | 2800 | 0 | 28.5705 | 0.6493 | 1455.3784 | 0.0000 |
+| polygarbor_p3_aug | 42 | 4000 | 2040 | 2800 | 0 | 106.4593 | 0.6488 | 1358.0329 | 0.0000 |
+| polygarbor_p3_aug | 43 | 4000 | 2021 | 2800 | 0 | 90.7111 | 0.6491 | 1338.6015 | 0.0000 |
+| polygarbor_p5 | 42 | 4000 | 2048 | 2800 | 0 | 40.1738 | 0.6478 | 1519.3702 | 0.0000 |
+| polygarbor_p5 | 43 | 4000 | 2047 | 2800 | 0 | 33.1320 | 0.6479 | 1598.7999 | 0.0000 |
+| resnet18 | 42 | 4000 | 4000 | 4000 | 26 | 145.9129 | 45.0087 | 3831.1076 | 2975.8587 |
+| resnet18 | 43 | 4000 | 4000 | 4000 | 40 | 201.7962 | 45.0087 | 3859.4191 | 2975.8587 |
+| yolo11n | 42 | 4000 | 4000 | 4000 | 28 | 307.7293 | 3.2040 | 3491.7622 | 799.0149 |
+| yolo11n | 43 | 4000 | 4000 | 4000 | 21 | 231.8851 | 3.2035 | 3467.5835 | 706.7402 |
+
+MB usa 1.000.000 bytes. RAM e VRAM são picos do processo completo, incluindo avaliação e figuras; custos por etapa estão em [stage_resources.csv](stage_resources.csv) e em resources.json/timings.json de cada run. GPU-% é global do dispositivo, incluindo o desktop. CPU-% usa 100% por núcleo. O PolyGabor padrão extrai 4000 vetores, mas ajusta no máximo 2800. Nas variantes, 9/25 patches e augmentation ampliam os vetores candidatos mantendo o teto de 350 por classe; originals_retained informa quantas imagens originais distintas chegam ao ajuste. effective_training.json detalha os valores por classe. Isso altera simultaneamente escala espacial e diversidade retida, devendo ser considerado na interpretação das ablações.
+
+## Uso de CPU e GPU durante ajuste
+
+| method | seed | training_cpu_core_percent | fit_cpu_core_percent | fit_gpu_global_percent | vram_peak_mb |
+| --- | --- | --- | --- | --- | --- |
+| polygarbor | 42 | 106.7558 | 304.7667 | 24.6667 | 0.0000 |
+| polygarbor | 43 | 106.3548 | 305.2500 | 43.0000 | 0.0000 |
+| polygarbor_aug | 42 | 101.6323 | 305.3000 | 46.0000 | 0.0000 |
+| polygarbor_aug | 43 | 101.7061 | 333.5000 | 0.0000 | 0.0000 |
+| polygarbor_p3 | 42 | 105.8781 | 337.3000 | 72.0000 | 0.0000 |
+| polygarbor_p3 | 43 | 106.0884 | 329.6000 | 82.0000 | 0.0000 |
+| polygarbor_p3_aug | 42 | 101.7385 | 376.3000 | 62.0000 | 0.0000 |
+| polygarbor_p3_aug | 43 | 101.6744 | 308.5500 | 37.0000 | 0.0000 |
+| polygarbor_p5 | 42 | 105.8651 | 381.0000 | 46.0000 | 0.0000 |
+| polygarbor_p5 | 43 | 105.0043 | 354.4000 | 0.0000 | 0.0000 |
+| resnet18 | 42 | 60.4128 | 59.2966 | 87.4245 | 2975.8587 |
+| resnet18 | 43 | 60.2935 | 59.3647 | 87.2599 | 2975.8587 |
+| yolo11n | 42 | 349.6839 | 365.0533 | 46.4851 | 799.0149 |
+| yolo11n | 43 | 344.1662 | 364.9997 | 39.5127 | 706.7402 |
+
+training_cpu_core_percent usa CPU-segundos divididos pelo tempo total das etapas de treino; 100% corresponde a um núcleo ocupado. fit_cpu_core_percent é a média amostrada somente no ajuste. GPU-% é utilização global do dispositivo, não exclusiva do processo: atividade do desktop aparece mesmo durante PolyGabor. A VRAM por PID é medida separadamente; PolyGabor não executa operações na GPU.
+
+## Curva de aprendizagem
+
+![Macro-F1 versus quantidade de exemplos](learning_curve.png)
+
+![G-mean versus quantidade de exemplos](learning_curve_gmean.png)
+
+[Diferenças de interpretação entre G-mean e macro-F1](../../GMEAN_VS_MACRO_F1.md). A quantidade no eixo X sempre conta imagens originais, sem inflar o orçamento com augmentations ou patches.
+
+A faixa representa mínimo e máximo entre duas seeds, quando disponíveis; não é intervalo de confiança. O ponto ~500 tem 488–513 exemplos disponíveis por classe, com limite efetivo de 350 vetores/classe no PolyGabor padrão. Ausência de ponto por falha de ajuste não equivale a F1 zero. A validação permanece com 500 exemplos rotulados mesmo nos cenários de pouquíssimos exemplos de treino; esta é uma curva de escassez de treino, não de orçamento total de anotação.
+
+## Robustez no teste
+
+![Robustez](robustness.png)
+
+| evaluation | polygarbor | polygarbor_aug | polygarbor_p3 | polygarbor_p3_aug | polygarbor_p5 | resnet18 | yolo11n |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| test_blur | 0.4429 | 0.4829 | 0.3819 | 0.4543 | 0.3773 | 0.7538 | 0.6509 |
+| test_brightness | 0.3525 | 0.5021 | 0.3642 | 0.5063 | 0.3658 | 0.7464 | 0.9189 |
+| test_clean | 0.7928 | 0.7791 | 0.5225 | 0.5722 | 0.4269 | 0.9078 | 0.9510 |
+| test_color | 0.3275 | 0.3679 | 0.2757 | 0.3093 | 0.2641 | 0.2682 | 0.9252 |
+| test_jpeg | 0.7171 | 0.7289 | 0.4531 | 0.4853 | 0.4406 | 0.8390 | 0.9029 |
+| test_noise | 0.4369 | 0.4245 | 0.3846 | 0.3612 | 0.3373 | 0.8985 | 0.7791 |
+| test_occlusion | 0.3166 | 0.3786 | 0.3919 | 0.3499 | 0.3806 | 0.8897 | 0.9263 |
+| test_resolution | 0.4291 | 0.4489 | 0.3939 | 0.4436 | 0.3772 | 0.6375 | 0.6353 |
+| test_rotation | 0.6335 | 0.6383 | 0.4480 | 0.5198 | 0.4052 | 0.9003 | 0.9401 |
+
+As perturbações têm severidade fixa, pares de pixels idênticos entre modelos e não representam bases externas nem novos pacientes. A avaliação adicional source_a/source_b testa origens separadas, sem misturá-la a estas perturbações. Ver parâmetros em scenarios.py.
+
+## Agregação espacial PolyGabor
+
+| method | scenario | seed | voting_macro_f1 | ranking_macro_f1 | voting_gmean | ranking_gmean | agreement |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| polygarbor | full | 42 | 0.7802 | 0.7802 | 0.7624 | 0.7624 | 1.0000 |
+| polygarbor | full | 43 | 0.8054 | 0.8054 | 0.7923 | 0.7923 | 1.0000 |
+| polygarbor_aug | full | 42 | 0.8014 | 0.8014 | 0.7884 | 0.7884 | 1.0000 |
+| polygarbor_aug | full | 43 | 0.7568 | 0.7568 | 0.7310 | 0.7310 | 1.0000 |
+| polygarbor_p3 | full | 42 | 0.5379 | 0.5009 | 0.4234 | 0.3484 | 0.8560 |
+| polygarbor_p3 | full | 43 | 0.5071 | 0.5161 | 0.3922 | 0.3918 | 0.8800 |
+| polygarbor_p3_aug | full | 42 | 0.5090 | 0.4834 | 0.3780 | 0.3930 | 0.8660 |
+| polygarbor_p3_aug | full | 43 | 0.6354 | 0.6050 | 0.5827 | 0.5689 | 0.8320 |
+| polygarbor_p5 | full | 42 | 0.4090 | 0.3871 | 0.0000 | 0.0000 | 0.8440 |
+| polygarbor_p5 | full | 43 | 0.4449 | 0.4692 | 0.0000 | 0.0000 | 0.8220 |
+
+Comparação adicional sem retreino: a decisão principal usa votação entre regiões; ranking usa argmax da similaridade normalizada das distâncias médias. As curvas principais mantêm a votação fixada no protocolo. Esta análise mostra se a divergência entre regiões explica parte do resultado; não foi usada para escolher retrospectivamente a melhor regra no teste.
+
+## Comparações pareadas
+
+| a | b | seed | accuracy_b_minus_a | ci_low | ci_high | source_cluster_ci_low | source_cluster_ci_high | only_a | only_b | mcnemar_exact_p | holm_p |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| polygarbor | polygarbor_aug | 42 | 0.0160 | -0.0100 | 0.0420 | -0.0213 | 0.0458 | 17 | 25 | 0.2800 | 0.2800 |
+| polygarbor | polygarbor_p3 | 42 | -0.1840 | -0.2260 | -0.1420 | -0.3197 | -0.0639 | 112 | 20 | 0.0000 | 0.0000 |
+| polygarbor | polygarbor_p3_aug | 42 | -0.2240 | -0.2660 | -0.1820 | -0.2900 | -0.1505 | 127 | 15 | 0.0000 | 0.0000 |
+| polygarbor | polygarbor_p5 | 42 | -0.2900 | -0.3340 | -0.2460 | -0.4065 | -0.1748 | 155 | 10 | 0.0000 | 0.0000 |
+| polygarbor | resnet18 | 42 | 0.1200 | 0.0800 | 0.1600 | 0.0563 | 0.1607 | 27 | 87 | 0.0000 | 0.0000 |
+| polygarbor | yolo11n | 42 | 0.1760 | 0.1400 | 0.2120 | 0.1429 | 0.2031 | 5 | 93 | 0.0000 | 0.0000 |
+| polygarbor_aug | polygarbor_p3 | 42 | -0.2000 | -0.2420 | -0.1580 | -0.3586 | -0.0684 | 116 | 16 | 0.0000 | 0.0000 |
+| polygarbor_aug | polygarbor_p3_aug | 42 | -0.2400 | -0.2840 | -0.1960 | -0.3230 | -0.1575 | 137 | 17 | 0.0000 | 0.0000 |
+| polygarbor_aug | polygarbor_p5 | 42 | -0.3060 | -0.3520 | -0.2600 | -0.4437 | -0.1815 | 165 | 12 | 0.0000 | 0.0000 |
+| polygarbor_aug | resnet18 | 42 | 0.1040 | 0.0660 | 0.1420 | 0.0509 | 0.1444 | 24 | 76 | 0.0000 | 0.0000 |
+| polygarbor_aug | yolo11n | 42 | 0.1600 | 0.1260 | 0.1960 | 0.1248 | 0.2015 | 6 | 86 | 0.0000 | 0.0000 |
+| polygarbor_p3 | polygarbor_p3_aug | 42 | -0.0400 | -0.0740 | -0.0060 | -0.1175 | 0.0422 | 48 | 28 | 0.0286 | 0.1145 |
+| polygarbor_p3 | polygarbor_p5 | 42 | -0.1060 | -0.1400 | -0.0720 | -0.1520 | -0.0650 | 67 | 14 | 0.0000 | 0.0000 |
+| polygarbor_p3 | resnet18 | 42 | 0.3040 | 0.2540 | 0.3520 | 0.1726 | 0.4578 | 24 | 176 | 0.0000 | 0.0000 |
+| polygarbor_p3 | yolo11n | 42 | 0.3600 | 0.3160 | 0.4040 | 0.2468 | 0.4894 | 6 | 186 | 0.0000 | 0.0000 |
+| polygarbor_p3_aug | polygarbor_p5 | 42 | -0.0660 | -0.0960 | -0.0360 | -0.1265 | -0.0090 | 45 | 12 | 0.0000 | 0.0001 |
+| polygarbor_p3_aug | resnet18 | 42 | 0.3440 | 0.2940 | 0.3920 | 0.2423 | 0.4276 | 18 | 190 | 0.0000 | 0.0000 |
+| polygarbor_p3_aug | yolo11n | 42 | 0.4000 | 0.3540 | 0.4460 | 0.3318 | 0.4567 | 4 | 204 | 0.0000 | 0.0000 |
+| polygarbor_p5 | resnet18 | 42 | 0.4100 | 0.3600 | 0.4580 | 0.2654 | 0.5506 | 16 | 221 | 0.0000 | 0.0000 |
+| polygarbor_p5 | yolo11n | 42 | 0.4660 | 0.4200 | 0.5120 | 0.3520 | 0.5784 | 3 | 236 | 0.0000 | 0.0000 |
+| resnet18 | yolo11n | 42 | 0.0560 | 0.0320 | 0.0820 | 0.0226 | 0.1011 | 8 | 36 | 0.0000 | 0.0002 |
+| polygarbor | polygarbor_aug | 43 | -0.0460 | -0.0700 | -0.0220 | -0.0836 | -0.0171 | 31 | 8 | 0.0003 | 0.0015 |
+| polygarbor | polygarbor_p3 | 43 | -0.2420 | -0.2840 | -0.2000 | -0.3400 | -0.1473 | 137 | 16 | 0.0000 | 0.0000 |
+| polygarbor | polygarbor_p3_aug | 43 | -0.1620 | -0.2020 | -0.1240 | -0.2087 | -0.1149 | 98 | 17 | 0.0000 | 0.0000 |
+| polygarbor | polygarbor_p5 | 43 | -0.2700 | -0.3120 | -0.2280 | -0.4112 | -0.1435 | 146 | 11 | 0.0000 | 0.0000 |
+| polygarbor | resnet18 | 43 | 0.1020 | 0.0660 | 0.1400 | 0.0594 | 0.1313 | 22 | 73 | 0.0000 | 0.0000 |
+| polygarbor | yolo11n | 43 | 0.1300 | 0.0980 | 0.1640 | 0.0930 | 0.1550 | 9 | 74 | 0.0000 | 0.0000 |
+| polygarbor_aug | polygarbor_p3 | 43 | -0.1960 | -0.2380 | -0.1540 | -0.3196 | -0.0821 | 118 | 20 | 0.0000 | 0.0000 |
+| polygarbor_aug | polygarbor_p3_aug | 43 | -0.1160 | -0.1560 | -0.0760 | -0.1798 | -0.0447 | 83 | 25 | 0.0000 | 0.0000 |
+| polygarbor_aug | polygarbor_p5 | 43 | -0.2240 | -0.2660 | -0.1820 | -0.3889 | -0.0796 | 129 | 17 | 0.0000 | 0.0000 |
+| polygarbor_aug | resnet18 | 43 | 0.1480 | 0.1080 | 0.1880 | 0.1163 | 0.1815 | 20 | 94 | 0.0000 | 0.0000 |
+| polygarbor_aug | yolo11n | 43 | 0.1760 | 0.1400 | 0.2140 | 0.1484 | 0.2068 | 8 | 96 | 0.0000 | 0.0000 |
+| polygarbor_p3 | polygarbor_p3_aug | 43 | 0.0800 | 0.0460 | 0.1140 | 0.0076 | 0.1527 | 22 | 62 | 0.0000 | 0.0001 |
+| polygarbor_p3 | polygarbor_p5 | 43 | -0.0280 | -0.0560 | 0.0000 | -0.0732 | 0.0124 | 31 | 17 | 0.0595 | 0.1463 |
+| polygarbor_p3 | resnet18 | 43 | 0.3440 | 0.2960 | 0.3920 | 0.2352 | 0.4460 | 16 | 188 | 0.0000 | 0.0000 |
+| polygarbor_p3 | yolo11n | 43 | 0.3720 | 0.3280 | 0.4160 | 0.2677 | 0.4760 | 5 | 191 | 0.0000 | 0.0000 |
+| polygarbor_p3_aug | polygarbor_p5 | 43 | -0.1080 | -0.1460 | -0.0700 | -0.2243 | -0.0022 | 80 | 26 | 0.0000 | 0.0000 |
+| polygarbor_p3_aug | resnet18 | 43 | 0.2640 | 0.2200 | 0.3080 | 0.2014 | 0.3178 | 14 | 146 | 0.0000 | 0.0000 |
+| polygarbor_p3_aug | yolo11n | 43 | 0.2920 | 0.2500 | 0.3340 | 0.2382 | 0.3381 | 4 | 150 | 0.0000 | 0.0000 |
+| polygarbor_p5 | resnet18 | 43 | 0.3720 | 0.3240 | 0.4180 | 0.2308 | 0.5170 | 17 | 203 | 0.0000 | 0.0000 |
+| polygarbor_p5 | yolo11n | 43 | 0.4000 | 0.3560 | 0.4440 | 0.2626 | 0.5472 | 6 | 206 | 0.0000 | 0.0000 |
+| resnet18 | yolo11n | 43 | 0.0280 | 0.0020 | 0.0540 | 0.0086 | 0.0428 | 15 | 29 | 0.0488 | 0.1463 |
+
+Diferença = acurácia de B menos A. Bootstrap pareado de 5000 reamostragens de recortes; McNemar exato e ajuste de Holm entre pares/seeds mostrados. Também é apresentado bootstrap pareado por dez grupos de origem, reamostrando todos os recortes de cada origem em conjunto. Esse intervalo considera dependência por origem e deve ter preferência sobre o de recortes. McNemar e seu ajuste de Holm continuam exploratórios porque a independência entre recortes não é garantida. Nenhuma dessas análises demonstra generalização clínica.
+
+## Calibração
+
+| method | seed | temperature | nll | brier | ece | accuracy |
+| --- | --- | --- | --- | --- | --- | --- |
+| polygarbor | 42 | 0.3148 | 0.7099 | 0.3264 | 0.0683 | 0.7860 |
+| polygarbor | 43 | 0.2999 | 0.6601 | 0.3041 | 0.0749 | 0.8080 |
+| polygarbor_aug | 42 | 0.1933 | 0.7018 | 0.3170 | 0.0780 | 0.8020 |
+| polygarbor_aug | 43 | 0.2690 | 0.7435 | 0.3538 | 0.0690 | 0.7620 |
+| polygarbor_p3 | 42 | 0.4666 | 1.0624 | 0.5117 | 0.0807 | 0.6020 |
+| polygarbor_p3 | 43 | 0.4258 | 0.9953 | 0.5006 | 0.0713 | 0.5660 |
+| polygarbor_p3_aug | 42 | 0.4163 | 1.0623 | 0.5401 | 0.0413 | 0.5620 |
+| polygarbor_p3_aug | 43 | 0.3010 | 0.9764 | 0.4867 | 0.0764 | 0.6460 |
+| polygarbor_p5 | 42 | 0.6069 | 1.2455 | 0.6087 | 0.1374 | 0.4960 |
+| polygarbor_p5 | 43 | 0.5452 | 1.2066 | 0.5778 | 0.1047 | 0.5380 |
+| resnet18 | 42 | 0.9764 | 0.2788 | 0.1385 | 0.0174 | 0.9060 |
+| resnet18 | 43 | 1.1903 | 0.2629 | 0.1353 | 0.0221 | 0.9100 |
+| yolo11n | 42 | 0.8764 | 0.1603 | 0.0719 | 0.0175 | 0.9620 |
+| yolo11n | 43 | 0.9528 | 0.1831 | 0.0942 | 0.0169 | 0.9380 |
+
+Temperatura ajustada exclusivamente na validação para cada run e aplicada ao teste sem mudar a classe vencedora. Os escores originais são softmax CNN e similaridade heurística normalizada PolyGabor; a fração de votos PolyGabor não é utilizada como probabilidade. AUROC/top-2 medem ranking; NLL/Brier/ECE precisam dessa ressalva. Consulte metrics.csv para os valores anteriores à calibração.
+
+## Edge e inferência
+
+| method | mode | median_ms | p95_ms | model_mb | rss_peak_mb | vram_peak_mb | load_seconds | first_prediction_seconds | cold_total_seconds | batch32_images_s |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| polygarbor | cpu1 | 19.0296 | 25.6946 | 0.6508 | 280.1377 | 0.0000 | 0.9850 | 0.0764 | 1.3776 | 52.6754 |
+| polygarbor | cpu4 | 19.4757 | 21.0303 | 0.6508 | 281.6164 | 0.0000 | 1.0349 | 0.0830 | 1.4224 | 50.4820 |
+| polygarbor_aug | cpu1 | 17.5472 | 18.1265 | 0.6506 | 266.3547 | 0.0000 | 0.9593 | 0.1600 | 1.2635 | 54.0325 |
+| polygarbor_aug | cpu4 | 18.1017 | 19.3279 | 0.6506 | 290.3572 | 0.0000 | 1.0536 | 0.1052 | 1.4750 | 53.7098 |
+| polygarbor_p3 | cpu1 | 27.5612 | 30.7611 | 0.6492 | 318.1117 | 0.0000 | 1.1928 | 0.0854 | 1.5043 | 35.8461 |
+| polygarbor_p3 | cpu4 | 31.1329 | 34.9254 | 0.6492 | 319.5617 | 0.0000 | 1.1546 | 0.0905 | 1.5563 | 29.2649 |
+| polygarbor_p3_aug | cpu1 | 26.1330 | 27.2088 | 0.6488 | 307.7161 | 0.0000 | 1.0923 | 0.0842 | 1.3878 | 36.5434 |
+| polygarbor_p3_aug | cpu4 | 32.5499 | 34.6165 | 0.6488 | 299.7043 | 0.0000 | 1.1679 | 0.1081 | 1.5209 | 27.5407 |
+| polygarbor_p5 | cpu1 | 34.1177 | 36.5554 | 0.6478 | 301.5393 | 0.0000 | 1.2360 | 0.0912 | 1.4900 | 28.5747 |
+| polygarbor_p5 | cpu4 | 42.9941 | 46.6326 | 0.6478 | 299.0572 | 0.0000 | 1.1724 | 0.1062 | 1.5367 | 24.3747 |
+| resnet18 | cpu1 | 20.1934 | 21.9657 | 45.0087 | 939.3480 | 0.0000 | 2.6812 | 0.2565 | 3.6353 | 92.7586 |
+| resnet18 | cpu4 | 8.1954 | 13.7602 | 45.0087 | 946.1105 | 0.0000 | 2.7462 | 0.2598 | 3.7769 | 263.0014 |
+| resnet18 | gpu | 2.4785 | 3.0298 | 45.0087 | 1644.9331 | 4324.3274 | 3.4819 | 0.7446 | 4.8488 | 277.0435 |
+| yolo11n | cpu1 | 3.3195 | 3.7552 | 3.2040 | 824.9958 | 0.0000 | 2.4236 | 0.0497 | 3.2180 | 480.3991 |
+| yolo11n | cpu4 | 2.8806 | 3.1126 | 3.2040 | 835.9977 | 0.0000 | 2.3038 | 0.0527 | 3.2147 | 814.1773 |
+| yolo11n | gpu | 2.4858 | 3.2174 | 3.2040 | 1521.0619 | 251.6582 | 2.2869 | 0.6445 | 3.8036 | 1638.2339 |
+
+cpu1 restringe afinidade a um processador lógico e bibliotecas a uma thread; cpu4 usa quatro threads; gpu usa a RTX local. Cada medição carrega novamente o modelo em processo separado e aquece antes da latência. As imagens já estão em RAM: a latência inclui pré-processamento e execução, mas exclui leitura de arquivo e visualizações. Não há emulação de ARM nem limite artificial de RAM. O processo serve como aproximação de restrição computacional em x86, não como benchmark de dispositivo edge real.
+
+## Generalização por origem
+
+| method | scenario | n_train | accuracy | macro_f1 | multiclass_gmean | balanced_accuracy |
+| --- | --- | --- | --- | --- | --- | --- |
+| polygarbor | source_a | 4031 | 0.7293 | 0.7544 | 0.7501 | 0.7698 |
+| polygarbor_aug | source_a | 4031 | 0.7138 | 0.7330 | 0.7031 | 0.7593 |
+| polygarbor_p3 | source_a | 4031 | 0.5345 | 0.4715 | 0.0000 | 0.5501 |
+| polygarbor_p3_aug | source_a | 4031 | 0.5328 | 0.4928 | 0.0000 | 0.5473 |
+| polygarbor_p5 | source_a | 4031 | 0.4017 | 0.3365 | 0.0000 | 0.4310 |
+| resnet18 | source_a | 4031 | 0.5948 | 0.5407 | 0.4063 | 0.5683 |
+| yolo11n | source_a | 4031 | 0.8069 | 0.8295 | 0.8102 | 0.8246 |
+| polygarbor | source_b | 3208 | 0.3970 | 0.5000 | 0.0000 | 0.6283 |
+| polygarbor_aug | source_b | 3208 | 0.5282 | 0.5692 | 0.6112 | 0.6615 |
+| polygarbor_p3 | source_b | 3208 | 0.3100 | 0.3907 | 0.0000 | 0.5189 |
+| polygarbor_p3_aug | source_b | 3208 | 0.3065 | 0.3733 | 0.0000 | 0.4833 |
+| polygarbor_p5 | source_b | 3208 | 0.2644 | 0.3231 | 0.0000 | 0.4302 |
+| resnet18 | source_b | 3208 | 0.3022 | 0.3444 | 0.0000 | 0.4413 |
+| yolo11n | source_b | 3208 | 0.8831 | 0.8191 | 0.8282 | 0.8476 |
+
+As origens foram recuperadas dos nomes por SHA-256 dos pixels. source_a testa 09/10 e source_b testa 06/09; validação em 08, com demais origens no treino. A classe empty só existe em 06/10, impossibilitando sua presença simultânea em três splits disjuntos. A validação 08 não contém adipose/empty; treino e teste preservam oito classes. Os testes têm tamanhos/composições diferentes do teste aleatório, logo diferenças não isolam somente efeito de origem. A identidade de paciente por código não foi confirmada.
+
+## Localização quantitativa
+
+![Localização de tumor em mosaicos](localization/localization_metrics.png)
+
+| method | model_seed | test_pooled_auc | test_pooled_average_precision | test_pooled_dice | test_pooled_iou |
+| --- | --- | --- | --- | --- | --- |
+| polygarbor | 42 | 0.6408 | 0.1891 | 0.2594 | 0.1490 |
+| polygarbor | 43 | 0.6387 | 0.1858 | 0.2588 | 0.1487 |
+| resnet18 | 42 | 0.8964 | 0.4523 | 0.5584 | 0.3873 |
+| resnet18 | 43 | 0.8977 | 0.5775 | 0.5889 | 0.4174 |
+
+O threshold de Dice foi escolhido exclusivamente em 20 mosaicos de validação e aplicado a 30 mosaicos de teste. Cada mosaico 4×4 contém dois patches de tumor e quatorze das demais classes, sem repetição de patches dentro de cada split. AUROC/AP são calculados em pixels; intervalos por mosaico, protocolo, exemplos e limitações estão no [relatório de localização](localization/README.md).
+
+## Artefatos e limites
+
+Os splits são os originais do TFDS (4000/500/500) com ordem determinística, hashes auditáveis e nenhuma duplicata exata entre splits. O carregamento supervisionado expõe imagem/rótulo. A auditoria recuperou dez origens dos filenames e acrescentou splits source_a/source_b com origens separadas, descritos em source_manifest.json. Não há identificação clínica de paciente nem teste em base externa. ResNet inicia do zero; YOLO usa ImageNet e política de augmentations/otimizador do Ultralytics. A comparação mede pipelines com esses recursos diferentes.
+
+Cada run tem config.json, selection.json, status.json, run.log, timings.json, resources.csv/json, modelo, métricas/predições por imagem e figuras. Histórico e épocas são salvos para CNN. Pilotos ficam em campanhas distintas e não entram nas tabelas. Modelos e dados grandes permanecem no disco, ignorados pelo Git.
+
+Fontes: [dataset TFDS](https://www.tensorflow.org/datasets/catalog/colorectal_histology), [dados originais](https://zenodo.org/records/53169), [Ultralytics classificação](https://docs.ultralytics.com/tasks/classify/), [referência de mapas de ativação](https://keras.io/examples/vision/grad_cam/).

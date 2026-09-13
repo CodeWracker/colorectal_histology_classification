@@ -1,0 +1,14 @@
+              precision    recall  f1-score   support
+
+       tumor      0.667     1.000     0.800         2
+      stroma      0.000     0.000     0.000         1
+     complex      0.000     0.000     0.000         0
+      lympho      1.000     1.000     1.000         2
+      debris      0.000     0.000     0.000         0
+      mucosa      1.000     0.667     0.800         3
+     adipose      0.000     0.000     0.000         0
+       empty      0.000     0.000     0.000         0
+
+    accuracy                          0.750         8
+   macro avg      0.333     0.333     0.325         8
+weighted avg      0.792     0.750     0.750         8

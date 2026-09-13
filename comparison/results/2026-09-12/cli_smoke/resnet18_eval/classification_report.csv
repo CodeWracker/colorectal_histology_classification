@@ -1,0 +1,12 @@
+,precision,recall,f1-score,support
+tumor,0.667,1.0,0.8,2.0
+stroma,0.0,0.0,0.0,1.0
+complex,0.0,0.0,0.0,0.0
+lympho,1.0,1.0,1.0,2.0
+debris,0.0,0.0,0.0,0.0
+mucosa,1.0,0.667,0.8,3.0
+adipose,0.0,0.0,0.0,0.0
+empty,0.0,0.0,0.0,0.0
+accuracy,0.75,0.75,0.75,0.75
+macro avg,0.333,0.333,0.325,8.0
+weighted avg,0.792,0.75,0.75,8.0

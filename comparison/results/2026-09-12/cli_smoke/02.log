@@ -1,0 +1,3 @@
+/home/ralph/projects/ufsc/colorectal_histology_classification/cnn/.venv/lib/python3.11/site-packages/sklearn/metrics/_classification.py:2939: UserWarning: y_pred contains classes not in y_true
+  warnings.warn("y_pred contains classes not in y_true")
+test: accuracy=0.7500 macro-F1=0.3250

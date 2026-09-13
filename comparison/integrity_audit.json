@@ -1,0 +1,697 @@
+{
+  "timestamp": "2026-09-12T21:02:59-0300",
+  "checked": 138,
+  "valid": 138,
+  "runs": [
+    {
+      "run": "few100__polygarbor__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few100__polygarbor__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few100__polygarbor_aug__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few100__polygarbor_aug__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few100__polygarbor_p3__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few100__polygarbor_p3__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few100__polygarbor_p3_aug__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few100__polygarbor_p3_aug__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few100__polygarbor_p5__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few100__polygarbor_p5__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few100__resnet18__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few100__resnet18__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few100__yolo11n__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few100__yolo11n__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few10__polygarbor__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few10__polygarbor__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few10__polygarbor_aug__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few10__polygarbor_aug__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few10__polygarbor_p3__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few10__polygarbor_p3__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few10__polygarbor_p3_aug__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few10__polygarbor_p3_aug__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few10__polygarbor_p5__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few10__polygarbor_p5__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few10__resnet18__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few10__resnet18__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few10__yolo11n__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few10__yolo11n__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few1__polygarbor_aug__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few1__polygarbor_aug__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few1__polygarbor_p3__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few1__polygarbor_p3__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few1__polygarbor_p3_aug__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few1__polygarbor_p3_aug__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few1__polygarbor_p5__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few1__polygarbor_p5__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few1__resnet18__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few1__resnet18__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few1__yolo11n__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few1__yolo11n__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few20__polygarbor__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few20__polygarbor__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few20__polygarbor_aug__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few20__polygarbor_aug__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few20__polygarbor_p3__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few20__polygarbor_p3__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few20__polygarbor_p3_aug__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few20__polygarbor_p3_aug__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few20__polygarbor_p5__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few20__polygarbor_p5__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few20__resnet18__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few20__resnet18__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few20__yolo11n__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few20__yolo11n__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few2__polygarbor__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few2__polygarbor__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few2__polygarbor_aug__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few2__polygarbor_aug__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few2__polygarbor_p3__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few2__polygarbor_p3__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few2__polygarbor_p3_aug__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few2__polygarbor_p3_aug__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few2__polygarbor_p5__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few2__polygarbor_p5__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few2__resnet18__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few2__resnet18__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few2__yolo11n__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few2__yolo11n__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few50__polygarbor__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few50__polygarbor__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few50__polygarbor_aug__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few50__polygarbor_aug__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few50__polygarbor_p3__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few50__polygarbor_p3__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few50__polygarbor_p3_aug__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few50__polygarbor_p3_aug__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few50__polygarbor_p5__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few50__polygarbor_p5__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few50__resnet18__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few50__resnet18__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few50__yolo11n__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few50__yolo11n__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few5__polygarbor__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few5__polygarbor__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few5__polygarbor_aug__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few5__polygarbor_aug__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few5__polygarbor_p3__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few5__polygarbor_p3__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few5__polygarbor_p3_aug__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few5__polygarbor_p3_aug__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few5__polygarbor_p5__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few5__polygarbor_p5__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few5__resnet18__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few5__resnet18__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few5__yolo11n__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "few5__yolo11n__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "full__polygarbor__seed42",
+      "evaluations": 11,
+      "errors": []
+    },
+    {
+      "run": "full__polygarbor__seed43",
+      "evaluations": 11,
+      "errors": []
+    },
+    {
+      "run": "full__polygarbor_aug__seed42",
+      "evaluations": 11,
+      "errors": []
+    },
+    {
+      "run": "full__polygarbor_aug__seed43",
+      "evaluations": 11,
+      "errors": []
+    },
+    {
+      "run": "full__polygarbor_p3__seed42",
+      "evaluations": 11,
+      "errors": []
+    },
+    {
+      "run": "full__polygarbor_p3__seed43",
+      "evaluations": 11,
+      "errors": []
+    },
+    {
+      "run": "full__polygarbor_p3_aug__seed42",
+      "evaluations": 11,
+      "errors": []
+    },
+    {
+      "run": "full__polygarbor_p3_aug__seed43",
+      "evaluations": 11,
+      "errors": []
+    },
+    {
+      "run": "full__polygarbor_p5__seed42",
+      "evaluations": 11,
+      "errors": []
+    },
+    {
+      "run": "full__polygarbor_p5__seed43",
+      "evaluations": 11,
+      "errors": []
+    },
+    {
+      "run": "full__resnet18__seed42",
+      "evaluations": 11,
+      "errors": []
+    },
+    {
+      "run": "full__resnet18__seed43",
+      "evaluations": 11,
+      "errors": []
+    },
+    {
+      "run": "full__yolo11n__seed42",
+      "evaluations": 11,
+      "errors": []
+    },
+    {
+      "run": "full__yolo11n__seed43",
+      "evaluations": 11,
+      "errors": []
+    },
+    {
+      "run": "imbalance__polygarbor__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "imbalance__polygarbor_aug__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "imbalance__polygarbor_p3__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "imbalance__polygarbor_p3_aug__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "imbalance__polygarbor_p5__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "imbalance__resnet18__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "imbalance__yolo11n__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "label_noise__polygarbor__seed42",
+      "evaluations": 4,
+      "errors": []
+    },
+    {
+      "run": "label_noise__polygarbor_aug__seed42",
+      "evaluations": 4,
+      "errors": []
+    },
+    {
+      "run": "label_noise__polygarbor_p3__seed42",
+      "evaluations": 4,
+      "errors": []
+    },
+    {
+      "run": "label_noise__polygarbor_p3_aug__seed42",
+      "evaluations": 4,
+      "errors": []
+    },
+    {
+      "run": "label_noise__polygarbor_p5__seed42",
+      "evaluations": 4,
+      "errors": []
+    },
+    {
+      "run": "label_noise__resnet18__seed42",
+      "evaluations": 4,
+      "errors": []
+    },
+    {
+      "run": "label_noise__yolo11n__seed42",
+      "evaluations": 4,
+      "errors": []
+    },
+    {
+      "run": "source_a__polygarbor__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "source_a__polygarbor_aug__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "source_a__polygarbor_p3__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "source_a__polygarbor_p3_aug__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "source_a__polygarbor_p5__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "source_a__resnet18__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "source_a__yolo11n__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "source_b__polygarbor__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "source_b__polygarbor_aug__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "source_b__polygarbor_p3__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "source_b__polygarbor_p3_aug__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "source_b__polygarbor_p5__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "source_b__resnet18__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "source_b__yolo11n__seed42",
+      "evaluations": 3,
+      "errors": []
+    }
+  ]
+}

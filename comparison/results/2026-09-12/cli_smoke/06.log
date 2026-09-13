@@ -1,0 +1,20 @@
+usage: cnn dataset [-h] [--data-dir DATA_DIR] [--name NAME]
+                   [--out-dir OUT_DIR] [--preview PREVIEW]
+                   [--export-per-class EXPORT_PER_CLASS]
+                   [--export-split {train,val,test}] [--shuffle] [-q] [--show]
+                   [--no-color]
+
+options:
+  -h, --help            show this help message and exit
+  --data-dir DATA_DIR   permanent TFDS folder
+  --name NAME           TFDS dataset name
+  --out-dir OUT_DIR     figures/exports folder
+  --preview PREVIEW     how many samples to plot (0 disables)
+  --export-per-class EXPORT_PER_CLASS
+                        export N PNG images per class to try out predict
+  --export-split {train,val,test}
+                        split used for the export
+  --shuffle             shuffle the read order (varies the preview)
+  -q, --quiet           hide progress bars
+  --show                open the figures in a window
+  --no-color            disable terminal colors

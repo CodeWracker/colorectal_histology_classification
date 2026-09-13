@@ -1,0 +1,226 @@
+[
+  {
+    "run": "full__yolo11n__seed42",
+    "example": 2,
+    "min": -0.0025220513343811035,
+    "max": 0.36061930656433105,
+    "zero_map": false
+  },
+  {
+    "run": "full__yolo11n__seed42",
+    "example": 0,
+    "min": 0.0007740259170532227,
+    "max": 0.009665429592132568,
+    "zero_map": false
+  },
+  {
+    "run": "full__yolo11n__seed42",
+    "example": 15,
+    "min": -0.0017226338386535645,
+    "max": 0.011380195617675781,
+    "zero_map": false
+  },
+  {
+    "run": "full__yolo11n__seed42",
+    "example": 3,
+    "min": 0.0,
+    "max": 0.0,
+    "zero_map": true
+  },
+  {
+    "run": "full__yolo11n__seed42",
+    "example": 11,
+    "min": -0.07156950235366821,
+    "max": 0.19841152429580688,
+    "zero_map": false
+  },
+  {
+    "run": "full__yolo11n__seed42",
+    "example": 8,
+    "min": -2.1457672119140625e-06,
+    "max": 4.029273986816406e-05,
+    "zero_map": false
+  },
+  {
+    "run": "full__yolo11n__seed42",
+    "example": 1,
+    "min": -2.384185791015625e-07,
+    "max": 3.0875205993652344e-05,
+    "zero_map": false
+  },
+  {
+    "run": "full__yolo11n__seed42",
+    "example": 14,
+    "min": -0.008420586585998535,
+    "max": 0.044619083404541016,
+    "zero_map": false
+  },
+  {
+    "run": "full__resnet18__seed43",
+    "example": 2,
+    "min": 0.0,
+    "max": 1.0,
+    "zero_map": false
+  },
+  {
+    "run": "full__resnet18__seed43",
+    "example": 0,
+    "min": 0.0,
+    "max": 1.0,
+    "zero_map": false
+  },
+  {
+    "run": "full__resnet18__seed43",
+    "example": 15,
+    "min": 0.21651491522789001,
+    "max": 1.0,
+    "zero_map": false
+  },
+  {
+    "run": "full__resnet18__seed43",
+    "example": 3,
+    "min": 0.40037551522254944,
+    "max": 1.0,
+    "zero_map": false
+  },
+  {
+    "run": "full__resnet18__seed43",
+    "example": 11,
+    "min": 0.06027054786682129,
+    "max": 1.0,
+    "zero_map": false
+  },
+  {
+    "run": "full__resnet18__seed43",
+    "example": 8,
+    "min": 0.18205134570598602,
+    "max": 1.0,
+    "zero_map": false
+  },
+  {
+    "run": "full__resnet18__seed43",
+    "example": 1,
+    "min": 0.44783204793930054,
+    "max": 1.0,
+    "zero_map": false
+  },
+  {
+    "run": "full__resnet18__seed43",
+    "example": 14,
+    "min": 0.10883519053459167,
+    "max": 1.0,
+    "zero_map": false
+  },
+  {
+    "run": "full__resnet18__seed42",
+    "example": 2,
+    "min": 0.08852814882993698,
+    "max": 1.0,
+    "zero_map": false
+  },
+  {
+    "run": "full__resnet18__seed42",
+    "example": 0,
+    "min": 0.0,
+    "max": 1.0,
+    "zero_map": false
+  },
+  {
+    "run": "full__resnet18__seed42",
+    "example": 15,
+    "min": 0.37258124351501465,
+    "max": 1.0,
+    "zero_map": false
+  },
+  {
+    "run": "full__resnet18__seed42",
+    "example": 3,
+    "min": 0.49290940165519714,
+    "max": 1.0,
+    "zero_map": false
+  },
+  {
+    "run": "full__resnet18__seed42",
+    "example": 11,
+    "min": 0.0666857361793518,
+    "max": 1.0,
+    "zero_map": false
+  },
+  {
+    "run": "full__resnet18__seed42",
+    "example": 8,
+    "min": 0.3450123071670532,
+    "max": 1.0,
+    "zero_map": false
+  },
+  {
+    "run": "full__resnet18__seed42",
+    "example": 1,
+    "min": 0.5852012634277344,
+    "max": 1.0,
+    "zero_map": false
+  },
+  {
+    "run": "full__resnet18__seed42",
+    "example": 14,
+    "min": 0.15260186791419983,
+    "max": 1.0,
+    "zero_map": false
+  },
+  {
+    "run": "full__yolo11n__seed43",
+    "example": 2,
+    "min": -0.019976258277893066,
+    "max": 0.6077985763549805,
+    "zero_map": false
+  },
+  {
+    "run": "full__yolo11n__seed43",
+    "example": 0,
+    "min": -0.10408848524093628,
+    "max": 0.11586976051330566,
+    "zero_map": false
+  },
+  {
+    "run": "full__yolo11n__seed43",
+    "example": 15,
+    "min": -0.0003813505172729492,
+    "max": 0.0010030865669250488,
+    "zero_map": false
+  },
+  {
+    "run": "full__yolo11n__seed43",
+    "example": 3,
+    "min": 0.0,
+    "max": 1.1920928955078125e-07,
+    "zero_map": false
+  },
+  {
+    "run": "full__yolo11n__seed43",
+    "example": 11,
+    "min": -0.046366751194000244,
+    "max": 0.18459534645080566,
+    "zero_map": false
+  },
+  {
+    "run": "full__yolo11n__seed43",
+    "example": 8,
+    "min": -2.86102294921875e-06,
+    "max": 0.0001456737518310547,
+    "zero_map": false
+  },
+  {
+    "run": "full__yolo11n__seed43",
+    "example": 1,
+    "min": -0.00015884637832641602,
+    "max": 0.0022266507148742676,
+    "zero_map": false
+  },
+  {
+    "run": "full__yolo11n__seed43",
+    "example": 14,
+    "min": -6.365776062011719e-05,
+    "max": 0.0003727078437805176,
+    "zero_map": false
+  }
+]
