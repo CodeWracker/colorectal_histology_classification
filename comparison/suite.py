@@ -25,7 +25,7 @@ def environment():
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--campaign", default="2026-09-12")
-    p.add_argument("--methods", nargs="+", default=["polygarbor", "resnet18", "yolo11n"])
+    p.add_argument("--methods", nargs="+", default=["polygarbor", "resnet18", "resnet18_imagenet", "yolo11n", "yolo11n_random"])
     p.add_argument("--scenarios", nargs="+", default=["full", "few1", "few2", "few5", "few10", "few20", "few50", "few100", "imbalance", "label_noise"])
     p.add_argument("--seeds", nargs="+", type=int, default=[42, 43])
     p.add_argument("--epochs", type=int, default=100)

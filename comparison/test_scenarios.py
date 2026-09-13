@@ -18,7 +18,7 @@ def test_nested_subsets_and_corruptions():
 
 
 def test_augmentation_is_train_only_and_reproducible():
-    from comparison.variants import training_views
+    from comparison.variants import CNN_VARIANTS, training_views
     image = np.arange(150 * 150 * 3, dtype=np.uint8).reshape(150, 150, 3)
     before = image.copy()
     a, b = list(training_views(image, 3, 42, 7)), list(training_views(image, 3, 42, 7))
@@ -27,6 +27,8 @@ def test_augmentation_is_train_only_and_reproducible():
     np.testing.assert_array_equal(image, before)
     for x, y in zip(a, b):
         np.testing.assert_array_equal(x, y)
+    assert CNN_VARIANTS["resnet18_imagenet"] == ("resnet18", "imagenet")
+    assert CNN_VARIANTS["yolo11n_random"] == ("yolo11n", "random")
 
 
 def test_localization_layout_and_validation_threshold():

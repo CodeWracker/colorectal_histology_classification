@@ -8,8 +8,8 @@ Executar a partir da raiz do repositório:
 uv sync --project cnn --extra gpu --extra yolo
 cnn/.venv/bin/python comparison/prepare.py
 cnn/.venv/bin/python comparison/prepare_groups.py
-cnn/.venv/bin/python comparison/suite.py --campaign minha-campanha --methods polygarbor polygarbor_aug polygarbor_p3 polygarbor_p3_aug polygarbor_p5 resnet18 yolo11n
-cnn/.venv/bin/python comparison/suite.py --campaign minha-campanha --methods polygarbor polygarbor_aug polygarbor_p3 polygarbor_p3_aug polygarbor_p5 resnet18 yolo11n --scenarios source_a source_b --seeds 42
+cnn/.venv/bin/python comparison/suite.py --campaign minha-campanha --methods polygarbor polygarbor_aug polygarbor_p3 polygarbor_p3_aug polygarbor_p5 resnet18 resnet18_imagenet yolo11n yolo11n_random
+cnn/.venv/bin/python comparison/suite.py --campaign minha-campanha --methods polygarbor polygarbor_aug polygarbor_p3 polygarbor_p3_aug polygarbor_p5 resnet18 resnet18_imagenet yolo11n yolo11n_random --scenarios source_a source_b --seeds 42
 cnn/.venv/bin/python comparison/finish.py --campaign minha-campanha
 ```
 
@@ -17,7 +17,7 @@ cnn/.venv/bin/python comparison/finish.py --campaign minha-campanha
 
 O executor prepara caminhos locais das bibliotecas CUDA e inicia um processo por execução. As execuções são sequenciais para evitar competição entre modelos. Os pesos YOLO oficiais são baixados no primeiro uso. `prepare.py` reutiliza o TFDS já disponível em `polygarbor/data` e salva arrays em `comparison/cache`; não modifica o cache original. `dataset_manifest.json` contém classe, quantidade e SHA-256 de cada imagem.
 
-`suite.py` aceita os métodos `polygarbor`, `polygarbor_aug`, `polygarbor_p3`, `polygarbor_p3_aug`, `polygarbor_p5`, `resnet18` e `yolo11n` por `--methods`, `--scenarios full few1 few2 few5 few10 few20 few50 few100 imbalance label_noise`, `--seeds 42 43` e `--epochs 100`. `--pilot --epochs 1 --scenarios few10 --seeds 42` serve para verificar a instalação; use outro nome de campanha para que esses resultados não entrem na comparação principal. Os runs existentes são preservados, inclusive falhas; para repetir uma falha, use uma nova campanha. Uma interrupção externa do executor pode deixar status `running`: consulte o log e não interprete isso como sucesso. Se o executor acompanha a saída não zero do filho, registra a falha. `finish.py` propaga falhas de testes e benchmarks e só reaproveita medições com sucesso registrado.
+`suite.py` aceita os métodos `polygarbor`, `polygarbor_aug`, `polygarbor_p3`, `polygarbor_p3_aug`, `polygarbor_p5`, `resnet18`, `resnet18_imagenet`, `yolo11n` e `yolo11n_random` por `--methods`, `--scenarios full few1 few2 few5 few10 few20 few50 few100 imbalance label_noise`, `--seeds 42 43` e `--epochs 100`. `--pilot --epochs 1 --scenarios few10 --seeds 42` serve para verificar a instalação; use outro nome de campanha para que esses resultados não entrem na comparação principal. Os runs existentes são preservados, inclusive falhas; para repetir uma falha, use uma nova campanha. Uma interrupção externa do executor pode deixar status `running`: consulte o log e não interprete isso como sucesso. Se o executor acompanha a saída não zero do filho, registra a falha. `finish.py` propaga falhas de testes e benchmarks e só reaproveita medições com sucesso registrado.
 
 O treino completo e os sete tamanhos menores usam duas seeds. Desbalanceamento e ruído de rótulo usam a primeira seed. Cada treino é avaliado em treino, validação e teste. Os modelos treinados no conjunto completo recebem mais oito avaliações em teste com degradações fixas. Configuração, índices selecionados, rótulos alterados, hashes do código, versões de pacotes, histórico, tempos, recursos, predições individuais, matrizes e explicações ficam no diretório do run. Os modelos grandes e dados permanecem no disco e são ignorados pelo Git.
 

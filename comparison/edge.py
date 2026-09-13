@@ -39,7 +39,7 @@ def main():
         else:
             from cnn.classifier import CNNClassifier, configure_tensorflow
             device = "gpu" if args.mode == "gpu" else "cpu"
-            if args.method == "resnet18":
+            if args.method.startswith("resnet18"):
                 configure_tensorflow(device, threads)
             else:
                 import torch
@@ -59,7 +59,7 @@ def main():
         monitor.finish()
         print(json.dumps(dict(first_prediction=first.tolist())))
         return
-    if args.method == "yolo11n":
+    if args.method.startswith("yolo11n"):
         import torch
         torch.set_num_threads(threads)
     with monitor.stage("warmup"):
@@ -80,7 +80,7 @@ def main():
             batches[str(size)] = len(images) / (time.perf_counter() - start)
     monitor.finish()
     result = dict(method=args.method, mode=args.mode, affinity=sorted(os.sched_getaffinity(0)),
-                  threads=threads, effective_torch_threads=(__import__("torch").get_num_threads() if args.method == "yolo11n" else None), median_ms=float(np.median(latency)), p95_ms=float(np.percentile(latency, 95)),
+                  threads=threads, effective_torch_threads=(__import__("torch").get_num_threads() if args.method.startswith("yolo11n") else None), median_ms=float(np.median(latency)), p95_ms=float(np.percentile(latency, 95)),
                   samples_ms=latency, batch_throughput_images_s=batches, predictions=predictions,
                   model_mb=sum(p.stat().st_size for p in Path(args.model_dir).rglob("*") if p.is_file()) / 1e6)
     (Path(args.out) / "benchmark.json").write_text(json.dumps(result, indent=2))

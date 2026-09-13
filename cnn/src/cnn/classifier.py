@@ -249,12 +249,16 @@ class CNNClassifier:
         with stage("build_model"):
             self.model = YOLO(self.weights)
             self.model.add_callback("on_train_start", lambda trainer: torch.set_num_threads(self.threads))
+            initialization = ({"source": "Ultralytics architecture YAML", "config": self.weights, "pretrained": False}
+                              if self.weights.endswith(".yaml") else
+                              {"source": "Ultralytics checkpoint", "checkpoint": self.weights, "pretrained": True})
+            (out / "initialization.json").write_text(json.dumps(initialization, indent=2))
         with stage("fit"):
             self.model.train(data=str(root.resolve()), epochs=epochs, imgsz=self.image_size,
                              batch=self.batch_size, patience=patience, seed=self.random_state,
                              device=self._yolo_device(), workers=0, project=str(out.resolve()),
                              name="yolo_training", exist_ok=False, verbose=bool(verbose),
-                             plots=True)
+                             plots=True, pretrained=not self.weights.endswith(".yaml"))
         self.model = YOLO(str(self.model.trainer.best))
         import pandas as pd
         csv = self.model.ckpt_path and out / "yolo_training" / "results.csv"

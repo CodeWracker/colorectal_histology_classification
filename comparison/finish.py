@@ -17,7 +17,7 @@ def main():
     root = ROOT / "runs" / args.campaign
     env = environment()
     subprocess.run([sys.executable, str(ROOT / "export_inference.py"), "--campaign", args.campaign], env=env, check=True)
-    for method in ("polygarbor", "polygarbor_p3", "polygarbor_p5", "polygarbor_aug", "polygarbor_p3_aug", "resnet18", "yolo11n"):
+    for method in ("polygarbor", "polygarbor_p3", "polygarbor_p5", "polygarbor_aug", "polygarbor_p3_aug", "resnet18", "resnet18_imagenet", "yolo11n", "yolo11n_random"):
         model = root / f"full__{method}__seed42" / "model"
         if not model.exists():
             continue

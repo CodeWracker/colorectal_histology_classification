@@ -9,6 +9,13 @@ VARIANTS = {
     "polygarbor_p3_aug": (3, 3),
 }
 
+CNN_VARIANTS = {
+    "resnet18": ("resnet18", "random"),
+    "resnet18_imagenet": ("resnet18", "imagenet"),
+    "yolo11n": ("yolo11n", "imagenet"),
+    "yolo11n_random": ("yolo11n", "random"),
+}
+
 
 def training_views(image, copies, seed, original_index):
     """Original plus three fixed draws of ResNet-style flips and brightness.

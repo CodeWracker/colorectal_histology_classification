@@ -18,7 +18,7 @@ from scipy.optimize import minimize_scalar
 from scipy.special import softmax
 from cnn.evaluation import summarize
 
-COLORS = {"polygarbor": "#1b9e77", "resnet18": "#d95f02", "yolo11n": "#7570b3", "polygarbor_p3": "#66a61e", "polygarbor_p5": "#e6ab02", "polygarbor_aug": "#e7298a", "polygarbor_p3_aug": "#a6761d"}
+COLORS = {"polygarbor": "#1b9e77", "resnet18": "#d95f02", "resnet18_imagenet": "#e41a1c", "yolo11n": "#7570b3", "yolo11n_random": "#377eb8", "polygarbor_p3": "#66a61e", "polygarbor_p5": "#e6ab02", "polygarbor_aug": "#e7298a", "polygarbor_p3_aug": "#a6761d"}
 
 
 def read(path, default=None):
@@ -94,10 +94,11 @@ def main():
     curve = test[test.scenario.str.startswith("few") | (test.scenario == "full")].copy()
     curve["examples_per_class"] = curve.scenario.map(lambda x: int(x[3:]) if x.startswith("few") else 500)
     curve.to_csv(out / "learning_curve.csv", index=False)
-    curve_panels = (("Modelos principais", ("polygarbor", "resnet18", "yolo11n")),
+    curve_panels = (("Métodos originais", ("polygarbor", "resnet18", "yolo11n")),
+                    ("Inicialização das CNNs", ("resnet18", "resnet18_imagenet", "yolo11n_random", "yolo11n")),
                     ("Ablações do PolyGabor", ("polygarbor", "polygarbor_aug", "polygarbor_p3", "polygarbor_p3_aug", "polygarbor_p5")))
     for metric, label, filename in (("macro_f1", "Macro-F1", "learning_curve.png"), ("multiclass_gmean", "G-mean multiclasse", "learning_curve_gmean.png")):
-        fig, axes = plt.subplots(1, 2, figsize=(14, 5), sharex=True, sharey=True)
+        fig, axes = plt.subplots(1, 3, figsize=(19, 5), sharex=True, sharey=True)
         for ax, (title, methods) in zip(axes, curve_panels):
             for method in methods:
                 group = curve[curve.method == method]
@@ -118,19 +119,26 @@ def main():
     pivot = robust.pivot_table(index="evaluation", columns="method", values="macro_f1")
     pivot.to_csv(out / "robustness.csv")
     if not pivot.empty:
-        ax = pivot.plot.bar(figsize=(12, 5), color=[COLORS[c] for c in pivot.columns], rot=30)
-        ax.set(ylabel="Macro-F1 médio entre seeds", xlabel="Condição de teste", ylim=(0, 1))
-        ax.figure.tight_layout()
-        ax.figure.savefig(out / "robustness.png", dpi=180)
-        plt.close(ax.figure)
+        robust_panels = (("Métodos e inicialização", ("polygarbor", "resnet18", "resnet18_imagenet", "yolo11n_random", "yolo11n")),
+                         ("Ablações do PolyGabor", ("polygarbor", "polygarbor_aug", "polygarbor_p3", "polygarbor_p3_aug", "polygarbor_p5")))
+        fig, axes = plt.subplots(2, 1, figsize=(13, 9), sharex=True, sharey=True)
+        for ax, (title, selected) in zip(axes, robust_panels):
+            columns = [method for method in selected if method in pivot.columns]
+            pivot[columns].plot.bar(ax=ax, color=[COLORS[c] for c in columns], rot=30)
+            ax.set(title=title, ylabel="Macro-F1 médio entre seeds", xlabel="", ylim=(0, 1))
+            ax.legend(fontsize=8)
+        axes[-1].set_xlabel("Condição de teste")
+        fig.tight_layout()
+        fig.savefig(out / "robustness.png", dpi=180)
+        plt.close(fig)
     if not full.empty:
-        methods = [m for m in ("yolo11n", "resnet18", "polygarbor", "polygarbor_aug", "polygarbor_p3", "polygarbor_p3_aug", "polygarbor_p5") if m in set(full.method)]
-        labels = {"yolo11n": "YOLO11n", "resnet18": "ResNet-18", "polygarbor": "PolyGabor", "polygarbor_aug": "PolyGabor + aug.", "polygarbor_p3": "PolyGabor · 9 regiões", "polygarbor_p3_aug": "PolyGabor · 9 reg. + aug.", "polygarbor_p5": "PolyGabor · 25 regiões"}
+        methods = [m for m in ("yolo11n", "resnet18_imagenet", "yolo11n_random", "resnet18", "polygarbor", "polygarbor_aug", "polygarbor_p3", "polygarbor_p3_aug", "polygarbor_p5") if m in set(full.method)]
+        labels = {"yolo11n": "YOLO11n · ImageNet", "yolo11n_random": "YOLO11n · aleatória", "resnet18": "ResNet-18 · aleatória", "resnet18_imagenet": "ResNet-18 · ImageNet", "polygarbor": "PolyGabor", "polygarbor_aug": "PolyGabor + aug.", "polygarbor_p3": "PolyGabor · 9 regiões", "polygarbor_p3_aug": "PolyGabor · 9 reg. + aug.", "polygarbor_p5": "PolyGabor · 25 regiões"}
         columns = (("train_seconds", "Treino (s) ↓", (15, 400), [20, 50, 100, 200]),
                    ("batch1_median_ms", "Inferência batch 1 (ms) ↓", (2, 60), [2, 5, 10, 20, 50]),
                    ("model_mb", "Modelo (MB) ↓", (.5, 60), [.5, 1, 3, 10, 50]),
                    ("macro_f1", "Macro-F1 ↑", (.35, 1), [.4, .6, .8, 1]))
-        fig, axes = plt.subplots(1, 4, figsize=(15, 5.5), sharey=True)
+        fig, axes = plt.subplots(1, 4, figsize=(16, 6.5), sharey=True)
         for ax, (field, title, limits, ticks) in zip(axes, columns):
             for y, method in enumerate(methods):
                 values = full.loc[full.method == method, field].to_numpy()

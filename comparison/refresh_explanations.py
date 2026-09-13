@@ -20,12 +20,12 @@ def main():
     rows = []
     for folder in (ROOT / "runs" / args.campaign).glob("full__*__seed*"):
         config = json.loads((folder / "config.json").read_text())
-        if config["method"] not in ("resnet18", "yolo11n"):
+        if not config["method"].startswith(("resnet18", "yolo11n")):
             continue
         for path in (folder / "explanations").glob("*/heatmap.npy"):
             index = int(path.parent.name.split("_")[1])
             heat = np.load(path)
-            title = "CAM — escala relativa" if config["method"] == "resnet18" else "Oclusão: queda de probabilidade"
+            title = "CAM — escala relativa" if config["method"].startswith("resnet18") else "Oclusão: queda de probabilidade"
             fig = visualize.plot_explanation(images[index], heat, title)
             visualize.save_figure(fig, path.parent / "explanation.png")
             plt.close(fig)

@@ -17,7 +17,8 @@ sys.path.insert(0, str(ROOT.parent / "polygarbor/src"))
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--method", choices=["polygarbor", "polygarbor_p3", "polygarbor_p5", "polygarbor_aug", "polygarbor_p3_aug", "resnet18", "yolo11n"], required=True)
+    from variants import CNN_VARIANTS, VARIANTS
+    parser.add_argument("--method", choices=[*VARIANTS, *CNN_VARIANTS], required=True)
     parser.add_argument("--scenario", default="full")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--epochs", type=int, default=100)
@@ -45,7 +46,7 @@ def main():
     config = vars(args) | dict(python=sys.version, platform=platform.platform(),
                                timestamp=time.strftime("%Y-%m-%dT%H:%M:%S%z"),
                                packages={name: importlib.metadata.version(name) for name in
-                                         ("numpy", "tensorflow", "polymahalanobis", "scikit-learn")})
+                                         ("numpy", "tensorflow", "torch", "torchvision", "ultralytics", "polymahalanobis", "scikit-learn")})
     config["source_hashes"] = {str(path.relative_to(ROOT.parent)): hashlib.sha256(path.read_bytes()).hexdigest()
                                for folder in (ROOT, ROOT.parent / "cnn/src", ROOT.parent / "polygarbor/src")
                                for path in folder.rglob("*.py") if "runs" not in path.parts}
@@ -96,8 +97,9 @@ def main():
                 max_samples_per_class=clf.max_samples_per_class), indent=2))
         else:
             from cnn.classifier import CNNClassifier
-            clf = CNNClassifier(names, architecture=args.method, random_state=args.seed,
-                                device=args.device, threads=args.threads)
+            architecture, weights = CNN_VARIANTS[args.method]
+            clf = CNNClassifier(names, architecture=architecture, weights=weights,
+                                random_state=args.seed, device=args.device, threads=args.threads)
             clf.fit(zip(images, labels), zip(*arrays["val"]), epochs=args.epochs,
                     out_dir=out, verbose=0, stage=monitor.stage)
         with monitor.stage("save_model"):
@@ -145,7 +147,7 @@ def main():
             import matplotlib.pyplot as plt
             from cnn import visualize
             visualize.use_headless()
-            if args.method == "resnet18":
+            if args.method.startswith("resnet18"):
                 fig = visualize.plot_history(clf.history)
                 visualize.save_figure(fig, out / "learning_curves.png")
                 plt.close(fig)
@@ -165,11 +167,11 @@ def main():
                                      ("gabor.png", pv.plot_patch_decomposition(views[0], clf.bank.labels))])
                     else:
                         decision = clf.predict(image)
-                        heat = visualize.activation_map(clf, image) if args.method == "resnet18" else visualize.occlusion_map(clf, image)
+                        heat = visualize.activation_map(clf, image) if args.method.startswith("resnet18") else visualize.occlusion_map(clf, image)
                         np.save(folder / "heatmap.npy", heat)
                         figs = [("decision.png", visualize.plot_prediction_summary(image, decision, names, true_label=c)),
                                 ("explanation.png", visualize.plot_explanation(image, heat,
-                                 "CAM" if args.method == "resnet18" else "Oclusão: queda do escore"))]
+                                 "CAM" if args.method.startswith("resnet18") else "Oclusão: queda do escore"))]
                     for filename, fig in figs:
                         visualize.save_figure(fig, folder / filename)
                         plt.close(fig)

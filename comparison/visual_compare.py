@@ -23,7 +23,7 @@ def main():
     names = json.loads((ROOT / "dataset_manifest.json").read_text())["class_names"]
     images = np.load(ROOT / "cache/test_images.npy", mmap_mode="r")
     y = np.load(ROOT / "cache/test_labels.npy")
-    methods = ["polygarbor", "resnet18", "yolo11n"]
+    methods = ["polygarbor", "resnet18", "resnet18_imagenet", "yolo11n", "yolo11n_random"]
     predictions = {}
     for method in methods:
         path = ROOT / "runs" / args.campaign / f"full__{method}__seed42" / "eval/test_clean/predictions.npz"
