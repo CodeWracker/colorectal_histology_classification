@@ -13,6 +13,10 @@ cnn/.venv/bin/python comparison/loso.py
 cnn/.venv/bin/python comparison/suite.py --campaign minha-campanha --methods polygarbor resnet18 resnet18_imagenet yolo11n yolo11n_random --scenarios loso_01 loso_02 loso_03 loso_04 loso_05 loso_06 loso_07 loso_08 loso_09 loso_10
 cnn/.venv/bin/python comparison/finish.py --campaign minha-campanha
 cnn/.venv/bin/python comparison/loso_report.py --campaign minha-campanha
+uv sync --project comparison/quantization
+comparison/quantization/.venv/bin/python comparison/quantization/quantize.py --campaign minha-campanha
+comparison/quantization/.venv/bin/python comparison/quantization/bench.py --campaign minha-campanha
+comparison/quantization/.venv/bin/python comparison/quantization/report.py --campaign minha-campanha
 cnn/.venv/bin/python comparison/embedded_feasibility.py --model comparison/runs/minha-campanha/full__polygarbor__seed42/model --output comparison/results/minha-campanha/embedded
 ```
 
@@ -49,6 +53,7 @@ comparison/
     error_gallery.png / source_shift_gallery.png / corruption_gallery.png
     localization/README.md / metrics.csv / localization_metrics.png / localization_examples.png / localization_pretraining_examples.png
     embedded/README.md / feasibility.json / feasibility.csv
+    quantization/README.md / metrics.csv / benchmark.csv / summary.csv / speed.csv / calibration.json / quantization_pareto.png
     loso/README.md / folds.csv / fold_metrics.csv / pooled_metrics.csv / pooled_recall_per_class.csv / paired_polygarbor_vs_cnn.csv / loso_macro_f1.png / loso_recall_per_class.png
 ```
 
@@ -57,5 +62,7 @@ Interpretação: os cenários de poucos exemplos restringem o treino, mas mantê
 As variantes `p3` e `p5` usam 9 e 25 regiões por imagem; o banco de filtros permanece igual. `_aug` adiciona três vistas por original somente no treino. O teto de 350 vetores/classe permanece e o número de originais efetivamente retidos fica em `effective_training.json`. Consulte [G-mean versus macro-F1](GMEAN_VS_MACRO_F1.md) para interpretar as duas curvas sem confundir recall zero com falha de treinamento.
 
 Os totais e o estado final da campanha estão em [integrity_audit.json](integrity_audit.json) e no relatório gerado. As duas execuções interrompidas pela mudança da pasta foram arquivadas e repetidas com sucesso.
+
+A quantização pós-treino converte os modelos completos de ResNet-18 e YOLO11n para LiteRT e gera pesos float16, int8 dinâmico e int8 estático, sem retreino; o PolyGabor fica em precisão cheia como referência. Ela usa o ambiente separado `comparison/quantization`, porque litert-torch exige torch 2.11 e alteraria versões travadas em `cnn/`. `quantize.py` avalia cada variante no teste limpo e nas oito perturbações, `bench.py` mede latência e pico de RAM em processos novos nos modos cpu1 e cpu4, e `report.py` gera `results/<campanha>/quantization/`. Não execute o benchmark junto com treinos ou com `quantize.py`.
 
 A pré-avaliação embarcada compara o modelo PolyGabor treinado com os limites de flash e SRAM do ESP32-WROOM-32, Arduino Uno R3 e PIC16F877A. Ela contabiliza o artefato salvo, o estado polinomial reconstruído, estimativas float32/int16/int8, buffers de imagem e operações Gabor. É uma análise estática reproduzível; simulação de instruções e medição de energia dependem de um porte C/C++ e hardware.

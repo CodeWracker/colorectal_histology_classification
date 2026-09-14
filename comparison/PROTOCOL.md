@@ -35,6 +35,18 @@ A métrica primária é o macro-F1 sobre as 5.000 predições concatenadas dos d
 
 Para caber no disco, a cópia de imagens `yolo_dataset` de cada run YOLO LOSO é removida após a conclusão. Ela é derivada integralmente do cache e dos índices do manifesto.
 
+## Extensão de quantização pós-treino das CNNs
+
+Antes da execução, foi fixada uma comparação com versões quantizadas somente para inferência das CNNs, sem retreino e sem quantização durante o treino. O PolyGabor permanece em precisão cheia como referência. Entram os modelos completos de resnet18, resnet18_imagenet, yolo11n_random e yolo11n nas seeds 42 e 43.
+
+Todas as variantes usam LiteRT (TFLite) e o mesmo interpretador ai-edge-litert com XNNPACK. A ResNet Keras é exportada como SavedModel com lote fixo 1 e convertida pelo conversor do TensorFlow 2.20; a YOLO é convertida do PyTorch por litert-torch. A partir de cada modelo float32, ai-edge-quantizer gera três variantes: pesos float16 (float casting), int8 dinâmico (pesos int8 por canal e ativações quantizadas em tempo de execução) e int8 estático (pesos e ativações int8, com entrada e saída float32). A calibração usa 200 recortes do split de treino, 25 por classe com seed 20260914; validação e teste não são usados.
+
+O pré-processamento de inferência não depende de TensorFlow nem de PyTorch: redimensionamento bilinear do OpenCV para a ResNet, com a normalização ImageNet quando aplicável, e redimensionamento bilinear do Pillow para a YOLO, equivalente à transformação salva no checkpoint. A variante float32 separa o efeito de runtime e pré-processamento do efeito da quantização. Sua concordância com as predições originais no teste limpo deve ser de pelo menos 99%; abaixo disso a conversão é considerada inválida e a execução é interrompida.
+
+As variantes serão avaliadas no teste limpo e nas oito perturbações fixas, com os mesmos pixels da campanha. Serão reportados tamanho do arquivo, acurácia, macro-F1, G-mean, balanced accuracy, recall por classe, concordância com o modelo original e com a variante float32, e diferença de macro-F1. Latência mediana e p95 de batch 1, incluindo pré-processamento, e pico de RSS serão medidos em processos novos nos modos cpu1 e cpu4 do benchmark edge, para a seed 42, sem treinos em execução.
+
+O ambiente fica em `comparison/quantization`, com lock próprio, porque litert-torch exige torch 2.11 e alteraria versões travadas no ambiente da campanha. Os modelos treinados com torch 2.7.1 são carregados sem alteração.
+
 ## Extensão G-mean, augmentation e grade de patches
 
 A pedido do usuário, a comparação acrescenta G-mean multiclasse exato, sem suavização de recall zero, recalculado das predições existentes. Valores sem suporte em todas as classes serão indefinidos. O gráfico contará imagens originais, e um documento separado explicará a diferença para macro-F1.

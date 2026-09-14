@@ -1,0 +1,30 @@
+[project]
+name = "quantization"
+version = "0.1.0"
+description = "Post-training LiteRT quantization of the trained ResNet-18 and YOLO11n classifiers"
+requires-python = ">=3.11,<3.12"
+# Kept apart from cnn/: litert-torch downgrades packages locked for the training campaign, and its
+# torchao>=0.17 dependency only imports on torch>=2.11. Models trained under torch 2.7.1 load unchanged;
+# exported predictions are checked against the saved campaign predictions.
+dependencies = [
+    "cnn", "polygarbor",
+    "tensorflow==2.20.0",
+    "torch==2.11.0", "torchvision==0.26.0",
+    "ultralytics==8.4.149",
+    "litert-torch>=0.9.0", "ai-edge-litert>=2.1.4", "ai-edge-quantizer>=0.6.0",
+    "pandas", "psutil>=7",
+]
+
+[tool.uv]
+package = false
+
+[tool.uv.sources]
+cnn = { path = "../../cnn", editable = true }
+polygarbor = { path = "../../polygarbor", editable = true }
+torch = { index = "pytorch-cpu" }
+torchvision = { index = "pytorch-cpu" }
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
