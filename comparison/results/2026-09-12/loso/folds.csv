@@ -1,0 +1,11 @@
+fold,test_source,n_train,n_val,n_test,test_classes,train_empty
+loso_01,01,4141,458,401,"tumor, stroma, complex, lympho, debris, mucosa",563
+loso_02,02,4245,471,284,"tumor, stroma, complex, lympho, debris, mucosa",563
+loso_03,03,3835,425,740,"tumor, stroma, complex, lympho, debris, mucosa, adipose",563
+loso_04,04,4159,460,381,"tumor, stroma, complex, lympho, debris, adipose",563
+loso_05,05,3905,434,661,"tumor, stroma, complex, lympho, debris, mucosa, adipose",563
+loso_06,06,3545,394,1061,"tumor, stroma, complex, lympho, debris, mucosa, adipose, empty",31
+loso_07,07,4047,450,503,"tumor, stroma, complex, lympho, debris, mucosa, adipose",563
+loso_08,08,4151,460,389,"tumor, stroma, complex, lympho, debris, mucosa",563
+loso_09,09,4194,464,342,"tumor, stroma, complex, lympho, debris, mucosa",563
+loso_10,10,4286,476,238,"tumor, stroma, complex, lympho, debris, adipose, empty",531

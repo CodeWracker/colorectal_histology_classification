@@ -1,8 +1,8 @@
 {
   "campaign": "2026-09-12",
-  "timestamp": "2026-09-13T17:27:16-0300",
-  "checked": 178,
-  "valid": 178,
+  "timestamp": "2026-09-14T01:24:22-0300",
+  "checked": 278,
+  "valid": 278,
   "runs": [
     {
       "run": "few100__polygarbor__seed42",
@@ -802,6 +802,506 @@
     {
       "run": "label_noise__yolo11n_random__seed42",
       "evaluations": 4,
+      "errors": []
+    },
+    {
+      "run": "loso_01__polygarbor__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_01__polygarbor__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_01__resnet18__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_01__resnet18__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_01__resnet18_imagenet__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_01__resnet18_imagenet__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_01__yolo11n__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_01__yolo11n__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_01__yolo11n_random__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_01__yolo11n_random__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_02__polygarbor__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_02__polygarbor__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_02__resnet18__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_02__resnet18__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_02__resnet18_imagenet__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_02__resnet18_imagenet__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_02__yolo11n__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_02__yolo11n__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_02__yolo11n_random__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_02__yolo11n_random__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_03__polygarbor__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_03__polygarbor__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_03__resnet18__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_03__resnet18__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_03__resnet18_imagenet__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_03__resnet18_imagenet__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_03__yolo11n__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_03__yolo11n__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_03__yolo11n_random__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_03__yolo11n_random__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_04__polygarbor__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_04__polygarbor__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_04__resnet18__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_04__resnet18__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_04__resnet18_imagenet__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_04__resnet18_imagenet__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_04__yolo11n__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_04__yolo11n__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_04__yolo11n_random__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_04__yolo11n_random__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_05__polygarbor__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_05__polygarbor__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_05__resnet18__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_05__resnet18__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_05__resnet18_imagenet__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_05__resnet18_imagenet__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_05__yolo11n__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_05__yolo11n__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_05__yolo11n_random__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_05__yolo11n_random__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_06__polygarbor__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_06__polygarbor__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_06__resnet18__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_06__resnet18__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_06__resnet18_imagenet__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_06__resnet18_imagenet__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_06__yolo11n__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_06__yolo11n__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_06__yolo11n_random__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_06__yolo11n_random__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_07__polygarbor__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_07__polygarbor__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_07__resnet18__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_07__resnet18__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_07__resnet18_imagenet__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_07__resnet18_imagenet__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_07__yolo11n__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_07__yolo11n__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_07__yolo11n_random__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_07__yolo11n_random__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_08__polygarbor__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_08__polygarbor__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_08__resnet18__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_08__resnet18__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_08__resnet18_imagenet__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_08__resnet18_imagenet__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_08__yolo11n__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_08__yolo11n__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_08__yolo11n_random__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_08__yolo11n_random__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_09__polygarbor__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_09__polygarbor__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_09__resnet18__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_09__resnet18__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_09__resnet18_imagenet__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_09__resnet18_imagenet__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_09__yolo11n__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_09__yolo11n__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_09__yolo11n_random__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_09__yolo11n_random__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_10__polygarbor__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_10__polygarbor__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_10__resnet18__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_10__resnet18__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_10__resnet18_imagenet__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_10__resnet18_imagenet__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_10__yolo11n__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_10__yolo11n__seed43",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_10__yolo11n_random__seed42",
+      "evaluations": 3,
+      "errors": []
+    },
+    {
+      "run": "loso_10__yolo11n_random__seed43",
+      "evaluations": 3,
       "errors": []
     },
     {

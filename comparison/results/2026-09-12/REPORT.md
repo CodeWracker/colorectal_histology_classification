@@ -1,6 +1,6 @@
 # Comparação de classificadores de histopatologia colorretal
 
-Campanha `2026-09-12`. Este arquivo é gerado dos artefatos salvos; a avaliação visual e a interpretação detalhada estão em [DISCUSSION.md](DISCUSSION.md). Há 180 runs registradas e 178 concluídas. Consultar `run_index.csv` para falhas e caminhos, `metrics.csv` para todas as métricas e `../../PROTOCOL.md` para o protocolo.
+Campanha `2026-09-12`. Este arquivo é gerado dos artefatos salvos; a avaliação visual e a interpretação detalhada estão em [DISCUSSION.md](DISCUSSION.md). Há 280 runs registradas e 278 concluídas. Consultar `run_index.csv` para falhas e caminhos, `metrics.csv` para todas as métricas e `../../PROTOCOL.md` para o protocolo.
 
 ## Teste limpo após treinamento completo
 
@@ -307,7 +307,7 @@ cpu1 restringe afinidade a um processador lógico e bibliotecas a uma thread; cp
 | yolo11n | source_b | 3208 | 0.8831 | 0.8191 | 0.8282 | 0.8476 |
 | yolo11n_random | source_b | 3208 | 0.4298 | 0.5063 | 0.0000 | 0.6246 |
 
-As origens foram recuperadas dos nomes por SHA-256 dos pixels. source_a testa 09/10 e source_b testa 06/09; validação em 08, com demais origens no treino. A classe empty só existe em 06/10, impossibilitando sua presença simultânea em três splits disjuntos. A validação 08 não contém adipose/empty; treino e teste preservam oito classes. Os testes têm tamanhos/composições diferentes do teste aleatório, logo diferenças não isolam somente efeito de origem. A identidade de paciente por código não foi confirmada.
+As origens foram recuperadas dos nomes por SHA-256 dos pixels. source_a testa 09/10 e source_b testa 06/09; validação em 08, com demais origens no treino. A classe empty só existe em 06/10, impossibilitando sua presença simultânea em três splits disjuntos. A validação 08 não contém adipose/empty; treino e teste preservam oito classes. Os testes têm tamanhos/composições diferentes do teste aleatório, logo diferenças não isolam somente efeito de origem. A identidade de paciente por código não foi confirmada. A análise principal por origem passou a ser leave-one-source-out, em [loso/README.md](loso/README.md); source_a/source_b ficam como registro histórico.
 
 ## Localização quantitativa
 

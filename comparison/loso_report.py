@@ -206,7 +206,8 @@ def main():
         "## Resultado agregado", "", "![Macro-F1 por fold](loso_macro_f1.png)", "", markdown_table(summary), "",
         "`macro_f1_min`/`macro_f1_max` são os extremos entre seeds, não intervalo de confiança. `random_split_macro_f1` é o teste limpo do split aleatório original com as mesmas seeds; a queda estima quanto do desempenho original dependia de ver recortes das mesmas origens no treino.", "",
         "## Recall por classe", "", "![Recall por classe](loso_recall_per_class.png)", "",
-        markdown_table(recall_frame.groupby("method")[names].mean().reset_index() if not recall_frame.empty else recall_frame), "",
+        markdown_table(recall_frame.groupby("method")[names].mean().reindex([m for m in METHODS if m in set(recall_frame.method)]).reset_index()
+                       if not recall_frame.empty else recall_frame), "",
         "## Macro-F1 por origem testada", "", markdown_table(fold_table), "",
         "## PolyGabor versus CNNs", "", markdown_table(paired_frame), "",
         "Diferença = macro-F1 concatenado de B menos PolyGabor. O intervalo reamostra as dez origens com reposição (5.000 sorteios), mantendo juntos todos os recortes de cada origem; com dez grupos ele é aproximado. As colunas de folds contam em quantas origens cada método teve maior macro-F1 nas classes presentes.", "",
