@@ -243,9 +243,9 @@ def plot_results(result_dir, rows, saved, test_images, test_layouts):
 
     fig, axes = plt.subplots(1, 3, figsize=(12, 4))
     chart_metrics = (
-        ("test_patch_auc", "AUROC da explicação por patch"),
-        ("test_patch_tumor_recall_at_2", "Tumores recuperados no top-2"),
-        ("test_classifier_patch_auc", "AUROC da classificação por patch"),
+        ("test_patch_auc", "Per-patch explanation AUROC"),
+        ("test_patch_tumor_recall_at_2", "Tumors recovered in the top-2"),
+        ("test_classifier_patch_auc", "Per-patch classification AUROC"),
     )
     for ax, (metric, title) in zip(axes, chart_metrics):
         for x, method in enumerate(methods):
@@ -255,7 +255,7 @@ def plot_results(result_dir, rows, saved, test_images, test_layouts):
             ax.annotate(f"{np.mean(values):.3f}", (x, np.mean(values)), xytext=(7, 0), textcoords="offset points", va="center")
         ax.set(title=title, xticks=range(len(methods)), xticklabels=[labels[m] for m in methods], ylim=(0, 1))
         ax.grid(axis="y", alpha=.2)
-    fig.suptitle("Identificação dos patches de tumor em 30 mosaicos de teste")
+    fig.suptitle("Tumor patch identification in 30 test mosaics")
     fig.tight_layout()
     fig.savefig(result_dir / "localization_metrics.png", dpi=180)
     plt.close(fig)
@@ -314,7 +314,7 @@ def plot_results(result_dir, rows, saved, test_images, test_layouts):
             axes[row, 0].imshow(mosaic)
             draw_grid(axes[row, 0])
             draw_truth(axes[row, 0], test_layouts[index], show_labels=True)
-            axes[row, 0].set_title(f"Mosaico {index}: rótulos conhecidos\nverde = tumor")
+            axes[row, 0].set_title(f"Mosaic {index}: known labels\ngreen = tumor")
             for method_index, method in enumerate(panel_methods):
                 classifier_col = 1 + method_index * 2
                 explanation_col = classifier_col + 1
@@ -328,7 +328,7 @@ def plot_results(result_dir, rows, saved, test_images, test_layouts):
                 draw_truth(axes[row, classifier_col], test_layouts[index])
                 draw_top2(axes[row, classifier_col], classifier_scores)
                 draw_scores(axes[row, classifier_col], classifier_scores)
-                axes[row, classifier_col].set_title(f"{labels[method]} · classificação\nAUC={classifier_auc:.3f}; top-2={classifier_recall:.0%}", fontsize=9)
+                axes[row, classifier_col].set_title(f"{labels[method]} · classification\nAUC={classifier_auc:.3f}; top-2={classifier_recall:.0%}", fontsize=9)
                 score = saved[(method, 42)]["test"][index]
                 threshold = seed_rows[method]["threshold"]
                 axes[row, explanation_col].imshow(mosaic)
@@ -340,10 +340,10 @@ def plot_results(result_dir, rows, saved, test_images, test_layouts):
                 patch_score = patch_scores_from_map(score)
                 auc = roc_auc_score(truth, patch_score)
                 recall = truth[np.argsort(-patch_score)[:2]].sum() / 2
-                axes[row, explanation_col].set_title(f"{labels[method]} · explicação\nAUC={auc:.3f}; top-2={recall:.0%}", fontsize=9)
+                axes[row, explanation_col].set_title(f"{labels[method]} · explanation\nAUC={auc:.3f}; top-2={recall:.0%}", fontsize=9)
             for ax in axes[row]:
                 ax.axis("off")
-        fig.suptitle("Classificação versus explicação · verde: tumor · amarelo: top-2 · ciano: limiar explicativo", fontsize=11)
+        fig.suptitle("Classification versus explanation · green: tumor · yellow: top-2 · cyan: explanation threshold", fontsize=11)
         fig.subplots_adjust(left=.015, right=.995, bottom=.015, top=.94, wspace=.08, hspace=.2)
         fig.savefig(result_dir / filename, dpi=160)
         plt.close(fig)
@@ -363,11 +363,11 @@ def write_report(result_dir, rows, comparisons, run_dir):
         writer = csv.DictWriter(handle, fieldnames=comparisons[0])
         writer.writeheader()
         writer.writerows(comparisons)
-    table = ["| Método | Seed | AUROC explicação/patch | AP explicação/patch | Recall top-2 | Ambos no top-2 | AUROC classificador/patch | AUROC região fraca | Dice região fraca |", "| --- | --- | --- | --- | --- | --- | --- | --- | --- |"]
+    table = ["| Method | Seed | Explanation AUROC/patch | Explanation AP/patch | Top-2 recall | Both in top-2 | Classifier AUROC/patch | Weak-region AUROC | Weak-region Dice |", "| --- | --- | --- | --- | --- | --- | --- | --- | --- |"]
     for r in rows:
         table.append(f"| {r['method']} | {r['model_seed']} | {r['test_patch_auc']:.4f} | {r['test_patch_average_precision']:.4f} | {r['test_patch_tumor_recall_at_2']:.4f} | {r['test_patch_both_tumors_top2_rate']:.4f} | {r['test_classifier_patch_auc']:.4f} | {r['test_pooled_auc']:.4f} | {r['test_pooled_dice']:.4f} |")
-    pretraining_section = ["![Comparação de CAM por configuração](localization_pretraining_examples.png)", "", "A comparação mantém arquitetura, imagens e layouts. A configuração ImageNet troca os pesos iniciais e aplica a normalização exigida por esses pesos; portanto o contraste não isola matematicamente somente a inicialização. Ela permite observar alterações no ranking classificatório e no CAM sob a configuração de transferência usada."] if any(r["method"] == "resnet18_imagenet" for r in rows) else []
-    text = ["# Localização quantitativa de tumor em mosaicos", "", "Foram avaliados 20 mosaicos de validação e 30 de teste, todos 4×4 e 600×600 pixels, com dois patches de tumor e quatorze não tumorais. Os 800 patches utilizados são únicos dentro de cada split. Os modelos completos das seeds 42 e 43 foram reutilizados sem retreino.", "", "![Métricas de localização](localization_metrics.png)", "", *table, "", "A análise principal usa o rótulo conhecido de cada patch. AUROC e AP verificam se a evidência média do mapa ordena patches tumorais acima dos demais. Recall top-2 mede quantos dos dois tumores aparecem entre os dois patches de maior evidência; ambos no top-2 exige acerto perfeito do par. AUROC do classificador usa seu escore de tumor para cada patch isolado e permite distinguir erro da decisão e erro do mapa explicativo.", "", "![Exemplos de mosaicos, rótulos e mapas](localization_examples.png)", "", "Cada patch é processado isoladamente e somente então os mapas são remontados. Assim, nenhum campo receptivo nem interpolação cruza as bordas artificiais do mosaico. A figura mostra uma coluna de verdade e, para cada método, uma coluna com o escore classificatório de tumor e outra com o mapa explicativo. Verde identifica a verdade tumor, amarelo tracejado mostra o top-2 de cada painel e ciano mostra o limiar da explicação selecionado na validação. Os valores PolyGabor são similaridades heurísticas e os valores ResNet são softmax não calibrado; servem para ranking dentro do método.", "", *pretraining_section, "", "O escore PolyGabor é a distância logarítmica negativa para tumor em uma grade densa 75×75 por patch. O CAM da ResNet é calculado em sua entrada treinada de 128×128, antes do softmax, a partir das ativações espaciais 4×4 e dos pesos da classe tumor, com ReLU. Cada mapa é interpolado apenas dentro do respectivo patch de 150×150.", "", "O threshold de cada método e seed maximiza Dice exclusivamente na validação. As métricas em pixels foram mantidas como análise secundária de região fracamente anotada: toda a área de um patch tumor é positiva porque não há contorno histopatológico dentro dele. Elas não medem segmentação celular ou tumoral real. O baseline aleatório de AUROC é 0,5 e a prevalência positiva é 12,5%. Os intervalos reamostram os 30 mosaicos inteiros por 5.000 draws.", "", f"Artefatos brutos: {run_dir.relative_to(ROOT)}. O manifesto telemetry_manifest.json aponta para a telemetria da versão 2, da extensão ImageNet e das regenerações. A parte qualitativa nas imagens grandes não foi executada porque o arquivo local contém os 5.000 patches, sem o dataset separado colorectal_histology_large."]
+    pretraining_section = ["![CAM comparison by configuration](localization_pretraining_examples.png)", "", "The comparison keeps architecture, images and layouts. The ImageNet configuration changes the initial weights and applies the normalization those weights require; therefore the contrast does not mathematically isolate the initialization alone. It shows how the classification ranking and the CAM change under the transfer configuration used."] if any(r["method"] == "resnet18_imagenet" for r in rows) else []
+    text = ["# Quantitative tumor localization in mosaics", "", "20 validation and 30 test mosaics were evaluated, all 4×4 and 600×600 pixels, with two tumor patches and fourteen non-tumor patches. The 800 patches used are unique within each split. The full models of seeds 42 and 43 were reused without retraining.", "", "![Localization metrics](localization_metrics.png)", "", *table, "", "The main analysis uses the known label of each patch. AUROC and AP check whether the mean evidence of the map ranks tumor patches above the others. Top-2 recall measures how many of the two tumors appear among the two patches with the highest evidence; both in top-2 requires getting the pair exactly right. Classifier AUROC uses the classifier's tumor score for each isolated patch and makes it possible to tell decision errors apart from explanation-map errors.", "", "![Examples of mosaics, labels and maps](localization_examples.png)", "", "Each patch is processed in isolation and only then are the maps reassembled. Thus no receptive field or interpolation crosses the artificial borders of the mosaic. The figure shows a ground-truth column and, for each method, one column with the tumor classification score and another with the explanation map. Green marks the tumor ground truth, dashed yellow shows each panel's top-2 and cyan shows the explanation threshold selected on validation. PolyGabor values are heuristic similarities and ResNet values are uncalibrated softmax; they are meant for ranking within each method.", "", *pretraining_section, "", "The PolyGabor score is the negative logarithmic distance to tumor on a dense 75×75 grid per patch. The ResNet CAM is computed on its trained 128×128 input, before the softmax, from the 4×4 spatial activations and the tumor class weights, with ReLU. Each map is interpolated only within its own 150×150 patch.", "", "The threshold of each method and seed maximizes Dice exclusively on validation. The pixel metrics were kept as a secondary analysis of weakly annotated regions: the whole area of a tumor patch is positive because there is no histopathological contour inside it. They do not measure real cell or tumor segmentation. The random AUROC baseline is 0.5 and the positive prevalence is 12.5%. The intervals resample the 30 whole mosaics with 5,000 draws.", "", f"Raw artifacts: {run_dir.relative_to(ROOT)}. The telemetry_manifest.json manifest points to the telemetry of version 2, of the ImageNet extension and of the refreshes. The qualitative part on the large images was not run because the local archive contains the 5,000 patches, without the separate colorectal_histology_large dataset."]
     (result_dir / "README.md").write_text("\n".join(text) + "\n")
 
 

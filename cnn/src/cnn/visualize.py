@@ -8,10 +8,10 @@ def plot_history(history):
     import matplotlib.pyplot as plt
     fig, axes = plt.subplots(1, 2, figsize=(11, 4))
     for ax, metric in zip(axes, ("accuracy", "loss")):
-        for key, label in ((metric, "treino"), ("val_" + metric, "validação")):
+        for key, label in ((metric, "train"), ("val_" + metric, "validation")):
             if key in history:
                 ax.plot(np.arange(1, len(history[key]) + 1), history[key], label=label)
-        ax.set(xlabel="Época", ylabel=metric)
+        ax.set(xlabel="Epoch", ylabel=metric)
         if ax.lines:
             ax.legend()
     fig.tight_layout()
@@ -65,26 +65,26 @@ def plot_prediction_summary(image, prediction, class_names, true_label=None):
     axes[0].axis("off")
     title = prediction.class_name + f" ({prediction.confidence:.1%})"
     if true_label is not None:
-        title += f"; real: {class_names[true_label]}"
+        title += f"; true: {class_names[true_label]}"
     axes[0].set_title(title)
     axes[1].barh(class_names, prediction.probabilities)
-    axes[1].set(xlim=(0, 1), xlabel="Softmax (sem calibração)")
+    axes[1].set(xlim=(0, 1), xlabel="Softmax (uncalibrated)")
     fig.tight_layout()
     return fig
 
 
-def plot_explanation(image, heatmap, title="CAM — evidência da classe predita"):
+def plot_explanation(image, heatmap, title="CAM — evidence for the predicted class"):
     import cv2
     import matplotlib.pyplot as plt
     fig, axes = plt.subplots(1, 3, figsize=(11, 4))
     axes[0].imshow(image)
-    axes[0].set_title("Imagem")
+    axes[0].set_title("Image")
     signed = float(heatmap.min()) < 0
     bound = max(float(np.abs(heatmap).max()), 1e-12)
     cmap = "coolwarm" if signed else "magma"
     scale = dict(vmin=-bound if signed else 0, vmax=bound)
     shown = axes[1].imshow(heatmap, cmap=cmap, **scale)
-    axes[1].set_title(f"Mapa nativo {heatmap.shape}\nmin={heatmap.min():.3g}; max={heatmap.max():.3g}")
+    axes[1].set_title(f"Native map {heatmap.shape}\nmin={heatmap.min():.3g}; max={heatmap.max():.3g}")
     fig.colorbar(shown, ax=axes[1], fraction=.046, pad=.04)
     axes[2].imshow(image)
     axes[2].imshow(cv2.resize(heatmap, (image.shape[1], image.shape[0])), cmap=cmap, alpha=.45, **scale)

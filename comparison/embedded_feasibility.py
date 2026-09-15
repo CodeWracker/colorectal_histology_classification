@@ -78,10 +78,10 @@ def classify_target(target: dict[str, int | str], measurements: dict[str, int]) 
     flash = int(target["flash_bytes"])
     ram = int(target["sram_bytes"])
     if measurements["int8_state_and_kernels_bytes"] > flash or measurements["streaming_working_set_bytes"] > ram:
-        return "inviável para o método atual, mesmo na estimativa quantizada"
+        return "not feasible for the current method, even with the quantized estimate"
     if measurements["fitted_state_and_kernels_bytes"] + 256 * 1024 > flash or measurements["opencv_image_maps_lower_bound_bytes"] > ram:
-        return "plausível somente após porte C/C++, quantização e extração em fluxo"
-    return "há orçamento estático; ainda requer porte e medição no hardware"
+        return "plausible only after a C/C++ port, quantization and streaming extraction"
+    return "static budget fits; still requires a port and on-hardware measurement"
 
 
 def main() -> None:
@@ -169,32 +169,32 @@ def main() -> None:
         writer.writerows(rows)
 
     lines = [
-        "# Pré-avaliação de inferência em microcontroladores",
+        "# Microcontroller inference preflight",
         "",
-        "Esta análise compara o modelo `full__polygarbor__seed42` com os limites publicados para três placas ou microcontroladores. Ela mede armazenamento e arrays reais do modelo carregado, estima uma representação quantizada e conta operações do banco de Gabor. Ela não executa o firmware do alvo, não prevê latência e não mede energia.",
+        "This analysis compares the `full__polygarbor__seed42` model with the published limits of three boards or microcontrollers. It measures the storage and the actual arrays of the loaded model, estimates a quantized representation and counts the operations of the Gabor bank. It does not run the target firmware, does not predict latency and does not measure energy.",
         "",
-        "| Alvo | Flash | SRAM | artefato salvo/flash | estado ajustado/flash | int8/flash | mapas atuais/SRAM | fluxo mínimo/SRAM | avaliação |",
+        "| Target | Flash | SRAM | saved artifact/flash | fitted state/flash | int8/flash | current maps/SRAM | minimal streaming/SRAM | assessment |",
         "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |",
     ]
     for row in rows:
         lines.append(f"| {row['target']} | {row['flash_bytes']:,} B | {row['sram_bytes']:,} B | {row['artifact_flash_percent']:.1f}% | {row['fitted_state_flash_percent']:.1f}% | {row['int8_state_flash_percent']:.1f}% | {row['opencv_maps_sram_percent']:.1f}% | {row['streaming_sram_percent']:.1f}% | {row['assessment']} |")
     lines.extend([
         "",
-        f"O diretório salvo ocupa {artifact_bytes / 1_000_000:.3f} MB, mas contém 2.800 vetores de treino em texto. Ao carregar, a biblioteca reconstrói bases polinomiais e mantém as amostras: os arrays ocupam {inventory['loaded_actual_bytes'] / 1_000_000:.3f} MB. As amostras não são consultadas por evaluate() e podem ser excluídas de um exportador. Com kernels, uma exportação de inferência float32 ocuparia pelo menos {measurements['fitted_state_and_kernels_bytes'] / 1_000_000:.3f} MB, antes do firmware. A estimativa int8/uint16 cai para {measurements['int8_state_and_kernels_bytes'] / 1_000_000:.3f} MB, mas sua equivalência preditiva ainda precisa ser testada.",
+        f"The saved directory takes {artifact_bytes / 1_000_000:.3f} MB, but it contains 2,800 training vectors stored as text. On loading, the library rebuilds the polynomial bases and keeps the samples: the arrays take {inventory['loaded_actual_bytes'] / 1_000_000:.3f} MB. The samples are not read by evaluate() and can be left out by an exporter. With the kernels, a float32 inference export would take at least {measurements['fitted_state_and_kernels_bytes'] / 1_000_000:.3f} MB, before firmware. The int8/uint16 estimate drops to {measurements['int8_state_and_kernels_bytes'] / 1_000_000:.3f} MB, but its predictive equivalence still needs to be tested.",
         "",
-        f"A extração atual mantém RGB, cinza float32, Lab float32 e oito mapas de energia float32, um piso de {measurements['opencv_image_maps_lower_bound_bytes'] / 1_000_000:.3f} MB sem contar temporários do OpenCV. Uma implementação em fluxo usaria aproximadamente {streaming_extraction_bytes / 1000:.1f} kB para extração. Somado a um espaço de trabalho float32 conservador de {inventory['polynomial_workspace_float32_bytes'] / 1000:.1f} kB para avaliar uma classe por vez, o total estimado é {streaming_working_set_bytes / 1000:.1f} kB. Esse núcleo precisaria ser escrito em C/C++ com aritmética fixa ou cuidadosamente quantizada.",
+        f"The current extraction keeps RGB, float32 grayscale, float32 Lab and eight float32 energy maps, a floor of {measurements['opencv_image_maps_lower_bound_bytes'] / 1_000_000:.3f} MB without counting OpenCV temporaries. A streaming implementation would use approximately {streaming_extraction_bytes / 1000:.1f} kB for extraction. Adding a conservative float32 workspace of {inventory['polynomial_workspace_float32_bytes'] / 1000:.1f} kB to evaluate one class at a time, the estimated total is {streaming_working_set_bytes / 1000:.1f} kB. That core would have to be written in C/C++ with fixed-point or carefully quantized arithmetic.",
         "",
-        f"O banco executa duas convoluções 21×21 para cada um dos oito filtros. Uma imagem 150×150 exige aproximadamente {measurements['gabor_direct_multiply_accumulates']:,} multiplicações-acumulações no cálculo direto, além de magnitude, estatísticas Lab e distância polinomial. Por isso, razão de frequências de clock não é uma estimativa válida de latência.",
+        f"The bank runs two 21×21 convolutions for each of the eight filters. A 150×150 image requires approximately {measurements['gabor_direct_multiply_accumulates']:,} multiply-accumulate operations in the direct computation, plus magnitude, Lab statistics and polynomial distance. For this reason, the ratio of clock frequencies is not a valid latency estimate.",
         "",
-        "O ESP32 é o único dos três alvos com uma rota plausível para a inferência completa: exportar o estado ajustado sem reconstrução, quantizar, manter coeficientes na flash e processar a imagem em fluxo. O Arduino Uno e o PIC16F877A não comportam sequer a estimativa int8 do estado polinomial na memória de programa; para eles seria necessário trocar o classificador por uma aproximação muito menor, reduzir filtros e resolução ou usá-los apenas como controladores de um coprocessador.",
+        "The ESP32 is the only one of the three targets with a plausible route to full inference: export the fitted state without reconstruction, quantize, keep the coefficients in flash and process the image as a stream. The Arduino Uno and the PIC16F877A cannot hold even the int8 estimate of the polynomial state in program memory; for them the classifier would have to be replaced by a much smaller approximation, the filters and resolution reduced, or the boards used only as controllers of a coprocessor.",
         "",
-        "Treinar no dispositivo não é uma meta realista nos três alvos. A etapa usa amostras por classe, expansões polinomiais e decomposições numéricas, com memória de trabalho muito acima da inferência. A avaliação embarcada defensável é treinar externamente, exportar uma representação de inferência e medir fidelidade, latência, RAM, flash e energia no alvo.",
+        "On-device training is not a realistic goal on any of the three targets. That stage uses per-class samples, polynomial expansions and numerical decompositions, with working memory far above that of inference. The defensible embedded evaluation is to train externally, export an inference representation and measure fidelity, latency, RAM, flash and energy on the target.",
         "",
-        "As especificações usadas são as folhas oficiais do [ESP32-WROOM-32](https://documentation.espressif.com/esp32-wroom-32_datasheet_en.html), do [Arduino UNO R3](https://docs.arduino.cc/resources/datasheets/A000066-datasheet.pdf) e do [PIC16F87XA](https://ww1.microchip.com/downloads/en/devicedoc/39582b.pdf).",
+        "The specifications used are the official datasheets of the [ESP32-WROOM-32](https://documentation.espressif.com/esp32-wroom-32_datasheet_en.html), the [Arduino UNO R3](https://docs.arduino.cc/resources/datasheets/A000066-datasheet.pdf) and the [PIC16F87XA](https://ww1.microchip.com/downloads/en/devicedoc/39582b.pdf).",
         "",
-        "## Próxima etapa necessária",
+        "## Required next step",
         "",
-        "A simulação fiel exige um exportador de coeficientes e um núcleo de inferência C/C++. Depois disso, a sequência correta é verificar concordância de classes e degradação de macro-F1/G-mean no teste inteiro, compilar com o toolchain de cada alvo, obter mapa de memória e contagem de ciclos no simulador e medir latência e energia em uma placa real. Simuladores não reproduzem com fidelidade caches, flash externa, periféricos e consumo elétrico.",
+        "A faithful simulation requires a coefficient exporter and a C/C++ inference core. After that, the right sequence is to check class agreement and macro-F1/G-mean degradation on the whole test set, compile with each target's toolchain, obtain the memory map and cycle count in the simulator, and measure latency and energy on a real board. Simulators do not faithfully reproduce caches, external flash, peripherals or power consumption.",
         "",
     ])
     (args.output / "README.md").write_text("\n".join(lines))

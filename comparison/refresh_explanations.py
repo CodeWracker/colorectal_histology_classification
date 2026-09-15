@@ -25,7 +25,7 @@ def main():
         for path in (folder / "explanations").glob("*/heatmap.npy"):
             index = int(path.parent.name.split("_")[1])
             heat = np.load(path)
-            title = "CAM — escala relativa" if config["method"].startswith("resnet18") else "Oclusão: queda de probabilidade"
+            title = "CAM — relative scale" if config["method"].startswith("resnet18") else "Occlusion: probability drop"
             fig = visualize.plot_explanation(images[index], heat, title)
             visualize.save_figure(fig, path.parent / "explanation.png")
             plt.close(fig)

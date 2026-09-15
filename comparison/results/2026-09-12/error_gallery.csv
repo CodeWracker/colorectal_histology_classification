@@ -1,19 +1,19 @@
 index,selection,true_class,polygarbor,resnet18,resnet18_imagenet,yolo11n,yolo11n_random
-1,todos acertam,tumor,tumor,tumor,tumor,tumor,tumor
-3,todos acertam,lympho,lympho,lympho,lympho,lympho,lympho
-11,todos erram,complex,stroma,stroma,debris,stroma,stroma
-85,todos erram,debris,adipose,adipose,adipose,empty,adipose
-7,só polygarbor erra,tumor,lympho,tumor,tumor,tumor,tumor
-16,só polygarbor erra,mucosa,debris,mucosa,mucosa,mucosa,mucosa
-33,só resnet18 erra,stroma,stroma,complex,stroma,stroma,stroma
-41,só resnet18 erra,debris,debris,adipose,debris,debris,debris
-13,só resnet18_imagenet acerta,complex,debris,tumor,complex,stroma,mucosa
-50,só resnet18_imagenet acerta,complex,stroma,stroma,complex,stroma,stroma
-292,só resnet18_imagenet erra,complex,complex,complex,stroma,complex,complex
-126,só yolo11n acerta,complex,stroma,stroma,stroma,complex,stroma
-372,só yolo11n acerta,debris,stroma,stroma,stroma,debris,stroma
-297,só yolo11n erra,debris,debris,debris,debris,stroma,debris
-24,só yolo11n_random acerta,complex,lympho,lympho,lympho,lympho,complex
-290,só yolo11n_random acerta,stroma,debris,debris,debris,debris,stroma
-55,só yolo11n_random erra,debris,debris,debris,debris,debris,stroma
-56,só yolo11n_random erra,debris,debris,debris,debris,debris,stroma
+1,all correct,tumor,tumor,tumor,tumor,tumor,tumor
+3,all correct,lympho,lympho,lympho,lympho,lympho,lympho
+11,all wrong,complex,stroma,stroma,debris,stroma,stroma
+85,all wrong,debris,adipose,adipose,adipose,empty,adipose
+7,only polygarbor wrong,tumor,lympho,tumor,tumor,tumor,tumor
+16,only polygarbor wrong,mucosa,debris,mucosa,mucosa,mucosa,mucosa
+33,only resnet18 wrong,stroma,stroma,complex,stroma,stroma,stroma
+41,only resnet18 wrong,debris,debris,adipose,debris,debris,debris
+13,only resnet18_imagenet correct,complex,debris,tumor,complex,stroma,mucosa
+50,only resnet18_imagenet correct,complex,stroma,stroma,complex,stroma,stroma
+292,only resnet18_imagenet wrong,complex,complex,complex,stroma,complex,complex
+126,only yolo11n correct,complex,stroma,stroma,stroma,complex,stroma
+372,only yolo11n correct,debris,stroma,stroma,stroma,debris,stroma
+297,only yolo11n wrong,debris,debris,debris,debris,stroma,debris
+24,only yolo11n_random correct,complex,lympho,lympho,lympho,lympho,complex
+290,only yolo11n_random correct,stroma,debris,debris,debris,debris,stroma
+55,only yolo11n_random wrong,debris,debris,debris,debris,debris,stroma
+56,only yolo11n_random wrong,debris,debris,debris,debris,debris,stroma

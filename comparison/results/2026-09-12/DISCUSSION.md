@@ -1,186 +1,186 @@
-# Discussão dos resultados
+# Discussion of the results
 
-Foram concluídos 178 treinamentos com avaliação, cobrindo nove pipelines, sete tamanhos de treino reduzido, treino completo, desbalanceamento, ruído de rótulo e dois splits por origem. Os modelos completos receberam ainda oito perturbações de teste. A campanha inclui controles pareados de inicialização: ResNet-18 aleatória versus ImageNet e YOLO11n aleatória versus ImageNet. Foram executados 22 benchmarks de inferência aquecida e 22 processos frios.
+178 training runs with evaluation were completed, covering nine pipelines, seven reduced training sizes, full training, class imbalance, label noise and two source-based splits. The full models additionally received eight test perturbations. The campaign includes paired initialization controls: random versus ImageNet ResNet-18 and random versus ImageNet YOLO11n. 22 warm inference benchmarks and 22 cold processes were run.
 
-A melhor média no teste limpo foi da ResNet-18 ImageNet, macro-F1 0,9561, seguida da YOLO11n ImageNet, 0,9510. A YOLO ImageNet apresentou o melhor equilíbrio prático entre classificação, tamanho e latência: 3,204 MB e 3,32 ms em CPU com uma thread. O PolyGabor manteve as vantagens de pacote pequeno, 0,651 MB, menor RAM de inferência, partida mais rápida e operação matemática mais auditável, mas ficou abaixo das CNNs pré-treinadas na classificação agregada e na localização de tumor.
+The best clean-test mean was ImageNet ResNet-18, macro-F1 0.9561, followed by ImageNet YOLO11n, 0.9510. ImageNet YOLO showed the best practical balance between classification, size and latency: 3.204 MB and 3.32 ms on CPU with one thread. PolyGabor kept the advantages of a small package, 0.651 MB, lower inference RAM, faster startup and a more auditable mathematical operation, but it stayed below the pretrained CNNs in aggregate classification and in tumor localization.
 
-## Onde encontrar as evidências
+## Where to find the evidence
 
-O [relatório gerado](REPORT.md) contém todas as tabelas por seed. [metrics.csv](metrics.csv) reúne as métricas de treino, validação, teste e perturbações; [initialization_comparison.csv](initialization_comparison.csv) compara as configurações aleatória e ImageNet; [run_index.csv](run_index.csv) aponta para cada execução; [stage_resources.csv](stage_resources.csv) reúne tempos e recursos por etapa; [edge.csv](edge.csv) contém inferência; e o [relatório de localização](localization/README.md) detalha os mosaicos. O [protocolo](../../PROTOCOL.md), o [diário](../../WORK_LOG.md) e os manifestos [de imagens](../../dataset_manifest.json) e [de origens](../../source_manifest.json) registram decisões e preparação.
+The [generated report](REPORT.md) contains all per-seed tables. [metrics.csv](metrics.csv) gathers training, validation, test and perturbation metrics; [initialization_comparison.csv](initialization_comparison.csv) compares the random and ImageNet configurations; [run_index.csv](run_index.csv) points to each run; [stage_resources.csv](stage_resources.csv) gathers per-stage times and resources; [edge.csv](edge.csv) contains inference; and the [localization report](localization/README.md) details the mosaics. The [protocol](../../PROTOCOL.md), the [work log](../../WORK_LOG.md) and the [image](../../dataset_manifest.json) and [source](../../source_manifest.json) manifests record decisions and preparation.
 
-Cada diretório em `comparison/runs/2026-09-12` conserva configuração, seleção de amostras, log, tempos, recursos, modelo, predições individuais, métricas e figuras. Pilotos foram mantidos em campanha separada e não entram nestas tabelas. Modelos e dados grandes estão preservados localmente e ignorados pelo Git.
+Each directory in `comparison/runs/2026-09-12` keeps configuration, sample selection, log, timings, resources, model, individual predictions, metrics and figures. Pilots were kept in a separate campaign and do not enter these tables. Large models and data are preserved locally and ignored by Git.
 
-## Desempenho com treino completo
+## Performance with full training
 
-Os valores são médias das seeds 42 e 43 no teste aleatório de 500 imagens. G-mean é calculado em cada execução e depois agregado.
+Values are means of seeds 42 and 43 on the 500-image random test set. G-mean is computed for each run and then aggregated.
 
-| Pipeline | Macro-F1 | G-mean | Treino, s | Modelo, MB |
+| Pipeline | Macro-F1 | G-mean | Training, s | Model, MB |
 | --- | --- | --- | --- | --- |
-| PolyGabor, 1 região | 0,7928 | 0,7774 | 20,57 | 0,651 |
-| PolyGabor, 1 região + augmentation | 0,7791 | 0,7597 | 78,66 | 0,650 |
-| PolyGabor, 9 regiões | 0,5225 | 0,4078 | 29,16 | 0,649 |
-| PolyGabor, 9 regiões + augmentation | 0,5722 | 0,4804 | 98,59 | 0,649 |
-| PolyGabor, 25 regiões | 0,4269 | 0,0000 | 36,65 | 0,648 |
-| ResNet-18 aleatória | 0,9078 | 0,9006 | 173,85 | 45,009 |
-| ResNet-18 ImageNet | 0,9561 | 0,9556 | 174,76 | 45,012 |
-| YOLO11n aleatória | 0,8618 | 0,8532 | 266,89 | 3,204 |
-| YOLO11n ImageNet | 0,9510 | 0,9504 | 269,81 | 3,204 |
+| PolyGabor, 1 region | 0.7928 | 0.7774 | 20.57 | 0.651 |
+| PolyGabor, 1 region + augmentation | 0.7791 | 0.7597 | 78.66 | 0.650 |
+| PolyGabor, 9 regions | 0.5225 | 0.4078 | 29.16 | 0.649 |
+| PolyGabor, 9 regions + augmentation | 0.5722 | 0.4804 | 98.59 | 0.649 |
+| PolyGabor, 25 regions | 0.4269 | 0.0000 | 36.65 | 0.648 |
+| ResNet-18 random | 0.9078 | 0.9006 | 173.85 | 45.009 |
+| ResNet-18 ImageNet | 0.9561 | 0.9556 | 174.76 | 45.012 |
+| YOLO11n random | 0.8618 | 0.8532 | 266.89 | 3.204 |
+| YOLO11n ImageNet | 0.9510 | 0.9504 | 269.81 | 3.204 |
 
-MB usa 1.000.000 bytes. Treino soma construção, preparação, extração quando aplicável e ajuste. O tamanho do artefato não inclui bibliotecas nem representa a RAM de execução. A diferença de tamanho entre inicializações da mesma arquitetura é desprezível, como esperado: os pesos iniciais alteram valores, sem alterar o número de parâmetros.
+MB uses 1,000,000 bytes. Training adds up model construction, preparation, extraction when applicable and fitting. The artifact size does not include libraries and does not represent runtime RAM. The size difference between initializations of the same architecture is negligible, as expected: the initial weights change values, not the number of parameters.
 
-A ResNet ImageNet teve a maior média limpa, mas variou de 0,9419 a 0,9703 entre duas seeds. A YOLO ImageNet variou de 0,9396 a 0,9624. Com somente duas seeds e dez origens recuperadas dos nomes, essa diferença média de 0,0051 entre as duas não sustenta uma ordenação universal. As comparações pareadas por imagem e por origem estão em [paired_tests.csv](paired_tests.csv).
+ImageNet ResNet had the highest clean mean, but it ranged from 0.9419 to 0.9703 across the two seeds. ImageNet YOLO ranged from 0.9396 to 0.9624. With only two seeds and ten sources recovered from the file names, the mean difference of 0.0051 between the two does not support a universal ranking. The paired per-image and per-source comparisons are in [paired_tests.csv](paired_tests.csv).
 
-A calibração usa temperatura escolhida somente na validação e não altera a classe prevista. O ECE médio original foi 0,2859 no PolyGabor, 0,0269 na ResNet aleatória, 0,0153 na ResNet ImageNet, 0,0436 na YOLO aleatória e 0,0191 na YOLO ImageNet. Similaridade PolyGabor é um escore heurístico; não deve ser interpretada como probabilidade clínica mesmo após calibração.
+Calibration uses a temperature chosen on validation only and does not change the predicted class. The original mean ECE was 0.2859 for PolyGabor, 0.0269 for random ResNet, 0.0153 for ImageNet ResNet, 0.0436 for random YOLO and 0.0191 for ImageNet YOLO. PolyGabor similarity is a heuristic score; it should not be interpreted as a clinical probability, even after calibration.
 
-## Efeito dos pesos ImageNet
+## Effect of ImageNet weights
 
-O contraste dentro de cada família mostra uma grande vantagem associada à configuração ImageNet em baixa disponibilidade de dados. Na ResNet, essa configuração combina pesos ImageNet e a normalização de entrada correspondente, enquanto a original usa escala 0–1; o experimento não atribui causalmente o ganho somente aos pesos. O macro-F1 médio subiu de 0,0414 para 0,2842 com uma imagem por classe, de 0,1667 para 0,5537 com dez, de 0,5679 para 0,8973 com cinquenta e de 0,9078 para 0,9561 no treino completo. Com cem imagens por classe, a média mudou somente de 0,8684 para 0,8711 e as faixas entre seeds se sobrepõem bastante.
+The within-family contrast shows a large advantage associated with the ImageNet configuration when data are scarce. For ResNet, this configuration combines ImageNet weights with the matching input normalization, while the original uses a 0–1 scale; the experiment does not causally attribute the gain to the weights alone. Mean macro-F1 rose from 0.0414 to 0.2842 with one image per class, from 0.1667 to 0.5537 with ten, from 0.5679 to 0.8973 with fifty and from 0.9078 to 0.9561 with full training. With one hundred images per class, the mean changed only from 0.8684 to 0.8711 and the ranges across seeds overlap substantially.
 
-Na YOLO, ImageNet elevou o macro-F1 médio de 0,0290 para 0,5392 com uma imagem por classe, de 0,2778 para 0,8342 com dez e de 0,8618 para 0,9510 no treino completo. O ganho permaneceu positivo em todos os cenários agregados medidos para essa família. Sob desbalanceamento, a YOLO aleatória teve macro-F1 0,7124 e G-mean zero porque perdeu completamente ao menos uma classe; a pré-treinada atingiu 0,9046 e G-mean 0,8987.
+For YOLO, ImageNet raised mean macro-F1 from 0.0290 to 0.5392 with one image per class, from 0.2778 to 0.8342 with ten and from 0.8618 to 0.9510 with full training. The gain stayed positive in every aggregated scenario measured for this family. Under class imbalance, random YOLO had macro-F1 0.7124 and zero G-mean because it completely lost at least one class; the pretrained one reached 0.9046 and G-mean 0.8987.
 
-O pré-treinamento não melhorou tudo. Em source_a, a ResNet ImageNet caiu de macro-F1 0,5407 para 0,4841 e de G-mean 0,4063 para zero; em source_b subiu de 0,3444 para 0,6084. Com 20 imagens por classe, a ResNet ImageNet variou de 0,2768 a 0,8519 entre seeds. Transferência ajudou muito em média, mas continuou sensível ao subconjunto e à mudança de origem.
+Pretraining did not improve everything. On source_a, ImageNet ResNet went from macro-F1 0.5407 down to 0.4841 and from G-mean 0.4063 down to zero; on source_b it went up from 0.3444 to 0.6084. With 20 images per class, ImageNet ResNet ranged from 0.2768 to 0.8519 across seeds. Transfer helped a lot on average, but it remained sensitive to the subset and to source shift.
 
-## Onde o PolyGabor foi melhor
+## Where PolyGabor did better
 
-O PolyGabor foi competitivo quando o comparador também começou do zero. Com duas imagens por classe, o PolyGabor com augmentation alcançou macro-F1 médio 0,4162, contra 0,0721 na ResNet aleatória, 0,0290 na YOLO aleatória e 0,3517 na ResNet ImageNet. Com uma imagem por classe, essa variante atingiu 0,3709, acima de ambas as CNNs aleatórias e da média 0,2842 da ResNet ImageNet; a YOLO ImageNet ainda foi superior, com 0,5392.
+PolyGabor was competitive when the comparator also started from scratch. With two images per class, PolyGabor with augmentation reached a mean macro-F1 of 0.4162, against 0.0721 for random ResNet, 0.0290 for random YOLO and 0.3517 for ImageNet ResNet. With one image per class, this variant reached 0.3709, above both random CNNs and the 0.2842 mean of ImageNet ResNet; ImageNet YOLO was still better, with 0.5392.
 
-Com dez imagens por classe, PolyGabor com augmentation obteve 0,5429, praticamente igual à média 0,5537 da ResNet ImageNet e acima das duas CNNs aleatórias. Com vinte, atingiu 0,6213, acima da ResNet ImageNet média de 0,5644, embora a grande faixa desta última impeça uma conclusão forte. A YOLO ImageNet permaneceu acima em todos esses pontos.
+With ten images per class, PolyGabor with augmentation obtained 0.5429, practically equal to the 0.5537 mean of ImageNet ResNet and above both random CNNs. With twenty, it reached 0.6213, above the ImageNet ResNet mean of 0.5644, although the wide range of the latter prevents a strong conclusion. ImageNet YOLO stayed ahead at all of these points.
 
-No split source_a, PolyGabor obteve macro-F1 0,7544, superando as duas ResNets, 0,5407 aleatória e 0,4841 ImageNet, e a YOLO aleatória, 0,5637. A YOLO ImageNet alcançou 0,8295. A vantagem mais clara e constante do PolyGabor foi operacional: menor modelo, menor RAM em inferência, partida fria mais curta e treino viável apenas com CPU.
+On the source_a split, PolyGabor obtained macro-F1 0.7544, outperforming both ResNets, 0.5407 random and 0.4841 ImageNet, and random YOLO, 0.5637. ImageNet YOLO reached 0.8295. PolyGabor's clearest and most consistent advantage was operational: smallest model, lowest inference RAM, shortest cold start and training that is feasible on CPU alone.
 
-A galeria de erros contém casos em que somente um método acerta. Ela foi refeita com os cinco pipelines principais e mostra complementaridade, sem usar exemplos escolhidos manualmente para alegar superioridade agregada.
+The error gallery contains cases in which only one method is correct. It was rebuilt with the five main pipelines and shows complementarity, without using hand-picked examples to claim aggregate superiority.
 
-## Pouquíssimos exemplos e G-mean
+## Very few examples and G-mean
 
-![Macro-F1 em função da quantidade de treino](learning_curve.png)
+![Macro-F1 as a function of training size](learning_curve.png)
 
-![G-mean em função da quantidade de treino](learning_curve_gmean.png)
+![G-mean as a function of training size](learning_curve_gmean.png)
 
-Os gráficos foram divididos em três painéis: métodos originais, controle de inicialização das CNNs e ablações PolyGabor. Isso reduz sobreposição de nove curvas. Os subconjuntos são aninhados dentro de cada seed, e o eixo X conta imagens originais por classe. Augmentations e regiões não inflam esse orçamento. A faixa mostra mínimo e máximo de duas seeds; não é intervalo de confiança. A validação mantém 500 rótulos, então o experimento reduz somente o treino.
+The plots were split into three panels: original methods, CNN initialization control and PolyGabor ablations. This reduces the overlap of nine curves. The subsets are nested within each seed, and the x-axis counts original images per class. Augmentations and regions do not inflate this budget. The band shows the minimum and maximum of two seeds; it is not a confidence interval. Validation keeps 500 labels, so the experiment reduces only the training set.
 
-O PolyGabor original falhou com uma imagem por classe nas duas seeds porque o ajuste polinomial não suporta um único vetor por classe. As variantes com augmentation ou múltiplas regiões ajustaram por gerar mais vetores computacionais, mas continuam partindo de uma única imagem biológica. Essas falhas estão preservadas e não foram convertidas em F1 zero.
+The original PolyGabor failed with one image per class on both seeds because the polynomial fit does not support a single vector per class. The variants with augmentation or multiple regions could be fitted because they generate more computational vectors, but they still start from a single biological image. These failures are preserved and were not converted to zero F1.
 
-G-mean tornou visíveis colapsos de classe escondidos por macro-F1. A ResNet aleatória teve G-mean zero até vinte imagens por classe. A ResNet ImageNet também teve G-mean zero com uma e duas, apesar do macro-F1 positivo. PolyGabor com 25 regiões teve G-mean zero até no treino completo. A [explicação de G-mean versus macro-F1](../../GMEAN_VS_MACRO_F1.md) detalha a diferença: macro-F1 média precisão e recall por classe, enquanto G-mean zera quando qualquer recall é zero.
+G-mean made visible class collapses hidden by macro-F1. Random ResNet had zero G-mean up to twenty images per class. ImageNet ResNet also had zero G-mean with one and two, despite a positive macro-F1. PolyGabor with 25 regions had zero G-mean even with full training. The [G-mean versus macro-F1 explanation](../../GMEAN_VS_MACRO_F1.md) details the difference: macro-F1 averages per-class precision and recall, whereas G-mean becomes zero when any recall is zero.
 
-## Augmentation e downsampling espacial no PolyGabor
+## Augmentation and spatial downsampling in PolyGabor
 
-As variantes usam grades 1×1, 3×3 e 5×5, correspondentes a 1, 9 e 25 regiões por imagem. O banco continua com oito pares de kernels Gabor. Augmentation adiciona original, flips horizontal e vertical e brilho ±0,1 somente no treino.
+The variants use 1×1, 3×3 and 5×5 grids, corresponding to 1, 9 and 25 regions per image. The bank still has eight pairs of Gabor kernels. Augmentation adds the original, horizontal and vertical flips and brightness ±0.1, in training only.
 
-O teto de 350 vetores por classe foi preservado. Com o treino completo, as grades geram até 4.000, 36.000 ou 100.000 candidatos, mas somente 2.800 entram no ajuste. Na seed 42, eles representam 2.800 imagens originais no padrão, 2.170 com augmentation, 2.065 com nove regiões, 2.048 com 25 e 2.040 com nove regiões mais augmentation. Assim, a ablação altera escala espacial e diversidade de originais retidos ao mesmo tempo.
+The cap of 350 vectors per class was kept. With full training, the grids generate up to 4,000, 36,000 or 100,000 candidates, but only 2,800 enter the fit. On seed 42, they represent 2,800 original images in the default setting, 2,170 with augmentation, 2,065 with nine regions, 2,048 with 25 and 2,040 with nine regions plus augmentation. The ablation therefore changes spatial scale and the diversity of retained originals at the same time.
 
-Mais regiões pioraram o teste limpo: macro-F1 médio 0,7928 com uma região, 0,5225 com nove e 0,4269 com 25. O macro-F1 de treino também ficou baixo, indicando dificuldade de representação/agregação além de sobreajuste. Uma causa plausível é que uma região pequena herda o rótulo global da imagem mesmo quando seu conteúdo local não representa a classe; outra é a perda de diversidade de originais causada pelo teto fixo.
+More regions worsened the clean test: mean macro-F1 of 0.7928 with one region, 0.5225 with nine and 0.4269 with 25. Training macro-F1 was also low, indicating a representation/aggregation difficulty beyond overfitting. One plausible cause is that a small region inherits the global label of the image even when its local content does not represent the class; another is the loss of original-image diversity caused by the fixed cap.
 
-Augmentation ajudou em vários pontos de poucos dados, mas não no treino completo: o macro-F1 médio completo caiu de 0,7928 para 0,7791. O custo de treino subiu de 20,57 para 78,66 s. Na inferência usa-se apenas a imagem original, portanto tamanho e latência permaneceram próximos. A comparação de votação com ranking de similaridade está em [aggregation_comparison.csv](aggregation_comparison.csv); trocar retrospectivamente a regra não corrigiu de modo consistente as grades maiores.
+Augmentation helped at several low-data points, but not with full training: the full mean macro-F1 dropped from 0.7928 to 0.7791. Training cost rose from 20.57 to 78.66 s. Inference uses only the original image, so size and latency stayed close. The comparison between voting and similarity ranking is in [aggregation_comparison.csv](aggregation_comparison.csv); retrospectively changing the rule did not consistently fix the larger grids.
 
-## Robustez e cenários adversos
+## Robustness and adverse scenarios
 
-![Perturbações aplicadas à mesma imagem de tumor](corruption_gallery.png)
+![Perturbations applied to the same tumor image](corruption_gallery.png)
 
-![Comparação de robustez](robustness.png)
+![Robustness comparison](robustness.png)
 
-A ResNet ImageNet teve macro-F1 médio 0,9421 sob ruído, 0,9138 sob JPEG e 0,9312 sob rotação, mas caiu para 0,6110 sob blur, 0,5999 sob alteração de cor e 0,5958 sob redução de resolução. A ResNet aleatória foi melhor que a pré-treinada em blur, 0,7538, e oclusão, 0,8897.
+ImageNet ResNet had a mean macro-F1 of 0.9421 under noise, 0.9138 under JPEG and 0.9312 under rotation, but dropped to 0.6110 under blur, 0.5999 under color shift and 0.5958 under resolution reduction. Random ResNet was better than the pretrained one under blur, 0.7538, and occlusion, 0.8897.
 
-A YOLO ImageNet foi forte em cor, 0,9252, oclusão, 0,9263, e rotação, 0,9401. A YOLO aleatória apresentou duas vantagens inesperadas sobre a pré-treinada: blur 0,8503 contra 0,6509 e baixa resolução 0,8370 contra 0,6353. Isso não compensa sua perda limpa, mas mostra que pré-treinamento e robustez dependem da transformação.
+ImageNet YOLO was strong under color shift, 0.9252, occlusion, 0.9263, and rotation, 0.9401. Random YOLO showed two unexpected advantages over the pretrained one: blur, 0.8503 versus 0.6509, and low resolution, 0.8370 versus 0.6353. This does not make up for its clean-test loss, but it shows that the relation between pretraining and robustness depends on the transformation.
 
-No desbalanceamento fixado, macro-F1 foi 0,4082 no PolyGabor, 0,5515 no PolyGabor com augmentation, 0,7247 na ResNet aleatória, 0,9044 na ResNet ImageNet, 0,7124 na YOLO aleatória e 0,9046 na YOLO ImageNet. Com 20% dos rótulos de treino corrompidos, os valores foram 0,8248, 0,8831, 0,8881, 0,8581 e 0,9369 para PolyGabor, ResNet aleatória, ResNet ImageNet, YOLO aleatória e YOLO ImageNet, respectivamente. Esses cenários adversos têm apenas seed 42 e uma severidade; servem como sondas, não estimativas populacionais.
+Under the fixed imbalance, macro-F1 was 0.4082 for PolyGabor, 0.5515 for PolyGabor with augmentation, 0.7247 for random ResNet, 0.9044 for ImageNet ResNet, 0.7124 for random YOLO and 0.9046 for ImageNet YOLO. With 20% of the training labels corrupted, the values were 0.8248, 0.8831, 0.8881, 0.8581 and 0.9369 for PolyGabor, random ResNet, ImageNet ResNet, random YOLO and ImageNet YOLO, respectively. These adverse scenarios have only seed 42 and one severity; they serve as probes, not population estimates.
 
-## Generalização por origem
+## Generalization by source
 
-Os códigos das dez origens foram recuperados dos nomes dos arquivos por SHA-256 dos pixels. Source_a testa origens 09/10; source_b testa 06/09; ambos validam em 08. O artigo descreve dez lâminas, mas identidade clínica de paciente não foi confirmada. Empty existe somente nas origens 06 e 10, e a validação 08 não contém adipose/empty; isso limita a seleção de checkpoint.
+The codes of the ten sources were recovered from the file names through SHA-256 of the pixels. Source_a tests sources 09/10; source_b tests 06/09; both validate on 08. The original article describes ten slides, but clinical patient identity was not confirmed. Empty exists only in sources 06 and 10, and validation 08 contains no adipose/empty; this limits checkpoint selection.
 
 | Pipeline | Macro-F1 source_a | G-mean source_a | Macro-F1 source_b | G-mean source_b |
 | --- | --- | --- | --- | --- |
-| PolyGabor | 0,7544 | 0,7501 | 0,5000 | 0,0000 |
-| PolyGabor + augmentation | 0,7330 | 0,7031 | 0,5692 | 0,6112 |
-| ResNet-18 aleatória | 0,5407 | 0,4063 | 0,3444 | 0,0000 |
-| ResNet-18 ImageNet | 0,4841 | 0,0000 | 0,6084 | 0,4619 |
-| YOLO11n aleatória | 0,5637 | 0,4467 | 0,5063 | 0,0000 |
-| YOLO11n ImageNet | 0,8295 | 0,8102 | 0,8191 | 0,8282 |
+| PolyGabor | 0.7544 | 0.7501 | 0.5000 | 0.0000 |
+| PolyGabor + augmentation | 0.7330 | 0.7031 | 0.5692 | 0.6112 |
+| ResNet-18 random | 0.5407 | 0.4063 | 0.3444 | 0.0000 |
+| ResNet-18 ImageNet | 0.4841 | 0.0000 | 0.6084 | 0.4619 |
+| YOLO11n random | 0.5637 | 0.4467 | 0.5063 | 0.0000 |
+| YOLO11n ImageNet | 0.8295 | 0.8102 | 0.8191 | 0.8282 |
 
-![Exemplos de treino e teste de source_b](source_shift_gallery.png)
+![Training and test examples from source_b](source_shift_gallery.png)
 
-Source_a tem 580 imagens de teste e source_b tem 1.403, com composições diferentes. A galeria mostra diferenças visuais e predições dos cinco pipelines principais. Esses splits são mais exigentes que o aleatório, mas não substituem uma base externa nem permitem atribuir toda diferença exclusivamente a paciente, scanner ou lâmina.
+Source_a has 580 test images and source_b has 1,403, with different compositions. The gallery shows visual differences and the predictions of the five main pipelines. These splits are more demanding than the random one, but they neither replace an external dataset nor allow attributing every difference exclusively to patient, scanner or slide.
 
-![Acertos e erros complementares](error_gallery.png)
+![Complementary hits and errors](error_gallery.png)
 
-A galeria de erros seleciona automaticamente os primeiros casos de todos acertarem, todos errarem e acerto/erro exclusivo de cada um dos cinco métodos principais. O CSV correspondente registra índice, classe real e todas as predições.
+The error gallery automatically selects the first cases in which all methods are correct, all are wrong, and each of the five main methods is the only one correct or the only one wrong. The corresponding CSV records index, true class and all predictions.
 
-## Explicabilidade
+## Explainability
 
-O PolyGabor expõe filtros, energia, features, distância por classe e votação de regiões. Essa ligação com a decisão é mais direta para auditoria computacional. Seus mapas densos usam distância local e podem destacar textura ou cor que não coincide com o mecanismo de classificação global.
+PolyGabor exposes filters, energy, features, per-class distance and region voting. This link to the decision is more direct for computational auditing. Its dense maps use local distance and may highlight texture or color that does not coincide with the global classification mechanism.
 
-A ResNet permite CAM exato porque termina em global average pooling e uma cabeça linear. A resolução nativa é 4×4 para entrada 128×128, de modo que a ampliação produz regiões largas e não localização celular. A pipeline agora gera e inspeciona CAM tanto para pesos aleatórios quanto ImageNet.
+ResNet allows exact CAM because it ends in global average pooling and a linear head. The native resolution is 4×4 for a 128×128 input, so upscaling produces broad regions, not cellular localization. The pipeline now generates and inspects CAM for both random and ImageNet weights.
 
-A YOLO usa explicação por oclusão 5×5: cada região é substituída pela cor média e mede-se a queda do escore. Alguns mapas têm valores negativos, indicando aumento do escore após ocultar a área, e alguns escores saturados produzem quase zero. Essa técnica foi executada para YOLO ImageNet e aleatória, mas não entrou no teste quantitativo de mosaicos porque não é diretamente equivalente ao CAM e ao mapa denso PolyGabor.
+YOLO uses a 5×5 occlusion explanation: each region is replaced by the mean color and the score drop is measured. Some maps have negative values, indicating that the score increased after hiding the area, and some saturated scores yield nearly zero. This technique was run for ImageNet and random YOLO, but it did not enter the quantitative mosaic test because it is not directly equivalent to CAM or to the PolyGabor dense map.
 
-Facilidade de inspecionar uma fórmula ou um mapa não demonstra fidelidade histopatológica. Não há máscaras internas de tumor nem avaliação clínica por especialista. As explicações devem ser lidas como comportamento computacional dos classificadores.
+Being able to inspect a formula or a map easily does not demonstrate histopathological fidelity. There are no internal tumor masks and no clinical evaluation by a specialist. The explanations should be read as computational behavior of the classifiers.
 
-## Localização quantitativa de tumor
+## Quantitative tumor localization
 
-![Métricas de localização](localization/localization_metrics.png)
+![Localization metrics](localization/localization_metrics.png)
 
-Foram usados 20 mosaicos de validação e 30 de teste, todos 4×4 com dois patches de tumor e quatorze não tumorais. Cada patch é explicado isoladamente na resolução normal do modelo e os mapas são remontados somente depois, sem campo receptivo nem interpolação atravessando bordas. A verdade é o rótulo conhecido de cada patch.
+20 validation and 30 test mosaics were used, all 4×4 with two tumor patches and fourteen non-tumor patches. Each patch is explained in isolation at the model's normal resolution and the maps are reassembled only afterwards, with no receptive field or interpolation crossing borders. The ground truth is the known label of each patch.
 
-O PolyGabor obteve AUROC de explicação por patch 0,8274/0,8233 e recall top-2 46,7%/45,0%. A ResNet aleatória obteve 0,9703/0,9860 e 78,3%/85,0%. A ResNet ImageNet chegou a 0,9980/0,9964 e 98,3%/96,7%. A configuração ImageNet também elevou o Dice da região fracamente anotada de 0,6804/0,7077 para 0,8473/0,8441.
+PolyGabor obtained a per-patch explanation AUROC of 0.8274/0.8233 and top-2 recall of 46.7%/45.0%. Random ResNet obtained 0.9703/0.9860 and 78.3%/85.0%. ImageNet ResNet reached 0.9980/0.9964 and 98.3%/96.7%. The ImageNet configuration also raised the weakly annotated region Dice from 0.6804/0.7077 to 0.8473/0.8441.
 
-O escore classificatório isolado foi melhor que o mapa explicativo em todos os métodos: AUROC 0,9638/0,9641 no PolyGabor, 0,9981/0,9984 na ResNet aleatória e 0,9997/0,9996 na ResNet ImageNet. A diferença mostra que acertar a classe de um patch não garante que a explicação espacial concentre evidência nele.
+The isolated classification score was better than the explanation map for every method: AUROC 0.9638/0.9641 for PolyGabor, 0.9981/0.9984 for random ResNet and 0.9997/0.9996 for ImageNet ResNet. The difference shows that getting a patch's class right does not guarantee that the spatial explanation concentrates evidence on it.
 
-![Classificação e explicação: PolyGabor versus ResNet aleatória](localization/localization_examples.png)
+![Classification and explanation: PolyGabor versus random ResNet](localization/localization_examples.png)
 
-A primeira coluna mostra o mosaico com todos os rótulos conhecidos e tumor em verde. Para cada modelo há duas colunas diferentes: “classificação” colore cada patch com seu escore de tumor e escreve o valor; “explicação” mostra o mapa espacial interno. Amarelo tracejado é o top-2 daquele painel, e ciano é o threshold explicativo escolhido somente na validação. Essa organização substitui a antiga segunda coluna redundante de máscara conhecida.
+The first column shows the mosaic with all known labels and tumor in green. For each model there are two different columns: "classification" colors each patch with its tumor score and writes the value; "explanation" shows the internal spatial map. Dashed yellow is that panel's top-2, and cyan is the explanation threshold chosen on validation only. This layout replaces the old, redundant second column with the known mask.
 
-![Efeito da configuração ImageNet no CAM](localization/localization_pretraining_examples.png)
+![Effect of the ImageNet configuration on CAM](localization/localization_pretraining_examples.png)
 
-A figura pareada mostra que as duas ResNets classificam os patches dos três exemplos muito bem, enquanto o CAM ImageNet concentra o top-2 nos tumores de forma mais consistente. Nas 30 colagens completas, o ganho de ImageNet sobre a ResNet aleatória no AUROC explicativo por mosaico teve intervalos bootstrap inteiramente acima de zero nas duas seeds; o recall top-2 aumentou 0,20 e 0,1167.
+The paired figure shows that both ResNets classify the patches of the three examples very well, while the ImageNet CAM concentrates the top-2 on the tumors more consistently. Over the 30 full mosaics, the gain of ImageNet over random ResNet in per-mosaic explanation AUROC had bootstrap intervals entirely above zero on both seeds; top-2 recall increased by 0.20 and 0.1167.
 
-As métricas em pixels são chamadas de região fracamente anotada porque todo o patch tumor é marcado positivo sem um contorno interno. Elas não medem segmentação tumoral real. O dataset local não contém `colorectal_histology_large`, por isso a extensão qualitativa nas dez imagens grandes não pôde ser executada.
+The pixel metrics are called weakly annotated region metrics because the whole tumor patch is marked positive without an internal contour. They do not measure real tumor segmentation. The local dataset does not contain `colorectal_histology_large`, so the qualitative extension on the ten large images could not be run.
 
-O PolyGabor levou cerca de 826,4/813,6 s para os 800 mapas e escores de cada seed em CPU. As ResNets levaram 5,3/2,1 s em GPU, tanto na inicialização aleatória quanto ImageNet. Esses tempos refletem as implementações e dispositivos atuais.
+PolyGabor took about 826.4/813.6 s for the 800 maps and scores of each seed on CPU. The ResNets took 5.3/2.1 s on GPU, with both random and ImageNet initialization. These times reflect the current implementations and devices.
 
-## Tempo, CPU, GPU e memória no treino
+## Training time, CPU, GPU and memory
 
-O equipamento foi Intel Core Ultra 9 185H, aproximadamente 32 GB de RAM e NVIDIA RTX 4070 Laptop de 8 GB. CPU-% usa 100% por núcleo; GPU-% é global do dispositivo e inclui o desktop; VRAM é consultada por PID.
+The hardware was an Intel Core Ultra 9 185H, approximately 32 GB of RAM and an 8 GB NVIDIA RTX 4070 Laptop GPU. CPU-% uses 100% per core; GPU-% is device-wide and includes the desktop; VRAM is queried per PID.
 
-Na seed 42 completa, o ajuste levou 141,38 s na ResNet aleatória, 208,72 s na ResNet ImageNet, 290,11 s na YOLO ImageNet e 240,82 s na YOLO aleatória. As médias totais entre seeds ficaram próximas dentro de cada arquitetura por causa de números diferentes de épocas: 173,85/174,76 s para as ResNets e 269,81/266,89 s para as YOLOs. O PolyGabor padrão treinou em média em 20,57 s; augmentation aumentou para 78,66 s.
+On full seed 42, fitting took 141.38 s for random ResNet, 208.72 s for ImageNet ResNet, 290.11 s for ImageNet YOLO and 240.82 s for random YOLO. The total means across seeds were close within each architecture because of different numbers of epochs: 173.85/174.76 s for the ResNets and 269.81/266.89 s for the YOLOs. Default PolyGabor trained in 20.57 s on average; augmentation increased this to 78.66 s.
 
-No processo completo, RAM pico média foi 1,232 GB no PolyGabor, 3,845 GB na ResNet aleatória, 4,264 GB na ResNet ImageNet, 3,480 GB na YOLO ImageNet e 3,471 GB na YOLO aleatória. VRAM média foi 0, 2,976 GB, 4,022 GB, 0,753 GB e 0,778 GB, respectivamente. O pico maior da ResNet ImageNet inclui importação e conversão do checkpoint Torchvision, treino, avaliação e figuras; ele não implica uma arquitetura maior.
+Over the whole process, the mean peak RAM was 1.232 GB for PolyGabor, 3.845 GB for random ResNet, 4.264 GB for ImageNet ResNet, 3.480 GB for ImageNet YOLO and 3.471 GB for random YOLO. Mean VRAM was 0, 2.976 GB, 4.022 GB, 0.753 GB and 0.778 GB, respectively. The higher peak of ImageNet ResNet includes importing and converting the Torchvision checkpoint, training, evaluation and figures; it does not imply a larger architecture.
 
-A ResNet usou aproximadamente 0,6–0,7 núcleo de CPU durante treino e 87–88% de GPU global. A YOLO usou aproximadamente 3,5 núcleos e 39–43% de GPU global. PolyGabor não executou CUDA; atividade global de GPU observada durante seu processo pertence ao restante do sistema. A amostragem de 200 ms pode perder picos curtos, e energia em joules não foi medida.
+ResNet used approximately 0.6–0.7 CPU cores during training and 87–88% device-wide GPU. YOLO used approximately 3.5 cores and 39–43% device-wide GPU. PolyGabor did not run CUDA; the device-wide GPU activity observed during its process belongs to the rest of the system. The 200 ms sampling can miss short peaks, and energy in joules was not measured.
 
-## Inferência e edge computing
+## Inference and edge computing
 
-![Inferência sob restrição de recursos](edge.png)
+![Inference under resource constraints](edge.png)
 
-`cpu1` restringe afinidade e bibliotecas a uma thread; `cpu4` usa quatro; `gpu` usa a RTX local. Cada benchmark abre processo novo, carrega o modelo e aquece antes de 100 latências batch 1. A partida fria inclui processo, imports, carga e primeira predição; imagens já estão em RAM.
+`cpu1` restricts affinity and libraries to one thread; `cpu4` uses four; `gpu` uses the local RTX. Each benchmark opens a fresh process, loads the model and warms up before 100 batch-1 latencies. Cold start includes process, imports, loading and first prediction; images are already in RAM.
 
-| Modelo, seed 42 | CPU1 mediana, ms | CPU4 mediana, ms | GPU mediana, ms | RAM pico CPU1, MB | Frio CPU1, s | Modelo, MB |
+| Model, seed 42 | CPU1 median, ms | CPU4 median, ms | GPU median, ms | CPU1 peak RAM, MB | CPU1 cold, s | Model, MB |
 | --- | --- | --- | --- | --- | --- | --- |
-| PolyGabor | 19,03 | 19,48 | — | 280,14 | 1,38 | 0,651 |
-| ResNet-18 aleatória | 20,19 | 8,20 | 2,48 | 939,35 | 3,64 | 45,009 |
-| ResNet-18 ImageNet | 20,73 | 9,55 | 3,08 | 945,87 | 4,00 | 45,012 |
-| YOLO11n aleatória | 3,60 | 2,89 | 2,65 | 853,29 | 3,30 | 3,204 |
-| YOLO11n ImageNet | 3,32 | 2,88 | 2,49 | 825,00 | 3,22 | 3,204 |
+| PolyGabor | 19.03 | 19.48 | — | 280.14 | 1.38 | 0.651 |
+| ResNet-18 random | 20.19 | 8.20 | 2.48 | 939.35 | 3.64 | 45.009 |
+| ResNet-18 ImageNet | 20.73 | 9.55 | 3.08 | 945.87 | 4.00 | 45.012 |
+| YOLO11n random | 3.60 | 2.89 | 2.65 | 853.29 | 3.30 | 3.204 |
+| YOLO11n ImageNet | 3.32 | 2.88 | 2.49 | 825.00 | 3.22 | 3.204 |
 
-A inicialização quase não mudou latência, RAM ou tamanho dentro da família. A YOLO foi cerca de seis vezes mais rápida que PolyGabor em CPU1 e ofereceu throughput CPU4 de 814 imagens/s com ImageNet e 888 com pesos aleatórios no batch 32. A ResNet alcançou 263/234 imagens/s em CPU4; PolyGabor, 50,5. Na GPU, YOLO ficou perto de 1.630 imagens/s em batch 32.
+Initialization barely changed latency, RAM or size within a family. YOLO was about six times faster than PolyGabor on CPU1 and offered CPU4 throughput at batch 32 of 814 images/s with ImageNet weights and 888 with random weights. ResNet reached 263/234 images/s on CPU4; PolyGabor, 50.5. On GPU, YOLO was close to 1,630 images/s at batch 32.
 
-As grades PolyGabor aumentaram custo: CPU1 27,56 ms com nove regiões e 34,12 ms com 25; CPU4 não ajudou e chegou a 42,99 ms com 25. Augmentation não altera a inferência e ficou em 17,55 ms no pacote treinado com uma região.
+The PolyGabor grids increased cost: CPU1 took 27.56 ms with nine regions and 34.12 ms with 25; CPU4 did not help and reached 42.99 ms with 25. Augmentation does not change inference and stayed at 17.55 ms for the package trained with one region.
 
-Vinte e um dos 22 benchmarks reproduziram 100% das classes salvas nas primeiras 100 imagens. A ResNet ImageNet em GPU reproduziu 99%; a divergência única era um quase empate original entre complex, 0,4186, e tumor, 0,4169. CPU1 e CPU4 reproduziram essa run integralmente. O artefato registra o caso em vez de tratar a execução entre dispositivos como bit a bit determinística.
+Twenty-one of the 22 benchmarks reproduced 100% of the saved classes on the first 100 images. ImageNet ResNet on GPU reproduced 99%; the single divergence was an original near tie between complex, 0.4186, and tumor, 0.4169. CPU1 and CPU4 reproduced that run entirely. The artifact records the case instead of treating cross-device execution as bitwise deterministic.
 
-A experiência simula restrição em x86; não emula ARM, Raspberry Pi, Jetson, limite de RAM, energia ou aquecimento prolongado. Treino edge não foi executado. PolyGabor é o candidato mais plausível para adaptação local sem GPU pelo menor custo de treino, mas a inferência YOLO é mais rápida nesta CPU. A decisão de implantação precisa ser repetida no dispositivo alvo.
+The experiment simulates constraints on x86; it does not emulate ARM, Raspberry Pi, Jetson, RAM limits, energy or prolonged heating. Edge training was not run. PolyGabor is the most plausible candidate for local adaptation without a GPU because of its lower training cost, but YOLO inference is faster on this CPU. The deployment decision needs to be repeated on the target device.
 
-## Usabilidade e equivalência dos programas
+## Usability and program equivalence
 
-O projeto [cnn](../../../cnn/README.md) oferece `dataset`, `train`, `evaluate`, `predict` e `info`, acompanhando a estrutura do PolyGabor. A CLI aceita `--weights auto`, `random`, `imagenet` ou caminho/configuração aplicável. ResNet ImageNet porta 20 convoluções e 20 conjuntos BatchNorm do checkpoint oficial Torchvision; a cabeça de oito classes é aleatória e todas as camadas são ajustadas. YOLO aleatória constrói `yolo11n-cls.yaml` e força `pretrained=False`.
+The [cnn](../../../cnn/README.md) project offers `dataset`, `train`, `evaluate`, `predict` and `info`, following the structure of PolyGabor. The CLI accepts `--weights auto`, `random`, `imagenet` or an applicable path/configuration. ImageNet ResNet ports 20 convolutions and 20 BatchNorm sets from the official Torchvision checkpoint; the eight-class head is random and all layers are fine-tuned. Random YOLO builds `yolo11n-cls.yaml` and forces `pretrained=False`.
 
-Os parâmetros compartilháveis mantêm nomes equivalentes; argumentos específicos são rejeitados quando não se aplicam. TensorFlow/Keras e Ultralytics continuam com pipelines próprios, então arquitetura, augmentations e otimizadores diferem. O ambiente isolado fixa versões de TensorFlow, PyTorch, Ultralytics e CUDA.
+The shareable parameters keep equivalent names; specific arguments are rejected when they do not apply. TensorFlow/Keras and Ultralytics keep their own pipelines, so architecture, augmentations and optimizers differ. The isolated environment pins the versions of TensorFlow, PyTorch, Ultralytics and CUDA.
 
-Oito smoke tests reais da CLI já existentes passaram, incluindo `info`, `predict` e `evaluate` das duas arquiteturas originais. A transferência das 20 convoluções/BatchNorm da ResNet e seu roundtrip ImageNet têm regressão direta; a YOLO aleatória foi verificada pelo registro `pretrained=False`, pelas 20 execuções da variante e pelo carregamento nos três modos edge.
+The eight existing real CLI smoke tests passed, including `info`, `predict` and `evaluate` for both original architectures. The transfer of the 20 ResNet convolutions/BatchNorm sets and its ImageNet roundtrip have a direct regression test; random YOLO was verified through the `pretrained=False` record, the 20 runs of the variant and loading in the three edge modes.
 
-## Integridade, recuperação e limites
+## Integrity, recovery and limits
 
-A mudança acidental da pasta interrompeu duas execuções YOLO antigas, label_noise e source_b. Elas foram preservadas em `runs/interrupted` e repetidas com sucesso. A auditoria final verificou rótulos, ordem, probabilidades, coerência de acurácia, arquivos obrigatórios e tamanho de modelo em 178 runs; todas passaram. Há duas falhas conhecidas do PolyGabor original em few1. Os 180 eventos de treino consumiram aproximadamente 4,45 horas de tempo de processo somado, sem contar pilotos, localização, edge e preparação.
+An accidental move of the folder interrupted two old YOLO runs, label_noise and source_b. They were preserved in `runs/interrupted` and repeated successfully. The final audit checked labels, order, probabilities, accuracy consistency, required files and model size in 178 runs; all passed. There are two known failures of the original PolyGabor in few1. The 180 training events consumed approximately 4.45 hours of summed process time, not counting pilots, localization, edge and preparation.
 
-A suíte final passou com 22 testes. Os 22 benchmarks aquecidos e os 22 processos frios terminaram com retorno zero. A [síntese de validação](validation_summary.json) registra integridade, testes, comandos CLI, retorno dos benchmarks e concordância de predição.
+The final suite passed with 22 tests. The 22 warm benchmarks and the 22 cold processes finished with return code zero. The [validation summary](validation_summary.json) records integrity, tests, CLI commands, benchmark return codes and prediction agreement.
 
-Os principais limites são duas seeds nos cenários principais, uma seed nos adversos e por origem, validação grande no few-shot, poucas origens, duas classes ausentes da validação agrupada, perturbações de severidade única, teto fixo de vetores PolyGabor, ausência de base externa e ausência de máscaras histopatológicas internas. O teste classifica recortes em oito classes; não demonstra diagnóstico de câncer por paciente.
+The main limits are two seeds in the main scenarios, one seed in the adverse and source-based ones, a large validation set in few-shot training, few sources, two classes absent from the grouped validation, single-severity perturbations, a fixed PolyGabor vector cap, no external dataset and no internal histopathological masks. The test classifies crops into eight classes; it does not demonstrate per-patient cancer diagnosis.

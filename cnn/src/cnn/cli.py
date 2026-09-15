@@ -116,7 +116,7 @@ def main(argv=None):
                     heat = (visualize.activation_map(clf, image) if clf.architecture == "resnet18"
                             else visualize.occlusion_map(clf, image))
                     figs.append(("02_explanation.png", visualize.plot_explanation(image, heat,
-                                 "CAM" if clf.architecture == "resnet18" else "Oclusão: queda do escore")))
+                                 "CAM" if clf.architecture == "resnet18" else "Occlusion: score drop")))
                     for name, fig in figs:
                         visualize.save_figure(fig, out / name)
                         if args.show:

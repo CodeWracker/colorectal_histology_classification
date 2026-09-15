@@ -1,8 +1,8 @@
-# Comparação de classificadores de histopatologia colorretal
+# Comparison of colorectal histopathology classifiers
 
-Campanha `2026-09-12`. Este arquivo é gerado dos artefatos salvos; a avaliação visual e a interpretação detalhada estão em [DISCUSSION.md](DISCUSSION.md). Há 280 runs registradas e 278 concluídas. Consultar `run_index.csv` para falhas e caminhos, `metrics.csv` para todas as métricas e `../../PROTOCOL.md` para o protocolo.
+Campaign `2026-09-12`. This file is generated from the saved artifacts; the visual assessment and detailed interpretation are in [DISCUSSION.md](DISCUSSION.md). There are 280 registered runs and 278 completed ones. See `run_index.csv` for failures and paths, `metrics.csv` for all metrics and `../../PROTOCOL.md` for the protocol.
 
-## Teste limpo após treinamento completo
+## Clean test after full training
 
 | method | seed | accuracy | macro_f1 | multiclass_gmean | balanced_accuracy | mcc | nll | ece |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -25,7 +25,7 @@ Campanha `2026-09-12`. Este arquivo é gerado dos artefatos salvos; a avaliaçã
 | yolo11n_random | 42 | 0.8600 | 0.8640 | 0.8563 | 0.8625 | 0.8406 | 0.3434 | 0.0323 |
 | yolo11n_random | 43 | 0.8580 | 0.8596 | 0.8500 | 0.8585 | 0.8377 | 0.3655 | 0.0549 |
 
-## Configuração ImageNet versus aleatória
+## ImageNet versus random configuration
 
 | family | scenario | seeds | macro_f1_random | macro_f1_imagenet | macro_f1_delta_imagenet_minus_random | gmean_random | gmean_imagenet | gmean_delta_imagenet_minus_random |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -54,9 +54,9 @@ Campanha `2026-09-12`. Este arquivo é gerado dos artefatos salvos; a avaliaçã
 | YOLO11n | source_a | 1 | 0.5637 | 0.8295 | 0.2658 | 0.4467 | 0.8102 | 0.3635 |
 | YOLO11n | source_b | 1 | 0.5063 | 0.8191 | 0.3127 | 0.0000 | 0.8282 | 0.8282 |
 
-Cada linha compara a mesma arquitetura e o mesmo cenário, pareando as seeds disponíveis. Delta positivo favorece a configuração ImageNet. Na ResNet, ela combina pesos ImageNet e a normalização de entrada correspondente; o contraste não isola somente os pesos. Na YOLO, arquitetura e política de treino são mantidas e a diferença pretendida é a origem dos pesos. As curvas e a localização mostram que o ganho médio não se conserva em toda mudança de origem.
+Each row compares the same architecture and scenario, pairing the available seeds. A positive delta favors the ImageNet configuration. For ResNet, it combines ImageNet weights with the matching input normalization; the contrast does not isolate the weights alone. For YOLO, architecture and training policy are kept and the intended difference is the origin of the weights. The curves and the localization show that the mean gain does not hold under every source shift.
 
-## Custo do treinamento completo
+## Full training cost
 
 | method | seed | n_train | originals_retained | fitted_vectors_or_images | epochs | train_seconds | model_mb | rss_peak_mb | vram_peak_mb |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -79,9 +79,9 @@ Cada linha compara a mesma arquitetura e o mesmo cenário, pareando as seeds dis
 | yolo11n_random | 42 | 4000 | 4000 | 4000 | 25 | 256.2982 | 3.2038 | 3471.2945 | 767.5576 |
 | yolo11n_random | 43 | 4000 | 4000 | 4000 | 27 | 277.4732 | 3.2039 | 3470.1435 | 788.5292 |
 
-MB usa 1.000.000 bytes. RAM e VRAM são picos do processo completo, incluindo avaliação e figuras; custos por etapa estão em [stage_resources.csv](stage_resources.csv) e em resources.json/timings.json de cada run. GPU-% é global do dispositivo, incluindo o desktop. CPU-% usa 100% por núcleo. O PolyGabor padrão extrai 4000 vetores, mas ajusta no máximo 2800. Nas variantes, 9/25 patches e augmentation ampliam os vetores candidatos mantendo o teto de 350 por classe; originals_retained informa quantas imagens originais distintas chegam ao ajuste. effective_training.json detalha os valores por classe. Isso altera simultaneamente escala espacial e diversidade retida, devendo ser considerado na interpretação das ablações.
+MB uses 1,000,000 bytes. RAM and VRAM are peaks of the whole process, including evaluation and figures; per-stage costs are in [stage_resources.csv](stage_resources.csv) and in each run's resources.json/timings.json. GPU-% is device-wide, including the desktop. CPU-% uses 100% per core. Default PolyGabor extracts 4000 vectors but fits at most 2800. In the variants, 9/25 patches and augmentation enlarge the candidate vectors while keeping the cap of 350 per class; originals_retained reports how many distinct original images reach the fit. effective_training.json details the per-class values. This changes spatial scale and retained diversity at the same time, which must be considered when interpreting the ablations.
 
-## Uso de CPU e GPU durante ajuste
+## CPU and GPU usage during fitting
 
 | method | seed | training_cpu_core_percent | fit_cpu_core_percent | fit_gpu_global_percent | vram_peak_mb |
 | --- | --- | --- | --- | --- | --- |
@@ -104,21 +104,21 @@ MB usa 1.000.000 bytes. RAM e VRAM são picos do processo completo, incluindo av
 | yolo11n_random | 42 | 348.6797 | 364.9806 | 38.7645 | 767.5576 |
 | yolo11n_random | 43 | 349.9257 | 364.7859 | 38.5412 | 788.5292 |
 
-training_cpu_core_percent usa CPU-segundos divididos pelo tempo total das etapas de treino; 100% corresponde a um núcleo ocupado. fit_cpu_core_percent é a média amostrada somente no ajuste. GPU-% é utilização global do dispositivo, não exclusiva do processo: atividade do desktop aparece mesmo durante PolyGabor. A VRAM por PID é medida separadamente; PolyGabor não executa operações na GPU.
+training_cpu_core_percent uses CPU-seconds divided by the total time of the training stages; 100% corresponds to one busy core. fit_cpu_core_percent is the mean sampled during fitting only. GPU-% is device-wide utilization, not exclusive to the process: desktop activity shows up even during PolyGabor. Per-PID VRAM is measured separately; PolyGabor runs no GPU operations.
 
-## Curva de aprendizagem
+## Learning curve
 
-![Macro-F1 versus quantidade de exemplos](learning_curve.png)
+![Macro-F1 versus number of examples](learning_curve.png)
 
-![G-mean versus quantidade de exemplos](learning_curve_gmean.png)
+![G-mean versus number of examples](learning_curve_gmean.png)
 
-[Diferenças de interpretação entre G-mean e macro-F1](../../GMEAN_VS_MACRO_F1.md). A quantidade no eixo X sempre conta imagens originais, sem inflar o orçamento com augmentations ou patches.
+[Interpretation differences between G-mean and macro-F1](../../GMEAN_VS_MACRO_F1.md). The x-axis always counts original images, without inflating the budget with augmentations or patches.
 
-A faixa representa mínimo e máximo entre duas seeds, quando disponíveis; não é intervalo de confiança. O ponto ~500 tem 488–513 exemplos disponíveis por classe, com limite efetivo de 350 vetores/classe no PolyGabor padrão. Ausência de ponto por falha de ajuste não equivale a F1 zero. A validação permanece com 500 exemplos rotulados mesmo nos cenários de pouquíssimos exemplos de treino; esta é uma curva de escassez de treino, não de orçamento total de anotação.
+The band shows the minimum and maximum across two seeds, when available; it is not a confidence interval. The ~500 point has 488–513 available examples per class, with an effective cap of 350 vectors/class in default PolyGabor. A point missing because of a fitting failure is not equivalent to zero F1. Validation keeps 500 labeled examples even in the scenarios with very few training examples; this is a training-scarcity curve, not a total annotation budget curve.
 
-## Robustez no teste
+## Test robustness
 
-![Robustez](robustness.png)
+![Robustness](robustness.png)
 
 | evaluation | polygarbor | polygarbor_aug | polygarbor_p3 | polygarbor_p3_aug | polygarbor_p5 | resnet18 | resnet18_imagenet | yolo11n | yolo11n_random |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -132,9 +132,9 @@ A faixa representa mínimo e máximo entre duas seeds, quando disponíveis; não
 | test_resolution | 0.4291 | 0.4489 | 0.3939 | 0.4436 | 0.3772 | 0.6375 | 0.5958 | 0.6353 | 0.8370 |
 | test_rotation | 0.6335 | 0.6383 | 0.4480 | 0.5198 | 0.4052 | 0.9003 | 0.9312 | 0.9401 | 0.8641 |
 
-As perturbações têm severidade fixa, pares de pixels idênticos entre modelos e não representam bases externas nem novos pacientes. A avaliação adicional source_a/source_b testa origens separadas, sem misturá-la a estas perturbações. Ver parâmetros em scenarios.py.
+The perturbations have fixed severity and identical pixel pairs across models, and do not represent external datasets or new patients. The additional source_a/source_b evaluation tests separate sources and is not mixed with these perturbations. See the parameters in scenarios.py.
 
-## Agregação espacial PolyGabor
+## PolyGabor spatial aggregation
 
 | method | scenario | seed | voting_macro_f1 | ranking_macro_f1 | voting_gmean | ranking_gmean | agreement |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -149,9 +149,9 @@ As perturbações têm severidade fixa, pares de pixels idênticos entre modelos
 | polygarbor_p5 | full | 42 | 0.4090 | 0.3871 | 0.0000 | 0.0000 | 0.8440 |
 | polygarbor_p5 | full | 43 | 0.4449 | 0.4692 | 0.0000 | 0.0000 | 0.8220 |
 
-Comparação adicional sem retreino: a decisão principal usa votação entre regiões; ranking usa argmax da similaridade normalizada das distâncias médias. As curvas principais mantêm a votação fixada no protocolo. Esta análise mostra se a divergência entre regiões explica parte do resultado; não foi usada para escolher retrospectivamente a melhor regra no teste.
+Additional comparison without retraining: the main decision uses voting across regions; ranking uses the argmax of the normalized similarity of the mean distances. The main curves keep the voting fixed in the protocol. This analysis shows whether disagreement between regions explains part of the result; it was not used to retrospectively choose the best rule on the test set.
 
-## Comparações pareadas
+## Paired comparisons
 
 | a | b | seed | accuracy_b_minus_a | ci_low | ci_high | source_cluster_ci_low | source_cluster_ci_high | only_a | only_b | mcnemar_exact_p | holm_p |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -228,9 +228,9 @@ Comparação adicional sem retreino: a decisão principal usa votação entre re
 | resnet18_imagenet | yolo11n_random | 43 | -0.0820 | -0.1120 | -0.0540 | -0.1034 | -0.0596 | 49 | 8 | 0.0000 | 0.0000 |
 | yolo11n | yolo11n_random | 43 | -0.0800 | -0.1100 | -0.0520 | -0.1094 | -0.0548 | 51 | 11 | 0.0000 | 0.0000 |
 
-Diferença = acurácia de B menos A. Bootstrap pareado de 5000 reamostragens de recortes; McNemar exato e ajuste de Holm entre pares/seeds mostrados. Também é apresentado bootstrap pareado por dez grupos de origem, reamostrando todos os recortes de cada origem em conjunto. Esse intervalo considera dependência por origem e deve ter preferência sobre o de recortes. McNemar e seu ajuste de Holm continuam exploratórios porque a independência entre recortes não é garantida. Nenhuma dessas análises demonstra generalização clínica.
+Difference = accuracy of B minus A. Paired bootstrap with 5000 crop resamples; exact McNemar and Holm adjustment across the pairs/seeds shown. A paired bootstrap over ten source groups is also reported, resampling all crops of each source together. This interval accounts for dependence within a source and should be preferred over the crop-level one. McNemar and its Holm adjustment remain exploratory because independence between crops is not guaranteed. None of these analyses demonstrates clinical generalization.
 
-## Calibração
+## Calibration
 
 | method | seed | temperature | nll | brier | ece | accuracy |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -253,9 +253,9 @@ Diferença = acurácia de B menos A. Bootstrap pareado de 5000 reamostragens de 
 | yolo11n_random | 42 | 0.9356 | 0.3404 | 0.1902 | 0.0290 | 0.8600 |
 | yolo11n_random | 43 | 0.8695 | 0.3598 | 0.1983 | 0.0389 | 0.8580 |
 
-Temperatura ajustada exclusivamente na validação para cada run e aplicada ao teste sem mudar a classe vencedora. Os escores originais são softmax CNN e similaridade heurística normalizada PolyGabor; a fração de votos PolyGabor não é utilizada como probabilidade. AUROC/top-2 medem ranking; NLL/Brier/ECE precisam dessa ressalva. Consulte metrics.csv para os valores anteriores à calibração.
+Temperature fitted exclusively on validation for each run and applied to the test set without changing the winning class. The original scores are CNN softmax and PolyGabor normalized heuristic similarity; the PolyGabor vote fraction is not used as a probability. AUROC/top-2 measure ranking; NLL/Brier/ECE need this caveat. See metrics.csv for the values before calibration.
 
-## Edge e inferência
+## Edge and inference
 
 | method | mode | median_ms | p95_ms | model_mb | rss_peak_mb | vram_peak_mb | load_seconds | first_prediction_seconds | cold_total_seconds | batch32_images_s |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -282,9 +282,9 @@ Temperatura ajustada exclusivamente na validação para cada run e aplicada ao t
 | yolo11n_random | cpu4 | 2.8881 | 3.6556 | 3.2038 | 818.0040 | 0.0000 | 2.4361 | 0.0439 | 3.2627 | 888.2204 |
 | yolo11n_random | gpu | 2.6548 | 3.8473 | 3.2038 | 1528.7910 | 251.6582 | 2.4142 | 0.5726 | 3.8944 | 1623.8501 |
 
-cpu1 restringe afinidade a um processador lógico e bibliotecas a uma thread; cpu4 usa quatro threads; gpu usa a RTX local. Cada medição carrega novamente o modelo em processo separado e aquece antes da latência. As imagens já estão em RAM: a latência inclui pré-processamento e execução, mas exclui leitura de arquivo e visualizações. Não há emulação de ARM nem limite artificial de RAM. O processo serve como aproximação de restrição computacional em x86, não como benchmark de dispositivo edge real.
+cpu1 restricts affinity to one logical processor and libraries to one thread; cpu4 uses four threads; gpu uses the local RTX. Each measurement reloads the model in a separate process and warms up before measuring latency. Images are already in RAM: latency includes preprocessing and execution but excludes file reading and visualizations. There is no ARM emulation and no artificial RAM limit. The process approximates a computational constraint on x86; it is not a benchmark on a real edge device.
 
-## Generalização por origem
+## Generalization by source
 
 | method | scenario | n_train | accuracy | macro_f1 | multiclass_gmean | balanced_accuracy |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -307,13 +307,13 @@ cpu1 restringe afinidade a um processador lógico e bibliotecas a uma thread; cp
 | yolo11n | source_b | 3208 | 0.8831 | 0.8191 | 0.8282 | 0.8476 |
 | yolo11n_random | source_b | 3208 | 0.4298 | 0.5063 | 0.0000 | 0.6246 |
 
-As origens foram recuperadas dos nomes por SHA-256 dos pixels. source_a testa 09/10 e source_b testa 06/09; validação em 08, com demais origens no treino. A classe empty só existe em 06/10, impossibilitando sua presença simultânea em três splits disjuntos. A validação 08 não contém adipose/empty; treino e teste preservam oito classes. Os testes têm tamanhos/composições diferentes do teste aleatório, logo diferenças não isolam somente efeito de origem. A identidade de paciente por código não foi confirmada. A análise principal por origem passou a ser leave-one-source-out, em [loso/README.md](loso/README.md); source_a/source_b ficam como registro histórico.
+Sources were recovered from the file names through SHA-256 of the pixels. source_a tests 09/10 and source_b tests 06/09; validation on 08, with the remaining sources in training. The empty class exists only in 06/10, which makes its presence in three disjoint splits at once impossible. Validation 08 contains no adipose/empty; training and test keep eight classes. The test sets differ in size/composition from the random test, so differences do not isolate the effect of source alone. Patient identity by code was not confirmed. The main source analysis is now leave-one-source-out, in [loso/README.md](loso/README.md); source_a/source_b are kept as a historical record.
 
-## Localização quantitativa
+## Quantitative localization
 
-![Identificação dos patches de tumor](localization/localization_metrics.png)
+![Tumor patch identification](localization/localization_metrics.png)
 
-| método | seed | AUROC explicação | AP explicação | recall top-2 | ambos no top-2 | AUROC classificador |
+| method | seed | explanation AUROC | explanation AP | top-2 recall | both in top-2 | classifier AUROC |
 | --- | --- | --- | --- | --- | --- | --- |
 | polygarbor | 42 | 0.8274 | 0.3640 | 0.4667 | 0.1667 | 0.9638 |
 | polygarbor | 43 | 0.8233 | 0.3543 | 0.4500 | 0.1667 | 0.9641 |
@@ -322,14 +322,14 @@ As origens foram recuperadas dos nomes por SHA-256 dos pixels. source_a testa 09
 | resnet18_imagenet | 42 | 0.9980 | 0.9868 | 0.9833 | 0.9667 | 0.9997 |
 | resnet18_imagenet | 43 | 0.9964 | 0.9806 | 0.9667 | 0.9333 | 0.9996 |
 
-![Efeito da inicialização no CAM](localization/localization_pretraining_examples.png)
+![Effect of initialization on CAM](localization/localization_pretraining_examples.png)
 
-Cada mosaico 4×4 contém dois patches de tumor e quatorze das demais classes, sem repetição dentro do split. Os mapas são calculados em cada patch isolado e remontados sem mistura entre vizinhos. A avaliação primária compara a evidência explicativa com os rótulos conhecidos por patch; métricas de região em pixels são secundárias porque não há anotação interna. Protocolo, exemplos e limitações estão no [relatório de localização](localization/README.md).
+Each 4×4 mosaic contains two tumor patches and fourteen patches from the other classes, with no repetition within the split. Maps are computed on each isolated patch and reassembled without mixing between neighbors. The primary evaluation compares the explanatory evidence with the known per-patch labels; pixel-level region metrics are secondary because there is no internal annotation. Protocol, examples and limitations are in the [localization report](localization/README.md).
 
-## Artefatos e limites
+## Artifacts and limits
 
-Os splits são os originais do TFDS (4000/500/500) com ordem determinística, hashes auditáveis e nenhuma duplicata exata entre splits. O carregamento supervisionado expõe imagem/rótulo. A auditoria recuperou dez origens dos filenames e acrescentou splits source_a/source_b com origens separadas, descritos em source_manifest.json. Não há identificação clínica de paciente nem teste em base externa. ResNet-18 e YOLO11n foram executadas com inicialização aleatória e ImageNet; a política de augmentations e o otimizador continuam próprios de cada pipeline.
+The splits are the original TFDS ones (4000/500/500) with deterministic order, auditable hashes and no exact duplicates across splits. Supervised loading exposes image/label. The audit recovered ten sources from the filenames and added source_a/source_b splits with separate sources, described in source_manifest.json. There is no clinical patient identification and no test on an external dataset. ResNet-18 and YOLO11n were run with random and ImageNet initialization; the augmentation policy and optimizer remain specific to each pipeline.
 
-Cada run tem config.json, selection.json, status.json, run.log, timings.json, resources.csv/json, modelo, métricas/predições por imagem e figuras. Histórico e épocas são salvos para CNN. Pilotos ficam em campanhas distintas e não entram nas tabelas. Modelos e dados grandes permanecem no disco, ignorados pelo Git.
+Each run has config.json, selection.json, status.json, run.log, timings.json, resources.csv/json, the model, per-image metrics/predictions and figures. History and epochs are saved for the CNNs. Pilots live in separate campaigns and do not enter the tables. Large models and data remain on disk, ignored by Git.
 
-Fontes: [dataset TFDS](https://www.tensorflow.org/datasets/catalog/colorectal_histology), [dados originais](https://zenodo.org/records/53169), [Ultralytics classificação](https://docs.ultralytics.com/tasks/classify/), [referência de mapas de ativação](https://keras.io/examples/vision/grad_cam/).
+Sources: [TFDS dataset](https://www.tensorflow.org/datasets/catalog/colorectal_histology), [original data](https://zenodo.org/records/53169), [Ultralytics classification](https://docs.ultralytics.com/tasks/classify/), [activation map reference](https://keras.io/examples/vision/grad_cam/).

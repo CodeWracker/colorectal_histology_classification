@@ -35,10 +35,10 @@ def main():
     if len(methods) < 2:
         return
     correct = np.stack([predictions[m] == y for m in methods])
-    groups = [("todos acertam", correct.all(0)), ("todos erram", (~correct).all(0))]
+    groups = [("all correct", correct.all(0)), ("all wrong", (~correct).all(0))]
     for i, method in enumerate(methods):
-        groups += [(f"só {method} acerta", correct[i] & (correct.sum(0) == 1)),
-                   (f"só {method} erra", ~correct[i] & (correct.sum(0) == len(methods) - 1))]
+        groups += [(f"only {method} correct", correct[i] & (correct.sum(0) == 1)),
+                   (f"only {method} wrong", ~correct[i] & (correct.sum(0) == len(methods) - 1))]
     chosen, seen = [], set()
     for title, mask in groups:
         for i in np.flatnonzero(mask)[:2]:
@@ -49,7 +49,7 @@ def main():
     records = []
     for ax, (title, i) in zip(axes.ravel(), chosen):
         ax.imshow(images[i])
-        ax.set_title(f"#{i} real: {names[y[i]]}\n{title}", fontsize=9)
+        ax.set_title(f"#{i} true: {names[y[i]]}\n{title}", fontsize=9)
         ax.set_xlabel("\n".join(f"{m}: {names[predictions[m][i]]}" for m in methods), fontsize=8)
         ax.set_xticks([])
         ax.set_yticks([])
@@ -77,7 +77,7 @@ def main():
         ax.set_xlabel("\n".join(lines), fontsize=8)
         ax.set_xticks([])
         ax.set_yticks([])
-    fig.suptitle(f"Mesmo exemplo #{i}, classe real {names[y[i]]}")
+    fig.suptitle(f"Same example #{i}, true class {names[y[i]]}")
     fig.savefig(out / "corruption_gallery.png", dpi=150)
     plt.close(fig)
 
@@ -100,12 +100,12 @@ def main():
                 global_i = source_manifest["scenarios"]["source_b"][split]["indices_global"][int(i)]
                 origin = source_manifest["rows"][global_i]["source"]
                 ax.imshow(x[i])
-                ax.set_title(f"{split}: {names[label]} / origem {origin}", fontsize=9)
+                ax.set_title(f"{split}: {names[label]} / source {origin}", fontsize=9)
                 if split == "test":
                     ax.set_xlabel("\n".join(f"{m}: {names[v[i]]}" for m, v in grouped_predictions.items()), fontsize=8)
                 ax.set_xticks([])
                 ax.set_yticks([])
-    fig.suptitle("source_b: exemplos de treino e teste com origens separadas")
+    fig.suptitle("source_b: training and test examples from separate sources")
     fig.savefig(out / "source_shift_gallery.png", dpi=150)
     plt.close(fig)
 

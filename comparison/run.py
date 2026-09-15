@@ -176,7 +176,7 @@ def main():
                         np.save(folder / "heatmap.npy", heat)
                         figs = [("decision.png", visualize.plot_prediction_summary(image, decision, names, true_label=c)),
                                 ("explanation.png", visualize.plot_explanation(image, heat,
-                                 "CAM" if args.method.startswith("resnet18") else "Oclusão: queda do escore"))]
+                                 "CAM" if args.method.startswith("resnet18") else "Occlusion: score drop"))]
                     for filename, fig in figs:
                         visualize.save_figure(fig, folder / filename)
                         plt.close(fig)

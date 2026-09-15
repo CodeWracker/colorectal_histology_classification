@@ -14,8 +14,8 @@ from report import COLORS, markdown_table, read
 
 ROOT = Path(__file__).resolve().parent
 METHODS = ("polygarbor", "resnet18", "resnet18_imagenet", "yolo11n_random", "yolo11n")
-LABELS = {"polygarbor": "PolyGabor", "resnet18": "ResNet-18 · aleatória", "resnet18_imagenet": "ResNet-18 · ImageNet",
-          "yolo11n_random": "YOLO11n · aleatória", "yolo11n": "YOLO11n · ImageNet"}
+LABELS = {"polygarbor": "PolyGabor", "resnet18": "ResNet-18 · random", "resnet18_imagenet": "ResNet-18 · ImageNet",
+          "yolo11n_random": "YOLO11n · random", "yolo11n": "YOLO11n · ImageNet"}
 DRAWS = 5000
 
 
@@ -150,18 +150,18 @@ def main():
                     ax.scatter(reference.mean(), row, marker="o", s=70, facecolor="none", edgecolor="#555555", linewidth=1.4, zorder=3)
         ax.set_yticks(range(len(methods)), labels=[LABELS[m] for m in methods])
         ax.invert_yaxis()
-        ax.set(xlim=(0, 1.05), xlabel="Macro-F1 (por fold: somente classes presentes na origem testada)",
-               title="Desempenho em origens nunca vistas no treino")
+        ax.set(xlim=(0, 1.05), xlabel="Macro-F1 (per fold: only classes present in the held-out source)",
+               title="Performance on sources never seen in training")
         ax.grid(axis="x", alpha=.2)
         for side in ("top", "right"):
             ax.spines[side].set_visible(False)
         from matplotlib.lines import Line2D
         neutral = "#7a7a7a"
-        ax.legend(handles=[Line2D([], [], marker="o", linestyle="", color=neutral, alpha=.55, label="Fold (origem testada)"),
-                           Line2D([], [], marker="D", linestyle="", color=neutral, label="Predições dos 10 folds concatenadas"),
-                           Line2D([], [], marker="o", linestyle="", markerfacecolor="none", markeredgecolor="#555555", label="Split aleatório original")],
+        ax.legend(handles=[Line2D([], [], marker="o", linestyle="", color=neutral, alpha=.55, label="Fold (held-out source)"),
+                           Line2D([], [], marker="D", linestyle="", color=neutral, label="Pooled predictions of the 10 folds"),
+                           Line2D([], [], marker="o", linestyle="", markerfacecolor="none", markeredgecolor="#555555", label="Original random split")],
                   fontsize=8, loc="lower left", frameon=False)
-        fig.text(.5, .01, "Pontos: média das seeds em cada uma das dez origens. Losango: macro-F1 das 5.000 predições concatenadas.", ha="center", fontsize=8)
+        fig.text(.5, .01, "Dots: mean of the seeds for each of the ten sources. Diamond: macro-F1 of the 5,000 pooled predictions.", ha="center", fontsize=8)
         fig.tight_layout(rect=(0, .04, 1, 1))
         fig.savefig(out / "loso_macro_f1.png", dpi=180)
         plt.close(fig)
@@ -175,7 +175,7 @@ def main():
                 ax.text(j, i, f"{value:.2f}", ha="center", va="center", fontsize=9, color="white" if value > .6 else "#1f1f1f")
         ax.set_xticks(range(len(names)), labels=names)
         ax.set_yticks(range(len(matrix)), labels=[LABELS[m] for m in matrix.index])
-        ax.set_title("Recall por classe nas predições concatenadas (média das seeds)")
+        ax.set_title("Per-class recall on the pooled predictions (mean of the seeds)")
         ax.tick_params(length=0)
         for spine in ax.spines.values():
             spine.set_visible(False)
@@ -196,24 +196,24 @@ def main():
     fold_table = (fold_frame.groupby(["test_source", "method"]).macro_f1_present.mean().unstack("method")
                   .reindex(columns=[m for m in METHODS if m in set(fold_frame.method)]).reset_index()) if not fold_frame.empty else fold_frame
     expected = len(folds) * len(METHODS)
-    status_line = f"Foram encontradas {len(fold_frame)} execuções LOSO concluídas; {len(complete)} combinações método/seed têm os dez folds."
-    sections = ["# Generalização entre origens (leave-one-source-out)", "",
-        f"Campanha `{args.campaign}`. Arquivo gerado por `comparison/loso_report.py` a partir das predições salvas. {status_line} Cada seed completa tem {expected} execuções.", "",
-        "As 5.000 imagens pertencem a dez códigos de origem `CRC-Prim-HE-01` a `CRC-Prim-HE-10`, recuperados por SHA-256 dos pixels em `source_manifest.json`. Cada fold reserva uma origem inteira para teste. A validação usa 10% de cada classe das nove origens restantes, e o treino usa o resto. Os índices foram fixados em `loso_manifest.json` antes de qualquer treino e são idênticos para todos os métodos e seeds. Hiperparâmetros, critérios de parada e teto de 350 vetores/classe do PolyGabor são os da campanha principal.", "",
-        "Métrica primária: macro-F1 sobre as 5.000 predições concatenadas dos dez folds. Cada recorte é predito exatamente uma vez, por um modelo que não viu nenhum recorte da sua origem. O macro-F1 por fold considera apenas as classes presentes na origem testada, pois a maioria das origens não contém as oito classes.", "",
+    status_line = f"{len(fold_frame)} completed LOSO runs were found; {len(complete)} method/seed combinations have all ten folds."
+    sections = ["# Cross-source generalization (leave-one-source-out)", "",
+        f"Campaign `{args.campaign}`. File generated by `comparison/loso_report.py` from the saved predictions. {status_line} Each complete seed has {expected} runs.", "",
+        "The 5,000 images belong to ten source codes, `CRC-Prim-HE-01` to `CRC-Prim-HE-10`, recovered through SHA-256 of the pixels in `source_manifest.json`. Each fold holds out one entire source for testing. Validation uses 10% of each class from the remaining nine sources, and training uses the rest. The indices were fixed in `loso_manifest.json` before any training and are identical for all methods and seeds. Hyperparameters, stopping criteria and the PolyGabor cap of 350 vectors/class are those of the main campaign.", "",
+        "Primary metric: macro-F1 over the 5,000 pooled predictions of the ten folds. Each crop is predicted exactly once, by a model that saw no crop from its source. Per-fold macro-F1 considers only the classes present in the held-out source, since most sources do not contain all eight classes.", "",
         "## Folds", "", markdown_table(split_frame), "",
-        "A classe `empty` existe somente nas origens 06 (590 recortes) e 10 (35). Quando 06 é testada, o treino tem apenas os exemplos de `empty` da origem 10, menos os reservados para validação. Por isso também é apresentado o macro-F1 sem os recortes `empty` verdadeiros.", "",
-        "## Resultado agregado", "", "![Macro-F1 por fold](loso_macro_f1.png)", "", markdown_table(summary), "",
-        "`macro_f1_min`/`macro_f1_max` são os extremos entre seeds, não intervalo de confiança. `random_split_macro_f1` é o teste limpo do split aleatório original com as mesmas seeds; a queda estima quanto do desempenho original dependia de ver recortes das mesmas origens no treino.", "",
-        "## Recall por classe", "", "![Recall por classe](loso_recall_per_class.png)", "",
+        "The `empty` class exists only in sources 06 (590 crops) and 10 (35). When 06 is tested, training has only the `empty` examples from source 10, minus those held out for validation. For this reason the macro-F1 without the true `empty` crops is also reported.", "",
+        "## Pooled result", "", "![Macro-F1 per fold](loso_macro_f1.png)", "", markdown_table(summary), "",
+        "`macro_f1_min`/`macro_f1_max` are the extremes across seeds, not a confidence interval. `random_split_macro_f1` is the clean test of the original random split with the same seeds; the drop estimates how much of the original performance depended on seeing crops from the same sources in training.", "",
+        "## Per-class recall", "", "![Per-class recall](loso_recall_per_class.png)", "",
         markdown_table(recall_frame.groupby("method")[names].mean().reindex([m for m in METHODS if m in set(recall_frame.method)]).reset_index()
                        if not recall_frame.empty else recall_frame), "",
-        "## Macro-F1 por origem testada", "", markdown_table(fold_table), "",
+        "## Macro-F1 per held-out source", "", markdown_table(fold_table), "",
         "## PolyGabor versus CNNs", "", markdown_table(paired_frame), "",
-        "Diferença = macro-F1 concatenado de B menos PolyGabor. O intervalo reamostra as dez origens com reposição (5.000 sorteios), mantendo juntos todos os recortes de cada origem; com dez grupos ele é aproximado. As colunas de folds contam em quantas origens cada método teve maior macro-F1 nas classes presentes.", "",
-        "## Limites", "",
-        "Os dados vêm de dez imagens de um único instituto e de um único scanner. Os códigos de origem não são confirmados como pacientes distintos pelos metadados. O resultado mede generalização entre imagens desse acervo, não validação externa nem separação comprovada por paciente. A validação vem das mesmas origens do treino; o teste permanece disjunto por origem.", "",
-        "Estes folds substituem `source_a` e `source_b` como análise de origem. Aqueles cenários usavam duas partições escolhidas manualmente com uma seed, validação sem `adipose` e `empty`, e em `source_b` 42% do teste era `empty` com 35 exemplos dessa classe no treino. Eles permanecem nos artefatos apenas como registro histórico.", ""]
+        "Difference = pooled macro-F1 of B minus PolyGabor. The interval resamples the ten sources with replacement (5,000 draws), keeping all crops of each source together; with ten groups it is approximate. The fold columns count in how many sources each method had the higher macro-F1 on the present classes.", "",
+        "## Limits", "",
+        "The data come from ten images from a single institute and a single scanner. The metadata do not confirm the source codes as distinct patients. The result measures generalization across images of this collection, not external validation or proven patient-level separation. Validation comes from the same sources as training; the test remains source-disjoint.", "",
+        "These folds replace `source_a` and `source_b` as the source analysis. Those scenarios used two manually chosen partitions with one seed, validation without `adipose` and `empty`, and in `source_b` 42% of the test set was `empty`, with 35 examples of that class in training. They remain in the artifacts only as a historical record.", ""]
     (out / "README.md").write_text("\n".join(sections))
     print(f"Wrote {out}; {len(fold_frame)} fold runs, {len(complete)} complete method/seed pairs")
 

@@ -39,7 +39,7 @@
       "opencv_maps_fit_sram": false,
       "streaming_working_set_fits_sram": true,
       "training_on_device": false,
-      "assessment": "plausível somente após porte C/C++, quantização e extração em fluxo"
+      "assessment": "plausible only after a C/C++ port, quantization and streaming extraction"
     },
     {
       "target": "Arduino Uno R3",
@@ -58,7 +58,7 @@
       "opencv_maps_fit_sram": false,
       "streaming_working_set_fits_sram": false,
       "training_on_device": false,
-      "assessment": "inviável para o método atual, mesmo na estimativa quantizada"
+      "assessment": "not feasible for the current method, even with the quantized estimate"
     },
     {
       "target": "PIC16F877A",
@@ -77,7 +77,7 @@
       "opencv_maps_fit_sram": false,
       "streaming_working_set_fits_sram": false,
       "training_on_device": false,
-      "assessment": "inviável para o método atual, mesmo na estimativa quantizada"
+      "assessment": "not feasible for the current method, even with the quantized estimate"
     }
   ],
   "assumptions": [

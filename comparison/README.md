@@ -1,42 +1,42 @@
-# Experimentos reproduzíveis
+# Reproducible experiments
 
-A implementação está em `../cnn`, e o método original permanece em `../polygarbor`. O [protocolo](PROTOCOL.md) registra as decisões antes dos experimentos. Comece pela [discussão e avaliação visual](results/2026-09-12/DISCUSSION.md). Os resultados consolidados ficam em [results/2026-09-12/REPORT.md](results/2026-09-12/REPORT.md); cada linha do índice aponta para a respectiva execução.
+The implementation is in `../cnn`, and the original method remains in `../polygarbor`. The [protocol](PROTOCOL.md) records the decisions made before the experiments. Start with the [discussion and visual assessment](results/2026-09-12/DISCUSSION.md). The consolidated results are in [results/2026-09-12/REPORT.md](results/2026-09-12/REPORT.md); each row of the index points to the corresponding run.
 
-Executar a partir da raiz do repositório:
+Run from the repository root:
 
 ```bash
 uv sync --project cnn --extra gpu --extra yolo
 cnn/.venv/bin/python comparison/prepare.py
 cnn/.venv/bin/python comparison/prepare_groups.py
-cnn/.venv/bin/python comparison/suite.py --campaign minha-campanha --methods polygarbor polygarbor_aug polygarbor_p3 polygarbor_p3_aug polygarbor_p5 resnet18 resnet18_imagenet yolo11n yolo11n_random
+cnn/.venv/bin/python comparison/suite.py --campaign my-campaign --methods polygarbor polygarbor_aug polygarbor_p3 polygarbor_p3_aug polygarbor_p5 resnet18 resnet18_imagenet yolo11n yolo11n_random
 cnn/.venv/bin/python comparison/loso.py
-cnn/.venv/bin/python comparison/suite.py --campaign minha-campanha --methods polygarbor resnet18 resnet18_imagenet yolo11n yolo11n_random --scenarios loso_01 loso_02 loso_03 loso_04 loso_05 loso_06 loso_07 loso_08 loso_09 loso_10
-cnn/.venv/bin/python comparison/finish.py --campaign minha-campanha
-cnn/.venv/bin/python comparison/loso_report.py --campaign minha-campanha
+cnn/.venv/bin/python comparison/suite.py --campaign my-campaign --methods polygarbor resnet18 resnet18_imagenet yolo11n yolo11n_random --scenarios loso_01 loso_02 loso_03 loso_04 loso_05 loso_06 loso_07 loso_08 loso_09 loso_10
+cnn/.venv/bin/python comparison/finish.py --campaign my-campaign
+cnn/.venv/bin/python comparison/loso_report.py --campaign my-campaign
 uv sync --project comparison/quantization
-comparison/quantization/.venv/bin/python comparison/quantization/quantize.py --campaign minha-campanha
-comparison/quantization/.venv/bin/python comparison/quantization/bench.py --campaign minha-campanha
-comparison/quantization/.venv/bin/python comparison/quantization/report.py --campaign minha-campanha
-cnn/.venv/bin/python comparison/embedded_feasibility.py --model comparison/runs/minha-campanha/full__polygarbor__seed42/model --output comparison/results/minha-campanha/embedded
+comparison/quantization/.venv/bin/python comparison/quantization/quantize.py --campaign my-campaign
+comparison/quantization/.venv/bin/python comparison/quantization/bench.py --campaign my-campaign
+comparison/quantization/.venv/bin/python comparison/quantization/report.py --campaign my-campaign
+cnn/.venv/bin/python comparison/embedded_feasibility.py --model comparison/runs/my-campaign/full__polygarbor__seed42/model --output comparison/results/my-campaign/embedded
 ```
 
-`finish.py` também executa `localization.py`, que reutiliza os modelos completos das duas seeds para medir identificação de tumor em mosaicos sintéticos 4×4. Cada imagem é explicada isoladamente antes da montagem, impedindo mistura entre patches. A avaliação primária usa AUROC/AP por patch e recuperação dos dois tumores no top-2; Dice de região usa threshold escolhido na validação e é secundário porque não há máscaras internas. A versão 3 compara PolyGabor, ResNet aleatória e ResNet ImageNet e separa em cada figura os escores classificatórios dos mapas explicativos. Se quiser executar apenas essa etapa depois dos modelos completos, use `cnn/.venv/bin/python comparison/localization.py --campaign minha-campanha`; `--refresh` regenera métricas e figuras a partir dos mapas salvos e grava sua telemetria em subdiretório separado.
+`finish.py` also runs `localization.py`, which reuses the full models of both seeds to measure tumor identification in synthetic 4×4 mosaics. Each image is explained in isolation before assembly, which prevents mixing between patches. The primary evaluation uses per-patch AUROC/AP and recovery of the two tumors in the top-2; region Dice uses a threshold chosen on validation and is secondary because there are no internal masks. Version 3 compares PolyGabor, random ResNet and ImageNet ResNet and separates, in each figure, the classification scores from the explanation maps. To run only this stage after the full models exist, use `cnn/.venv/bin/python comparison/localization.py --campaign my-campaign`; `--refresh` regenerates metrics and figures from the saved maps and writes its telemetry to a separate subdirectory.
 
-O executor prepara caminhos locais das bibliotecas CUDA e inicia um processo por execução. As execuções são sequenciais para evitar competição entre modelos. Os pesos YOLO oficiais são baixados no primeiro uso. `prepare.py` reutiliza o TFDS já disponível em `polygarbor/data` e salva arrays em `comparison/cache`; não modifica o cache original. `dataset_manifest.json` contém classe, quantidade e SHA-256 de cada imagem.
+The runner sets up local paths for the CUDA libraries and starts one process per run. Runs are sequential to avoid competition between models. The official YOLO weights are downloaded on first use. `prepare.py` reuses the TFDS data already available in `polygarbor/data` and saves arrays to `comparison/cache`; it does not modify the original cache. `dataset_manifest.json` contains the class, count and SHA-256 of each image.
 
-`suite.py` aceita os métodos `polygarbor`, `polygarbor_aug`, `polygarbor_p3`, `polygarbor_p3_aug`, `polygarbor_p5`, `resnet18`, `resnet18_imagenet`, `yolo11n` e `yolo11n_random` por `--methods`, `--scenarios full few1 few2 few5 few10 few20 few50 few100 imbalance label_noise`, `--seeds 42 43` e `--epochs 100`. `--pilot --epochs 1 --scenarios few10 --seeds 42` serve para verificar a instalação; use outro nome de campanha para que esses resultados não entrem na comparação principal. Os runs existentes são preservados, inclusive falhas; para repetir uma falha, use uma nova campanha. Uma interrupção externa do executor pode deixar status `running`: consulte o log e não interprete isso como sucesso. Se o executor acompanha a saída não zero do filho, registra a falha. `finish.py` propaga falhas de testes e benchmarks e só reaproveita medições com sucesso registrado.
+`suite.py` accepts the methods `polygarbor`, `polygarbor_aug`, `polygarbor_p3`, `polygarbor_p3_aug`, `polygarbor_p5`, `resnet18`, `resnet18_imagenet`, `yolo11n` and `yolo11n_random` through `--methods`, `--scenarios full few1 few2 few5 few10 few20 few50 few100 imbalance label_noise`, `--seeds 42 43` and `--epochs 100`. `--pilot --epochs 1 --scenarios few10 --seeds 42` checks the installation; use another campaign name so that these results do not enter the main comparison. Existing runs are preserved, including failures; to repeat a failure, use a new campaign. An external interruption of the runner can leave a `running` status: check the log and do not read it as success. When the runner sees a non-zero exit from the child process, it records the failure. `finish.py` propagates test and benchmark failures and only reuses measurements recorded as successful.
 
-O treino completo e os sete tamanhos menores usam duas seeds. Desbalanceamento e ruído de rótulo usam a primeira seed. Cada treino é avaliado em treino, validação e teste. Os modelos treinados no conjunto completo recebem mais oito avaliações em teste com degradações fixas. Configuração, índices selecionados, rótulos alterados, hashes do código, versões de pacotes, histórico, tempos, recursos, predições individuais, matrizes e explicações ficam no diretório do run. Os modelos grandes e dados permanecem no disco e são ignorados pelo Git.
+Full training and the seven smaller sizes use two seeds. Imbalance and label noise use the first seed. Each training run is evaluated on training, validation and test. Models trained on the full set receive eight additional test evaluations with fixed degradations. Configuration, selected indices, altered labels, code hashes, package versions, history, timings, resources, individual predictions, matrices and explanations are stored in the run directory. Large models and data remain on disk and are ignored by Git.
 
-`finish.py` mede inferência em CPU com uma thread e afinidade restrita, CPU com quatro threads e GPU, em processos novos, sobre os modelos completos da seed 42. Depois executa testes e gera o relatório. `report.py` pode ser executado novamente a qualquer momento, pois só lê artefatos já salvos. Não execute testes ou benchmarks adicionais em paralelo com os treinos se for comparar os tempos.
+`finish.py` measures inference on CPU with one thread and restricted affinity, on CPU with four threads and on GPU, in fresh processes, using the full seed 42 models. It then runs the tests and generates the report. `report.py` can be run again at any time, since it only reads saved artifacts. Do not run additional tests or benchmarks in parallel with training if you are going to compare timings.
 
 ```text
 comparison/
   PROTOCOL.md
   dataset_manifest.json
-  cache/                            # arrays compartilhados, ignorados pelo Git
+  cache/                            # shared arrays, ignored by Git
   runs/2026-09-12/
-    events.jsonl                    # comandos, códigos de saída, duração do processo
+    events.jsonl                    # commands, exit codes, process duration
     full__resnet18__seed42/
       config.json / selection.json / status.json / run.log
       timings.json / resources.csv / resources.json
@@ -57,12 +57,12 @@ comparison/
     loso/README.md / folds.csv / fold_metrics.csv / pooled_metrics.csv / pooled_recall_per_class.csv / paired_polygarbor_vs_cnn.csv / loso_macro_f1.png / loso_recall_per_class.png
 ```
 
-Interpretação: os cenários de poucos exemplos restringem o treino, mas mantêm 500 exemplos rotulados para validação. O ponto completo do PolyGabor preserva o limite padrão de 350 vetores/classe e registra quantos vetores entram no ajuste. ResNet-18 e YOLO11n têm controles pareados com inicialização aleatória e ImageNet. Os mapas CAM, oclusão e similaridade são explicações computacionais, não segmentação. A simulação edge mede x86 com menos paralelismo; não demonstra desempenho em ARM/Jetson. Os códigos de origem recuperados dos nomes permitem testes agrupados, mas não identificam clinicamente pacientes. A análise por origem usa dez folds leave-one-source-out: `loso.py` lê `source_manifest.json` e confere o manifesto fixo `loso_manifest.json`, e `loso_report.py` gera `results/<campanha>/loso/`. Os cenários `source_a` e `source_b` (`--scenarios source_a source_b --seeds 42`) permanecem reproduzíveis apenas como registro histórico; o [protocolo](PROTOCOL.md) explica por que foram substituídos.
+Interpretation: the few-shot scenarios restrict training but keep 500 labeled examples for validation. The full PolyGabor point keeps the default cap of 350 vectors/class and records how many vectors enter the fit. ResNet-18 and YOLO11n have paired controls with random and ImageNet initialization. The CAM, occlusion and similarity maps are computational explanations, not segmentation. The edge simulation measures x86 with less parallelism; it does not demonstrate performance on ARM/Jetson. The source codes recovered from the file names allow grouped tests, but they do not clinically identify patients. The source analysis uses ten leave-one-source-out folds: `loso.py` reads `source_manifest.json` and checks the fixed manifest `loso_manifest.json`, and `loso_report.py` generates `results/<campaign>/loso/`. The `source_a` and `source_b` scenarios (`--scenarios source_a source_b --seeds 42`) remain reproducible only as a historical record; the [protocol](PROTOCOL.md) explains why they were replaced.
 
-As variantes `p3` e `p5` usam 9 e 25 regiões por imagem; o banco de filtros permanece igual. `_aug` adiciona três vistas por original somente no treino. O teto de 350 vetores/classe permanece e o número de originais efetivamente retidos fica em `effective_training.json`. Consulte [G-mean versus macro-F1](GMEAN_VS_MACRO_F1.md) para interpretar as duas curvas sem confundir recall zero com falha de treinamento.
+The `p3` and `p5` variants use 9 and 25 regions per image; the filter bank stays the same. `_aug` adds three views per original image, in training only. The cap of 350 vectors/class remains, and the number of originals actually retained is stored in `effective_training.json`. See [G-mean versus macro-F1](GMEAN_VS_MACRO_F1.md) to interpret the two curves without confusing zero recall with a training failure.
 
-Os totais e o estado final da campanha estão em [integrity_audit.json](integrity_audit.json) e no relatório gerado. As duas execuções interrompidas pela mudança da pasta foram arquivadas e repetidas com sucesso.
+The totals and final state of the campaign are in [integrity_audit.json](integrity_audit.json) and in the generated report. The two runs interrupted when the folder was moved were archived and repeated successfully.
 
-A quantização pós-treino converte os modelos completos de ResNet-18 e YOLO11n para LiteRT e gera pesos float16, int8 dinâmico e int8 estático, sem retreino; o PolyGabor fica em precisão cheia como referência. Ela usa o ambiente separado `comparison/quantization`, porque litert-torch exige torch 2.11 e alteraria versões travadas em `cnn/`. `quantize.py` avalia cada variante no teste limpo e nas oito perturbações, `bench.py` mede latência e pico de RAM em processos novos nos modos cpu1 e cpu4, e `report.py` gera `results/<campanha>/quantization/`. Não execute o benchmark junto com treinos ou com `quantize.py`.
+Post-training quantization converts the full ResNet-18 and YOLO11n models to LiteRT and produces float16 weights, dynamic int8 and static int8, without retraining; PolyGabor stays at full precision as a reference. It uses the separate environment `comparison/quantization`, because litert-torch requires torch 2.11 and would change the versions pinned in `cnn/`. `quantize.py` evaluates each variant on the clean test and the eight perturbations, `bench.py` measures latency and peak RAM in fresh processes in the cpu1 and cpu4 modes, and `report.py` generates `results/<campaign>/quantization/`. Do not run the benchmark together with training or with `quantize.py`.
 
-A pré-avaliação embarcada compara o modelo PolyGabor treinado com os limites de flash e SRAM do ESP32-WROOM-32, Arduino Uno R3 e PIC16F877A. Ela contabiliza o artefato salvo, o estado polinomial reconstruído, estimativas float32/int16/int8, buffers de imagem e operações Gabor. É uma análise estática reproduzível; simulação de instruções e medição de energia dependem de um porte C/C++ e hardware.
+The embedded preflight compares the trained PolyGabor model with the flash and SRAM limits of the ESP32-WROOM-32, Arduino Uno R3 and PIC16F877A. It accounts for the saved artifact, the rebuilt polynomial state, float32/int16/int8 estimates, image buffers and Gabor operations. It is a reproducible static analysis; instruction-level simulation and energy measurement depend on a C/C++ port and on hardware.

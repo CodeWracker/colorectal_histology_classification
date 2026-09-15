@@ -1,38 +1,38 @@
-# Análises post-hoc de 2026-09-14
+# Post-hoc analyses from 2026-09-14
 
-Estas análises foram feitas depois da campanha `2026-09-12`, durante a revisão do artigo `ichi-polygarbor`, com autorização explícita dos autores. Não fazem parte do protocolo registrado em `../../PROTOCOL.md` e devem ser descritas no artigo como exploratórias.
+These analyses were done after the `2026-09-12` campaign, during the review of the `ichi-polygarbor` paper, with explicit authorization from the authors. They are not part of the protocol registered in `../../PROTOCOL.md` and must be described in the paper as exploratory.
 
-## Normalização das distâncias no desbalanceamento
+## Distance normalization under class imbalance
 
-Script: `comparison/posthoc_imbalance_normalization.py`. Saídas: `imbalance_normalization.csv` e `imbalance_normalization.json`.
+Script: `comparison/posthoc_imbalance_normalization.py`. Outputs: `imbalance_normalization.csv` and `imbalance_normalization.json`.
 
-Nenhum modelo foi retreinado. Os modelos salvos de `imbalance__polygarbor__seed42`, `full__polygarbor__seed42` e `full__polygarbor__seed43` foram carregados e só a regra de decisão mudou:
+No model was retrained. The saved models of `imbalance__polygarbor__seed42`, `full__polygarbor__seed42` and `full__polygarbor__seed43` were loaded and only the decision rule changed:
 
-- `raw`: argmin D_c, a regra registrada. Reproduz o macro-F1 de teste 0,408 do cenário imbalance.
-- `insample`: argmin D_c / r_c, com r_c a mediana de D_c nos próprios vetores de ajuste avaliados pelo modelo construído com eles.
-- `crossfit`: igual, mas cada vetor é avaliado por um modelo ajustado sem ele (5 folds dentro da classe).
-- `count`: argmin N_c · D_c. Dividir a matriz de espalhamento por N_c escala todos os valores singulares e s_min = eps · s_max por 1/N_c, sem mudar bases, projeções ou limiares relativos, então cada nível de D_c é multiplicado por N_c. É o PMD com espalhamento normalizado pelo número de vetores. Com classes balanceadas, as predições são idênticas às de `raw`.
+- `raw`: argmin D_c, the registered rule. It reproduces the test macro-F1 of 0.408 of the imbalance scenario.
+- `insample`: argmin D_c / r_c, where r_c is the median of D_c over the class's own fitting vectors, evaluated by the model built from them.
+- `crossfit`: the same, but each vector is evaluated by a model fitted without it (5 folds within the class).
+- `count`: argmin N_c · D_c. Dividing the scatter matrix by N_c scales all singular values and s_min = eps · s_max by 1/N_c, without changing bases, projections or relative thresholds, so every level of D_c is multiplied by N_c. This is the PMD with the scatter normalized by the number of vectors. With balanced classes, the predictions are identical to those of `raw`.
 
-Nenhum rótulo de validação ou de teste foi usado para definir as regras. Resultados de teste:
+No validation or test label was used to define the rules. Test results:
 
-| modelo | regra | macro-F1 | G-mean |
+| model | rule | macro-F1 | G-mean |
 | --- | --- | --- | --- |
-| imbalance seed 42 | raw | 0,408 | 0,000 |
-| imbalance seed 42 | insample | 0,434 | 0,000 |
-| imbalance seed 42 | count | 0,552 | 0,379 |
-| imbalance seed 42 | crossfit | 0,653 | 0,625 |
-| full, média seeds 42/43 | raw = count | 0,793 | 0,777 |
-| full, média seeds 42/43 | insample | 0,780 | 0,767 |
-| full, média seeds 42/43 | crossfit | 0,775 | 0,761 |
+| imbalance seed 42 | raw | 0.408 | 0.000 |
+| imbalance seed 42 | insample | 0.434 | 0.000 |
+| imbalance seed 42 | count | 0.552 | 0.379 |
+| imbalance seed 42 | crossfit | 0.653 | 0.625 |
+| full, mean of seeds 42/43 | raw = count | 0.793 | 0.777 |
+| full, mean of seeds 42/43 | insample | 0.780 | 0.767 |
+| full, mean of seeds 42/43 | crossfit | 0.775 | 0.761 |
 
-As regras foram escolhidas depois de observar a falha e avaliadas com uma seed e uma razão de desbalanceamento.
+The rules were chosen after observing the failure and were evaluated with one seed and one imbalance ratio.
 
-## Pegada de memória do PolyGabor
+## PolyGabor memory footprint
 
-Script: `comparison/posthoc_footprint_scaling.py`. Saída: `footprint_scaling.csv`.
+Script: `comparison/posthoc_footprint_scaling.py`. Output: `footprint_scaling.csv`.
 
-Os descritores retidos pelo modelo `full__polygarbor__seed42` (350 por classe) foram subamostrados, com seed 42, para 2, 5, 10, 20, 50, 100 e 350 vetores por classe com 8 classes, e para 2 e 4 classes com 350 vetores. Nenhum descritor foi extraído de novo e nada foi avaliado no teste. `saved_mb` é o tamanho escrito por `save()`, `model_array_mb` são os arrays dos modelos PMD mais as amostras retidas, `fit_peak_mb` e `eval_peak_mb` são picos do `tracemalloc`, e `distance_median_ms` é a mediana de 30 cálculos de distância de um vetor (4 threads). A medição rodou antes de iniciar o treino das CNNs na CPU.
+The descriptors retained by the `full__polygarbor__seed42` model (350 per class) were subsampled, with seed 42, to 2, 5, 10, 20, 50, 100 and 350 vectors per class with 8 classes, and to 2 and 4 classes with 350 vectors. No descriptor was extracted again and nothing was evaluated on the test set. `saved_mb` is the size written by `save()`, `model_array_mb` is the arrays of the PMD models plus the retained samples, `fit_peak_mb` and `eval_peak_mb` are `tracemalloc` peaks, and `distance_median_ms` is the median of 30 distance computations for one vector (4 threads). The measurement ran before the CNN training on CPU started.
 
-## Treino das CNNs na CPU
+## CNN training on CPU
 
-Script: `comparison/cpu_training.py`. Execuções: `runs/2026-09-14_cpu`. Usa o mesmo `run.py`, seed 42, 4 threads e `--device cpu`, com 10 imagens por classe e com o treino completo. Durante as execuções, a máquina também rodava o navegador e, por poucos segundos, os scripts acima e a geração de figuras do artigo, então os tempos têm algum ruído.
+Script: `comparison/cpu_training.py`. Runs: `runs/2026-09-14_cpu`. It uses the same `run.py`, seed 42, 4 threads and `--device cpu`, with 10 images per class and with full training. During the runs, the machine was also running the browser and, for a few seconds, the scripts above and the generation of the paper's figures, so the timings contain some noise.

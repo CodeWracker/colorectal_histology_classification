@@ -28,7 +28,7 @@ def read(path, default=None):
 
 def markdown_table(frame):
     if frame.empty:
-        return "Ainda sem resultados."
+        return "No results yet."
     def fmt(x):
         return f"{x:.4f}" if isinstance(x, float) else str(x)
     return "\n".join(["| " + " | ".join(map(str, frame.columns)) + " |",
@@ -114,10 +114,10 @@ def main():
     curve = test[test.scenario.str.startswith("few") | (test.scenario == "full")].copy()
     curve["examples_per_class"] = curve.scenario.map(lambda x: int(x[3:]) if x.startswith("few") else 500)
     curve.to_csv(out / "learning_curve.csv", index=False)
-    curve_panels = (("Métodos originais", ("polygarbor", "resnet18", "yolo11n")),
-                    ("Inicialização das CNNs", ("resnet18", "resnet18_imagenet", "yolo11n_random", "yolo11n")),
-                    ("Ablações do PolyGabor", ("polygarbor", "polygarbor_aug", "polygarbor_p3", "polygarbor_p3_aug", "polygarbor_p5")))
-    for metric, label, filename in (("macro_f1", "Macro-F1", "learning_curve.png"), ("multiclass_gmean", "G-mean multiclasse", "learning_curve_gmean.png")):
+    curve_panels = (("Original methods", ("polygarbor", "resnet18", "yolo11n")),
+                    ("CNN initialization", ("resnet18", "resnet18_imagenet", "yolo11n_random", "yolo11n")),
+                    ("PolyGabor ablations", ("polygarbor", "polygarbor_aug", "polygarbor_p3", "polygarbor_p3_aug", "polygarbor_p5")))
+    for metric, label, filename in (("macro_f1", "Macro-F1", "learning_curve.png"), ("multiclass_gmean", "Multiclass G-mean", "learning_curve_gmean.png")):
         fig, axes = plt.subplots(1, 3, figsize=(19, 5), sharex=True, sharey=True)
         for ax, (title, methods) in zip(axes, curve_panels):
             for method in methods:
@@ -125,13 +125,13 @@ def main():
                 stats = group.groupby("examples_per_class")[metric].agg(["mean", "min", "max"])
                 ax.plot(stats.index, stats["mean"], "o-", label=method, color=COLORS[method], linewidth=2)
                 ax.fill_between(stats.index, stats["min"], stats["max"], alpha=.10, color=COLORS[method])
-            ax.set(title=title, xscale="log", ylim=(0, 1), xlabel="Imagens originais por classe")
+            ax.set(title=title, xscale="log", ylim=(0, 1), xlabel="Original images per class")
             ax.set_xticks([1, 2, 5, 10, 20, 50, 100, 500], labels=["1", "2", "5", "10", "20", "50", "100", "~500"])
             ax.grid(alpha=.2)
             ax.legend(fontsize=8, loc="best")
-        axes[0].set_ylabel(label + " no teste (500 recortes)")
-        fig.suptitle("Desempenho por quantidade de exemplos de treino")
-        fig.text(.5, .01, "Linhas: média de duas seeds; faixa: mínimo–máximo. Total de treino = 8 × valor do eixo X.", ha="center", fontsize=9)
+        axes[0].set_ylabel(label + " on test (500 crops)")
+        fig.suptitle("Performance by number of training examples")
+        fig.text(.5, .01, "Lines: mean of two seeds; band: minimum–maximum. Total training = 8 × x-axis value.", ha="center", fontsize=9)
         fig.tight_layout(rect=(0, .04, 1, .95))
         fig.savefig(out / filename, dpi=180)
         plt.close(fig)
@@ -139,24 +139,24 @@ def main():
     pivot = robust.pivot_table(index="evaluation", columns="method", values="macro_f1")
     pivot.to_csv(out / "robustness.csv")
     if not pivot.empty:
-        robust_panels = (("Métodos e inicialização", ("polygarbor", "resnet18", "resnet18_imagenet", "yolo11n_random", "yolo11n")),
-                         ("Ablações do PolyGabor", ("polygarbor", "polygarbor_aug", "polygarbor_p3", "polygarbor_p3_aug", "polygarbor_p5")))
+        robust_panels = (("Methods and initialization", ("polygarbor", "resnet18", "resnet18_imagenet", "yolo11n_random", "yolo11n")),
+                         ("PolyGabor ablations", ("polygarbor", "polygarbor_aug", "polygarbor_p3", "polygarbor_p3_aug", "polygarbor_p5")))
         fig, axes = plt.subplots(2, 1, figsize=(13, 9), sharex=True, sharey=True)
         for ax, (title, selected) in zip(axes, robust_panels):
             columns = [method for method in selected if method in pivot.columns]
             pivot[columns].plot.bar(ax=ax, color=[COLORS[c] for c in columns], rot=30)
-            ax.set(title=title, ylabel="Macro-F1 médio entre seeds", xlabel="", ylim=(0, 1))
+            ax.set(title=title, ylabel="Mean macro-F1 across seeds", xlabel="", ylim=(0, 1))
             ax.legend(fontsize=8)
-        axes[-1].set_xlabel("Condição de teste")
+        axes[-1].set_xlabel("Test condition")
         fig.tight_layout()
         fig.savefig(out / "robustness.png", dpi=180)
         plt.close(fig)
     if not full.empty:
         methods = [m for m in ("yolo11n", "resnet18_imagenet", "yolo11n_random", "resnet18", "polygarbor", "polygarbor_aug", "polygarbor_p3", "polygarbor_p3_aug", "polygarbor_p5") if m in set(full.method)]
-        labels = {"yolo11n": "YOLO11n · ImageNet", "yolo11n_random": "YOLO11n · aleatória", "resnet18": "ResNet-18 · aleatória", "resnet18_imagenet": "ResNet-18 · ImageNet", "polygarbor": "PolyGabor", "polygarbor_aug": "PolyGabor + aug.", "polygarbor_p3": "PolyGabor · 9 regiões", "polygarbor_p3_aug": "PolyGabor · 9 reg. + aug.", "polygarbor_p5": "PolyGabor · 25 regiões"}
-        columns = (("train_seconds", "Treino (s) ↓", (15, 400), [20, 50, 100, 200]),
-                   ("batch1_median_ms", "Inferência batch 1 (ms) ↓", (2, 60), [2, 5, 10, 20, 50]),
-                   ("model_mb", "Modelo (MB) ↓", (.5, 60), [.5, 1, 3, 10, 50]),
+        labels = {"yolo11n": "YOLO11n · ImageNet", "yolo11n_random": "YOLO11n · random", "resnet18": "ResNet-18 · random", "resnet18_imagenet": "ResNet-18 · ImageNet", "polygarbor": "PolyGabor", "polygarbor_aug": "PolyGabor + aug.", "polygarbor_p3": "PolyGabor · 9 regions", "polygarbor_p3_aug": "PolyGabor · 9 reg. + aug.", "polygarbor_p5": "PolyGabor · 25 regions"}
+        columns = (("train_seconds", "Training (s) ↓", (15, 400), [20, 50, 100, 200]),
+                   ("batch1_median_ms", "Batch-1 inference (ms) ↓", (2, 60), [2, 5, 10, 20, 50]),
+                   ("model_mb", "Model (MB) ↓", (.5, 60), [.5, 1, 3, 10, 50]),
                    ("macro_f1", "Macro-F1 ↑", (.35, 1), [.4, .6, .8, 1]))
         fig, axes = plt.subplots(1, 4, figsize=(16, 6.5), sharey=True)
         for ax, (field, title, limits, ticks) in zip(axes, columns):
@@ -176,8 +176,8 @@ def main():
             ax.grid(axis="x", alpha=.2)
         axes[0].set_yticks(range(len(methods)), labels=[labels[m] for m in methods])
         axes[0].invert_yaxis()
-        fig.suptitle("Custo e desempenho no treino completo")
-        fig.text(.5, .01, "Losango: média das duas seeds; pontos: cada seed; linha: mínimo–máximo.", ha="center", fontsize=9)
+        fig.suptitle("Cost and performance with full training")
+        fig.text(.5, .01, "Diamond: mean of the two seeds; dots: each seed; line: minimum–maximum.", ha="center", fontsize=9)
         fig.tight_layout(rect=(0, .04, 1, .95))
         fig.savefig(out / "tradeoffs.png", dpi=180)
         plt.close(fig)
@@ -266,65 +266,65 @@ def main():
     edge_frame.to_csv(out / "edge.csv", index=False)
     if not edge_frame.empty:
         edge_pivot = edge_frame.pivot(index="mode", columns="method", values="median_ms")
-        edge_panels = (("Métodos e inicialização", ("polygarbor", "resnet18", "resnet18_imagenet", "yolo11n_random", "yolo11n")),
-                       ("Ablações do PolyGabor", ("polygarbor", "polygarbor_aug", "polygarbor_p3", "polygarbor_p3_aug", "polygarbor_p5")))
+        edge_panels = (("Methods and initialization", ("polygarbor", "resnet18", "resnet18_imagenet", "yolo11n_random", "yolo11n")),
+                       ("PolyGabor ablations", ("polygarbor", "polygarbor_aug", "polygarbor_p3", "polygarbor_p3_aug", "polygarbor_p5")))
         fig, axes = plt.subplots(2, 1, figsize=(12, 8), sharex=True, sharey=True)
         for ax, (title, selected) in zip(axes, edge_panels):
             columns = [method for method in selected if method in edge_pivot.columns]
             edge_pivot[columns].plot.bar(ax=ax, color=[COLORS[c] for c in columns], rot=0)
-            ax.set(title=title, ylabel="Latência mediana batch 1 (ms)", xlabel="")
+            ax.set(title=title, ylabel="Median batch-1 latency (ms)", xlabel="")
             ax.legend(fontsize=8)
             ax.grid(axis="y", alpha=.2)
-        axes[-1].set_xlabel("Ambiente de inferência")
+        axes[-1].set_xlabel("Inference environment")
         fig.tight_layout()
         fig.savefig(out / "edge.png", dpi=180)
         plt.close(fig)
 
     localization_path = out / "localization/metrics.csv"
     localization = pd.read_csv(localization_path) if localization_path.exists() else pd.DataFrame()
-    localization_display = localization[["method", "model_seed", "test_patch_auc", "test_patch_average_precision", "test_patch_tumor_recall_at_2", "test_patch_both_tumors_top2_rate", "test_classifier_patch_auc"]].rename(columns={"method": "método", "model_seed": "seed", "test_patch_auc": "AUROC explicação", "test_patch_average_precision": "AP explicação", "test_patch_tumor_recall_at_2": "recall top-2", "test_patch_both_tumors_top2_rate": "ambos no top-2", "test_classifier_patch_auc": "AUROC classificador"}) if not localization.empty else localization
+    localization_display = localization[["method", "model_seed", "test_patch_auc", "test_patch_average_precision", "test_patch_tumor_recall_at_2", "test_patch_both_tumors_top2_rate", "test_classifier_patch_auc"]].rename(columns={"method": "method", "model_seed": "seed", "test_patch_auc": "explanation AUROC", "test_patch_average_precision": "explanation AP", "test_patch_tumor_recall_at_2": "top-2 recall", "test_patch_both_tumors_top2_rate": "both in top-2", "test_classifier_patch_auc": "classifier AUROC"}) if not localization.empty else localization
     localization_section = [] if localization.empty else [
-        "## Localização quantitativa", "", "![Identificação dos patches de tumor](localization/localization_metrics.png)", "",
+        "## Quantitative localization", "", "![Tumor patch identification](localization/localization_metrics.png)", "",
         markdown_table(localization_display), "",
-        "![Efeito da inicialização no CAM](localization/localization_pretraining_examples.png)", "",
-        "Cada mosaico 4×4 contém dois patches de tumor e quatorze das demais classes, sem repetição dentro do split. Os mapas são calculados em cada patch isolado e remontados sem mistura entre vizinhos. A avaliação primária compara a evidência explicativa com os rótulos conhecidos por patch; métricas de região em pixels são secundárias porque não há anotação interna. Protocolo, exemplos e limitações estão no [relatório de localização](localization/README.md).", ""]
+        "![Effect of initialization on CAM](localization/localization_pretraining_examples.png)", "",
+        "Each 4×4 mosaic contains two tumor patches and fourteen patches from the other classes, with no repetition within the split. Maps are computed on each isolated patch and reassembled without mixing between neighbors. The primary evaluation compares the explanatory evidence with the known per-patch labels; pixel-level region metrics are secondary because there is no internal annotation. Protocol, examples and limitations are in the [localization report](localization/README.md).", ""]
 
-    sections = ["# Comparação de classificadores de histopatologia colorretal", "",
-        f"Campanha `{args.campaign}`. Este arquivo é gerado dos artefatos salvos; a avaliação visual e a interpretação detalhada estão em [DISCUSSION.md](DISCUSSION.md). Há {len(index)} runs registradas e {len(runs)} concluídas. Consultar `run_index.csv` para falhas e caminhos, `metrics.csv` para todas as métricas e `../../PROTOCOL.md` para o protocolo.", "",
-        "## Teste limpo após treinamento completo", "",
+    sections = ["# Comparison of colorectal histopathology classifiers", "",
+        f"Campaign `{args.campaign}`. This file is generated from the saved artifacts; the visual assessment and detailed interpretation are in [DISCUSSION.md](DISCUSSION.md). There are {len(index)} registered runs and {len(runs)} completed ones. See `run_index.csv` for failures and paths, `metrics.csv` for all metrics and `../../PROTOCOL.md` for the protocol.", "",
+        "## Clean test after full training", "",
         markdown_table(full[["method", "seed", "accuracy", "macro_f1", "multiclass_gmean", "balanced_accuracy", "mcc", "nll", "ece"]]), "",
-        "## Configuração ImageNet versus aleatória", "",
+        "## ImageNet versus random configuration", "",
         markdown_table(initialization_frame), "",
-        "Cada linha compara a mesma arquitetura e o mesmo cenário, pareando as seeds disponíveis. Delta positivo favorece a configuração ImageNet. Na ResNet, ela combina pesos ImageNet e a normalização de entrada correspondente; o contraste não isola somente os pesos. Na YOLO, arquitetura e política de treino são mantidas e a diferença pretendida é a origem dos pesos. As curvas e a localização mostram que o ganho médio não se conserva em toda mudança de origem.", "",
-        "## Custo do treinamento completo", "",
+        "Each row compares the same architecture and scenario, pairing the available seeds. A positive delta favors the ImageNet configuration. For ResNet, it combines ImageNet weights with the matching input normalization; the contrast does not isolate the weights alone. For YOLO, architecture and training policy are kept and the intended difference is the origin of the weights. The curves and the localization show that the mean gain does not hold under every source shift.", "",
+        "## Full training cost", "",
         markdown_table(full[["method", "seed", "n_train", "originals_retained", "fitted_vectors_or_images", "epochs", "train_seconds", "model_mb", "rss_peak_mb", "vram_peak_mb"]]), "",
-        "MB usa 1.000.000 bytes. RAM e VRAM são picos do processo completo, incluindo avaliação e figuras; custos por etapa estão em [stage_resources.csv](stage_resources.csv) e em resources.json/timings.json de cada run. GPU-% é global do dispositivo, incluindo o desktop. CPU-% usa 100% por núcleo. O PolyGabor padrão extrai 4000 vetores, mas ajusta no máximo 2800. Nas variantes, 9/25 patches e augmentation ampliam os vetores candidatos mantendo o teto de 350 por classe; originals_retained informa quantas imagens originais distintas chegam ao ajuste. effective_training.json detalha os valores por classe. Isso altera simultaneamente escala espacial e diversidade retida, devendo ser considerado na interpretação das ablações.", "",
-        "## Uso de CPU e GPU durante ajuste", "",
+        "MB uses 1,000,000 bytes. RAM and VRAM are peaks of the whole process, including evaluation and figures; per-stage costs are in [stage_resources.csv](stage_resources.csv) and in each run's resources.json/timings.json. GPU-% is device-wide, including the desktop. CPU-% uses 100% per core. Default PolyGabor extracts 4000 vectors but fits at most 2800. In the variants, 9/25 patches and augmentation enlarge the candidate vectors while keeping the cap of 350 per class; originals_retained reports how many distinct original images reach the fit. effective_training.json details the per-class values. This changes spatial scale and retained diversity at the same time, which must be considered when interpreting the ablations.", "",
+        "## CPU and GPU usage during fitting", "",
         markdown_table(full[["method", "seed", "training_cpu_core_percent", "fit_cpu_core_percent", "fit_gpu_global_percent", "vram_peak_mb"]]), "",
-        "training_cpu_core_percent usa CPU-segundos divididos pelo tempo total das etapas de treino; 100% corresponde a um núcleo ocupado. fit_cpu_core_percent é a média amostrada somente no ajuste. GPU-% é utilização global do dispositivo, não exclusiva do processo: atividade do desktop aparece mesmo durante PolyGabor. A VRAM por PID é medida separadamente; PolyGabor não executa operações na GPU.", "",
-        "## Curva de aprendizagem", "", "![Macro-F1 versus quantidade de exemplos](learning_curve.png)", "",
-        "![G-mean versus quantidade de exemplos](learning_curve_gmean.png)", "",
-        "[Diferenças de interpretação entre G-mean e macro-F1](../../GMEAN_VS_MACRO_F1.md). A quantidade no eixo X sempre conta imagens originais, sem inflar o orçamento com augmentations ou patches.", "",
-        "A faixa representa mínimo e máximo entre duas seeds, quando disponíveis; não é intervalo de confiança. O ponto ~500 tem 488–513 exemplos disponíveis por classe, com limite efetivo de 350 vetores/classe no PolyGabor padrão. Ausência de ponto por falha de ajuste não equivale a F1 zero. A validação permanece com 500 exemplos rotulados mesmo nos cenários de pouquíssimos exemplos de treino; esta é uma curva de escassez de treino, não de orçamento total de anotação.", "",
-        "## Robustez no teste", "", "![Robustez](robustness.png)", "", markdown_table(pivot.reset_index()), "",
-        "As perturbações têm severidade fixa, pares de pixels idênticos entre modelos e não representam bases externas nem novos pacientes. A avaliação adicional source_a/source_b testa origens separadas, sem misturá-la a estas perturbações. Ver parâmetros em scenarios.py.", "",
-        "## Agregação espacial PolyGabor", "",
+        "training_cpu_core_percent uses CPU-seconds divided by the total time of the training stages; 100% corresponds to one busy core. fit_cpu_core_percent is the mean sampled during fitting only. GPU-% is device-wide utilization, not exclusive to the process: desktop activity shows up even during PolyGabor. Per-PID VRAM is measured separately; PolyGabor runs no GPU operations.", "",
+        "## Learning curve", "", "![Macro-F1 versus number of examples](learning_curve.png)", "",
+        "![G-mean versus number of examples](learning_curve_gmean.png)", "",
+        "[Interpretation differences between G-mean and macro-F1](../../GMEAN_VS_MACRO_F1.md). The x-axis always counts original images, without inflating the budget with augmentations or patches.", "",
+        "The band shows the minimum and maximum across two seeds, when available; it is not a confidence interval. The ~500 point has 488–513 available examples per class, with an effective cap of 350 vectors/class in default PolyGabor. A point missing because of a fitting failure is not equivalent to zero F1. Validation keeps 500 labeled examples even in the scenarios with very few training examples; this is a training-scarcity curve, not a total annotation budget curve.", "",
+        "## Test robustness", "", "![Robustness](robustness.png)", "", markdown_table(pivot.reset_index()), "",
+        "The perturbations have fixed severity and identical pixel pairs across models, and do not represent external datasets or new patients. The additional source_a/source_b evaluation tests separate sources and is not mixed with these perturbations. See the parameters in scenarios.py.", "",
+        "## PolyGabor spatial aggregation", "",
         markdown_table(aggregation_frame[aggregation_frame.scenario == "full"] if not aggregation_frame.empty else aggregation_frame), "",
-        "Comparação adicional sem retreino: a decisão principal usa votação entre regiões; ranking usa argmax da similaridade normalizada das distâncias médias. As curvas principais mantêm a votação fixada no protocolo. Esta análise mostra se a divergência entre regiões explica parte do resultado; não foi usada para escolher retrospectivamente a melhor regra no teste.", "",
-        "## Comparações pareadas", "", markdown_table(pd.DataFrame(pairs)), "",
-        "Diferença = acurácia de B menos A. Bootstrap pareado de 5000 reamostragens de recortes; McNemar exato e ajuste de Holm entre pares/seeds mostrados. Também é apresentado bootstrap pareado por dez grupos de origem, reamostrando todos os recortes de cada origem em conjunto. Esse intervalo considera dependência por origem e deve ter preferência sobre o de recortes. McNemar e seu ajuste de Holm continuam exploratórios porque a independência entre recortes não é garantida. Nenhuma dessas análises demonstra generalização clínica.", "",
-        "## Calibração", "", markdown_table(pd.DataFrame(calibrated)), "",
-        "Temperatura ajustada exclusivamente na validação para cada run e aplicada ao teste sem mudar a classe vencedora. Os escores originais são softmax CNN e similaridade heurística normalizada PolyGabor; a fração de votos PolyGabor não é utilizada como probabilidade. AUROC/top-2 medem ranking; NLL/Brier/ECE precisam dessa ressalva. Consulte metrics.csv para os valores anteriores à calibração.", "",
-        "## Edge e inferência", "", markdown_table(edge_frame), "",
-        "cpu1 restringe afinidade a um processador lógico e bibliotecas a uma thread; cpu4 usa quatro threads; gpu usa a RTX local. Cada medição carrega novamente o modelo em processo separado e aquece antes da latência. As imagens já estão em RAM: a latência inclui pré-processamento e execução, mas exclui leitura de arquivo e visualizações. Não há emulação de ARM nem limite artificial de RAM. O processo serve como aproximação de restrição computacional em x86, não como benchmark de dispositivo edge real.", "",
-        "## Generalização por origem", "",
+        "Additional comparison without retraining: the main decision uses voting across regions; ranking uses the argmax of the normalized similarity of the mean distances. The main curves keep the voting fixed in the protocol. This analysis shows whether disagreement between regions explains part of the result; it was not used to retrospectively choose the best rule on the test set.", "",
+        "## Paired comparisons", "", markdown_table(pd.DataFrame(pairs)), "",
+        "Difference = accuracy of B minus A. Paired bootstrap with 5000 crop resamples; exact McNemar and Holm adjustment across the pairs/seeds shown. A paired bootstrap over ten source groups is also reported, resampling all crops of each source together. This interval accounts for dependence within a source and should be preferred over the crop-level one. McNemar and its Holm adjustment remain exploratory because independence between crops is not guaranteed. None of these analyses demonstrates clinical generalization.", "",
+        "## Calibration", "", markdown_table(pd.DataFrame(calibrated)), "",
+        "Temperature fitted exclusively on validation for each run and applied to the test set without changing the winning class. The original scores are CNN softmax and PolyGabor normalized heuristic similarity; the PolyGabor vote fraction is not used as a probability. AUROC/top-2 measure ranking; NLL/Brier/ECE need this caveat. See metrics.csv for the values before calibration.", "",
+        "## Edge and inference", "", markdown_table(edge_frame), "",
+        "cpu1 restricts affinity to one logical processor and libraries to one thread; cpu4 uses four threads; gpu uses the local RTX. Each measurement reloads the model in a separate process and warms up before measuring latency. Images are already in RAM: latency includes preprocessing and execution but excludes file reading and visualizations. There is no ARM emulation and no artificial RAM limit. The process approximates a computational constraint on x86; it is not a benchmark on a real edge device.", "",
+        "## Generalization by source", "",
         markdown_table(test[test.scenario.str.startswith("source_")][["method", "scenario", "n_train", "accuracy", "macro_f1", "multiclass_gmean", "balanced_accuracy"]]), "",
-        "As origens foram recuperadas dos nomes por SHA-256 dos pixels. source_a testa 09/10 e source_b testa 06/09; validação em 08, com demais origens no treino. A classe empty só existe em 06/10, impossibilitando sua presença simultânea em três splits disjuntos. A validação 08 não contém adipose/empty; treino e teste preservam oito classes. Os testes têm tamanhos/composições diferentes do teste aleatório, logo diferenças não isolam somente efeito de origem. A identidade de paciente por código não foi confirmada." + (" A análise principal por origem passou a ser leave-one-source-out, em [loso/README.md](loso/README.md); source_a/source_b ficam como registro histórico." if (out / "loso/README.md").exists() else ""), "",
+        "Sources were recovered from the file names through SHA-256 of the pixels. source_a tests 09/10 and source_b tests 06/09; validation on 08, with the remaining sources in training. The empty class exists only in 06/10, which makes its presence in three disjoint splits at once impossible. Validation 08 contains no adipose/empty; training and test keep eight classes. The test sets differ in size/composition from the random test, so differences do not isolate the effect of source alone. Patient identity by code was not confirmed." + (" The main source analysis is now leave-one-source-out, in [loso/README.md](loso/README.md); source_a/source_b are kept as a historical record." if (out / "loso/README.md").exists() else ""), "",
         *localization_section,
-        "## Artefatos e limites", "",
-        "Os splits são os originais do TFDS (4000/500/500) com ordem determinística, hashes auditáveis e nenhuma duplicata exata entre splits. O carregamento supervisionado expõe imagem/rótulo. A auditoria recuperou dez origens dos filenames e acrescentou splits source_a/source_b com origens separadas, descritos em source_manifest.json. Não há identificação clínica de paciente nem teste em base externa. ResNet-18 e YOLO11n foram executadas com inicialização aleatória e ImageNet; a política de augmentations e o otimizador continuam próprios de cada pipeline.", "",
-        "Cada run tem config.json, selection.json, status.json, run.log, timings.json, resources.csv/json, modelo, métricas/predições por imagem e figuras. Histórico e épocas são salvos para CNN. Pilotos ficam em campanhas distintas e não entram nas tabelas. Modelos e dados grandes permanecem no disco, ignorados pelo Git.", "",
-        "Fontes: [dataset TFDS](https://www.tensorflow.org/datasets/catalog/colorectal_histology), [dados originais](https://zenodo.org/records/53169), [Ultralytics classificação](https://docs.ultralytics.com/tasks/classify/), [referência de mapas de ativação](https://keras.io/examples/vision/grad_cam/).", ""]
+        "## Artifacts and limits", "",
+        "The splits are the original TFDS ones (4000/500/500) with deterministic order, auditable hashes and no exact duplicates across splits. Supervised loading exposes image/label. The audit recovered ten sources from the filenames and added source_a/source_b splits with separate sources, described in source_manifest.json. There is no clinical patient identification and no test on an external dataset. ResNet-18 and YOLO11n were run with random and ImageNet initialization; the augmentation policy and optimizer remain specific to each pipeline.", "",
+        "Each run has config.json, selection.json, status.json, run.log, timings.json, resources.csv/json, the model, per-image metrics/predictions and figures. History and epochs are saved for the CNNs. Pilots live in separate campaigns and do not enter the tables. Large models and data remain on disk, ignored by Git.", "",
+        "Sources: [TFDS dataset](https://www.tensorflow.org/datasets/catalog/colorectal_histology), [original data](https://zenodo.org/records/53169), [Ultralytics classification](https://docs.ultralytics.com/tasks/classify/), [activation map reference](https://keras.io/examples/vision/grad_cam/).", ""]
     (out / "REPORT.md").write_text("\n".join(sections))
     print(f"Wrote {out}; {len(runs)} completed runs")
 
