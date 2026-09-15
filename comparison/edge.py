@@ -36,6 +36,9 @@ def main():
         if args.method.startswith("polygarbor"):
             from polygarbor import PolyGaborClassifier
             clf = PolyGaborClassifier.load(args.model_dir)
+        elif args.method == "gabor_svm":
+            from gabor_svm import GaborSVMClassifier
+            clf = GaborSVMClassifier.load(args.model_dir)
         else:
             from cnn.classifier import CNNClassifier, configure_tensorflow
             device = "gpu" if args.mode == "gpu" else "cpu"
@@ -49,7 +52,7 @@ def main():
     images = np.array(np.load(ROOT / "cache/test_images.npy", mmap_mode="r")[:1 if args.cold_only else 100], copy=True)
 
     def predict(batch):
-        if args.method.startswith("polygarbor"):
+        if args.method.startswith(("polygarbor", "gabor_svm")):
             return np.array([clf.predict(x).label for x in batch])
         return clf.predict_proba(batch).argmax(1)
 

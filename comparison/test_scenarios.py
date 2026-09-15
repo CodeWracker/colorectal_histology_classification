@@ -83,3 +83,23 @@ def test_finish_propagates_failed_validation(tmp_path, monkeypatch):
     assert any(any(str(part).endswith("localization.py") for part in command) for command in calls)
     assert "pytest" in calls[-1]
     assert not any(any(str(part).endswith("report.py") for part in command) for command in calls)
+
+
+def test_gabor_svm_uses_the_pmd_fitting_vectors_and_round_trips(tmp_path):
+    from polygarbor import PolyGaborClassifier
+    from comparison.gabor_svm import GaborSVMClassifier
+    rng = np.random.default_rng(0)
+    names = ["a", "b", "c"]
+    y = np.repeat(np.arange(3), 400)
+    X = (rng.normal(size=(len(y), 22)) + y[:, None]).astype(np.float32)
+    svm = GaborSVMClassifier(names, random_state=7).fit_features(X, y)
+    pmd = PolyGaborClassifier(names, random_state=7, num_levels=1).fit_features(X, y)
+    for c in range(3):
+        assert len(svm.train_samples[c]) == 350
+        np.testing.assert_array_equal(svm.train_samples[c], pmd.train_samples[c])
+    image = rng.integers(0, 255, (150, 150, 3), dtype=np.uint8)
+    before = svm.predict(image)
+    after = GaborSVMClassifier.load(svm.save(tmp_path / "model")).predict(image)
+    assert before.label == after.label
+    np.testing.assert_allclose(before.similarity, after.similarity)
+    assert np.isclose(before.similarity.sum(), 1)

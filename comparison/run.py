@@ -18,7 +18,7 @@ sys.path.insert(0, str(ROOT.parent / "polygarbor/src"))
 def main():
     parser = argparse.ArgumentParser()
     from variants import CNN_VARIANTS, VARIANTS
-    parser.add_argument("--method", choices=[*VARIANTS, *CNN_VARIANTS], required=True)
+    parser.add_argument("--method", choices=[*VARIANTS, *CNN_VARIANTS, "gabor_svm"], required=True)
     parser.add_argument("--scenario", default="full")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--epochs", type=int, default=100)
@@ -31,7 +31,7 @@ def main():
         os.environ[name] = str(args.threads)
     os.environ["TF_NUM_INTEROP_THREADS"] = "2"
     os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
-    if args.method.startswith("polygarbor") or args.device == "cpu":
+    if args.method.startswith(("polygarbor", "gabor_svm")) or args.device == "cpu":
         os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
     import numpy as np
     import cv2
@@ -60,21 +60,37 @@ def main():
             if args.scenario.startswith("loso_"):
                 from loso import load_fold
                 arrays = load_fold(args.scenario)
+            elif args.scenario.startswith("nct_"):
+                # NCT-CRC-HE-100K -> CRC-VAL-HE-7K replication (PROTOCOL.md); splits fixed by nct_prepare.py.
+                cache = ROOT / "cache/nct"
+                manifest = json.loads((cache / "manifest.json").read_text())
+                names = manifest["class_names"]
+                arrays = {s: (np.load(cache / f"{s}_images.npy", mmap_mode="r"),
+                              np.load(cache / f"{s}_labels.npy")) for s in ("train", "val", "test")}
             else:
                 cache = ROOT / "cache" / args.scenario if args.scenario.startswith("source_") else ROOT / "cache"
                 arrays = {s: (np.load(cache / f"{s}_images.npy", mmap_mode="r"),
                               np.load(cache / f"{s}_labels.npy")) for s in ("train", "val", "test")}
             grouped = args.scenario.startswith(("source_", "loso_"))
-            indices, labels = select_training(arrays["train"][1], "full" if grouped else args.scenario, args.seed)
+            if args.scenario.startswith("nct_"):
+                indices = np.asarray(manifest["selections"][str(args.seed)][args.scenario.removeprefix("nct_")])
+                labels = arrays["train"][1][indices]
+            else:
+                indices, labels = select_training(arrays["train"][1], "full" if grouped else args.scenario, args.seed)
             images = arrays["train"][0][indices]
             (out / "selection.json").write_text(json.dumps(dict(indices=indices.tolist(), labels=labels.tolist(),
                 counts=np.bincount(labels, minlength=len(names)).tolist(), original_labels=arrays["train"][1][indices].tolist()), indent=2))
-        if args.method.startswith("polygarbor"):
+        if args.method.startswith(("polygarbor", "gabor_svm")):
             from polygarbor import PolyGaborClassifier
             from variants import VARIANTS, training_views
-            grid, copies = VARIANTS[args.method]
+            # gabor_svm: 1x1 descriptor without augmentation (PROTOCOL.md, RBF-SVM extension).
+            grid, copies = VARIANTS.get(args.method, (1, 0))
             with monitor.stage("build_model"):
-                clf = PolyGaborClassifier(names, random_state=args.seed, patches_per_row=grid)
+                if args.method == "gabor_svm":
+                    from gabor_svm import GaborSVMClassifier
+                    clf = GaborSVMClassifier(names, random_state=args.seed)
+                else:
+                    clf = PolyGaborClassifier(names, random_state=args.seed, patches_per_row=grid)
             with monitor.stage("extract_features"):
                 feature_parts, vector_labels, origins = [], [], []
                 for image, label, original_index in zip(images, labels, indices):
@@ -113,7 +129,7 @@ def main():
         (out / "model_size.json").write_text(json.dumps(dict(bytes=size, mb=size / 1e6), indent=2))
 
         def predict(batch):
-            if args.method.startswith("polygarbor"):
+            if args.method.startswith(("polygarbor", "gabor_svm")):
                 predictions = [clf.predict(x) for x in batch]
                 return np.stack([v.similarity for v in predictions]), np.array([v.label for v in predictions])
             scores = clf.predict_proba(batch)
@@ -156,7 +172,7 @@ def main():
                 fig = visualize.plot_history(clf.history)
                 visualize.save_figure(fig, out / "learning_curves.png")
                 plt.close(fig)
-            if args.scenario == "full":
+            if args.scenario == "full" and args.method != "gabor_svm":
                 for c in range(len(names)):
                     i = int(np.flatnonzero(arrays["test"][1] == c)[0])
                     image = arrays["test"][0][i]
