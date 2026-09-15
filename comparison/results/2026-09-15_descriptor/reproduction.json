@@ -1,0 +1,122 @@
+[
+  {
+    "run": "few2__polygarbor__seed42",
+    "agreement": 1.0
+  },
+  {
+    "run": "few5__polygarbor__seed42",
+    "agreement": 1.0
+  },
+  {
+    "run": "few10__polygarbor__seed42",
+    "agreement": 1.0
+  },
+  {
+    "run": "few20__polygarbor__seed42",
+    "agreement": 1.0
+  },
+  {
+    "run": "few50__polygarbor__seed42",
+    "agreement": 1.0
+  },
+  {
+    "run": "few100__polygarbor__seed42",
+    "agreement": 1.0
+  },
+  {
+    "run": "full__polygarbor__seed42",
+    "agreement": 1.0
+  },
+  {
+    "run": "few2__polygarbor__seed43",
+    "agreement": 1.0
+  },
+  {
+    "run": "few5__polygarbor__seed43",
+    "agreement": 1.0
+  },
+  {
+    "run": "few10__polygarbor__seed43",
+    "agreement": 1.0
+  },
+  {
+    "run": "few20__polygarbor__seed43",
+    "agreement": 1.0
+  },
+  {
+    "run": "few50__polygarbor__seed43",
+    "agreement": 1.0
+  },
+  {
+    "run": "few100__polygarbor__seed43",
+    "agreement": 1.0
+  },
+  {
+    "run": "full__polygarbor__seed43",
+    "agreement": 1.0
+  },
+  {
+    "run": "few1__polygarbor_aug__seed42",
+    "agreement": 1.0
+  },
+  {
+    "run": "few2__polygarbor_aug__seed42",
+    "agreement": 1.0
+  },
+  {
+    "run": "few5__polygarbor_aug__seed42",
+    "agreement": 1.0
+  },
+  {
+    "run": "few10__polygarbor_aug__seed42",
+    "agreement": 1.0
+  },
+  {
+    "run": "few20__polygarbor_aug__seed42",
+    "agreement": 1.0
+  },
+  {
+    "run": "few50__polygarbor_aug__seed42",
+    "agreement": 1.0
+  },
+  {
+    "run": "few100__polygarbor_aug__seed42",
+    "agreement": 1.0
+  },
+  {
+    "run": "full__polygarbor_aug__seed42",
+    "agreement": 1.0
+  },
+  {
+    "run": "few1__polygarbor_aug__seed43",
+    "agreement": 1.0
+  },
+  {
+    "run": "few2__polygarbor_aug__seed43",
+    "agreement": 1.0
+  },
+  {
+    "run": "few5__polygarbor_aug__seed43",
+    "agreement": 1.0
+  },
+  {
+    "run": "few10__polygarbor_aug__seed43",
+    "agreement": 1.0
+  },
+  {
+    "run": "few20__polygarbor_aug__seed43",
+    "agreement": 1.0
+  },
+  {
+    "run": "few50__polygarbor_aug__seed43",
+    "agreement": 1.0
+  },
+  {
+    "run": "few100__polygarbor_aug__seed43",
+    "agreement": 1.0
+  },
+  {
+    "run": "full__polygarbor_aug__seed43",
+    "agreement": 1.0
+  }
+]

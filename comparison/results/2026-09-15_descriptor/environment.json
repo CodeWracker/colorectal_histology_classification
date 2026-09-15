@@ -1,0 +1,6 @@
+{
+  "numpy": "2.4.6",
+  "sklearn": "1.9.1",
+  "polymahalanobis": "0.1.1",
+  "threads": "4"
+}
