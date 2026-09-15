@@ -213,7 +213,7 @@ def main() -> int:
         "--out-dir", default="benchmarks/results", help="where to write the report"
     )
     parser.add_argument(
-        "--name", default=None, help="base name of the files (default: hostname)"
+        "--name", default=None, help="base name of the files (default: benchmark)"
     )
     args = parser.parse_args()
 

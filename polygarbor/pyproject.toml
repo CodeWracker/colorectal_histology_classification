@@ -3,7 +3,6 @@ name = "polygarbor"
 version = "0.1.0"
 description = "Colorectal histology classification with Gabor filters + polynomial Mahalanobis distance"
 readme = "README.md"
-authors = [{ name = "CodeWracker", email = "dev.rodrigofs@gmail.com" }]
 requires-python = ">=3.10,<3.13"
 
 dependencies = [

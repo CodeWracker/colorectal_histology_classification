@@ -34,7 +34,7 @@ O andamento posterior é registrado em `campaign.log` e `runs/2026-09-12/events.
 
 ## Recuperação após mudança de diretório e extensão das métricas
 
-O usuário moveu o repositório para `.../ufsc/viscomp/colorectal_histology_classification` e depois de volta. Isso interrompeu duas execuções YOLO: label_noise e source_b. Seus logs mostram FileNotFoundError ao salvar artefatos nos caminhos absolutos antigos. As tentativas foram marcadas como interrompidas e preservadas em `runs/interrupted`, e somente essas duas serão repetidas. A auditoria verificou 56 runs completos, incluindo correspondência dos rótulos e ordem de teste, coerência das métricas, presença de recursos e tamanho dos modelos; todos passaram.
+O repositório foi movido temporariamente para outro diretório e depois de volta. Isso interrompeu duas execuções YOLO: label_noise e source_b. Seus logs mostram FileNotFoundError ao salvar artefatos nos caminhos absolutos antigos. As tentativas foram marcadas como interrompidas e preservadas em `runs/interrupted`, e somente essas duas serão repetidas. A auditoria verificou 56 runs completos, incluindo correspondência dos rótulos e ordem de teste, coerência das métricas, presença de recursos e tamanho dos modelos; todos passaram.
 
 As duas falhas few1 do PolyGabor original são separadas desse incidente: a biblioteca lança IndexError ao ajustar uma única linha por classe. Elas permanecem como falhas observadas da implementação, sem substituição por F1/G-mean zero. As variantes com patches e augmentation testarão se múltiplos descritores derivados de uma imagem mudam esse comportamento.
 

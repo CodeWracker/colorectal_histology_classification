@@ -175,7 +175,6 @@ def collect_specs(extra_packages: tuple[str, ...] = ()) -> dict:
 
     return {
         "timestamp_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-        "hostname": platform.node(),
         "os": f"{platform.system()} {platform.release()}",
         "os_detail": platform.version(),
         "architecture": platform.machine(),
@@ -267,4 +266,4 @@ def write_report(out_dir: Path, base: str, prefix: str, markdown: str, result: d
 
 
 def default_base_name(explicit: str | None) -> str:
-    return explicit or platform.node() or "benchmark"
+    return explicit or "benchmark"
