@@ -2,3 +2,4 @@
 /weights/
 __pycache__/
 .pytest_cache/
+**/DONT_COMMIT*
