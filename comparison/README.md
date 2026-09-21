@@ -1,6 +1,6 @@
 # Reproducible experiments
 
-For a guided path from a number in the paper to the file and command behind it, start at [`../reproducibility/`](../reproducibility/README.md); this file documents the harness itself.
+To go from a number in the paper to the file and command behind it, see [`../reproducibility/`](../reproducibility/README.md). This file documents the harness.
 
 The implementation is in `../cnn`, and the original method remains in `../polygarbor`. The [protocol](PROTOCOL.md) records the decisions made before the experiments. Start with the [discussion and visual assessment](results/2026-09-12/DISCUSSION.md). The consolidated results are in [results/2026-09-12/REPORT.md](results/2026-09-12/REPORT.md); each row of the index points to the corresponding run.
 

@@ -34,7 +34,7 @@ uv run polygarbor --help
 
 ## The two flows
 
-### Flow 1 — load the dataset (once, permanently)
+### Flow 1, load the dataset (once, permanently)
 
 Downloads `colorectal_histology` (5000 images of 150×150 px, 8 classes) and
 materializes it in the folder you choose. The cache is permanent: later runs
@@ -76,7 +76,7 @@ Standalone evaluation of a saved model:
 uv run polygarbor evaluate --model-dir ./artifacts/model --split test
 ```
 
-### Flow 2 — classify one image and generate the visualizations
+### Flow 2, classify one image and generate the visualizations
 
 ```bash
 uv run polygarbor predict \
@@ -105,7 +105,7 @@ instead of only writing the PNGs.
 
 ## Use as a library
 
-The package is importable and **does not require TensorFlow** to classify — TFDS
+The package is importable and **does not require TensorFlow** to classify. TFDS
 is only loaded on demand by the dataset flow.
 
 ```python
@@ -169,7 +169,7 @@ Main API surface:
 
 These are two spatial scales of the **same** descriptor:
 
-- `--method patch` (default) uses the patch grid — the same scale as training,
+- `--method patch` (default) uses the patch grid, the same scale as training,
   which is why it is the right mode for deciding the class.
 - `--method dense` computes the statistics per pixel with a sliding window on a
   75×75 grid. Its local scale differs from the one seen during training, so it
@@ -191,7 +191,7 @@ artifacts/model/
 └── samples/class_NN.txt  # training vectors of each class
 ```
 
-The subspaces are **rebuilt** from the samples inside `load()` — there is no
+The subspaces are **rebuilt** from the samples inside `load()`. There is no
 pickle, so the model stays readable and portable across library versions.
 
 ---
@@ -208,7 +208,7 @@ per class), trained on the 4000 training examples:
 
 `adipose` (recall 1.00), `lympho` (0.94) and `tumor` (0.87) are the strongest
 classes. The two weak ones are `mucosa` (recall 0.45, confused with `debris`)
-and `complex` (0.51, confused with `stroma`) — both with high precision, meaning
+and `complex` (0.51, confused with `stroma`), both with high precision, meaning
 the model is conservative about assigning them.
 
 Since training is deterministic (no shuffling, fixed `--seed`), repeating the
@@ -219,7 +219,7 @@ command reproduces exactly the same model.
 ## Benchmarks
 
 Reference machine: Intel Core Ultra 9 185H (16 cores / 22 logical CPUs), CPU
-only — the pipeline never touches the GPU.
+only. The pipeline never touches the GPU.
 
 **Inference, one 150×150 image**
 
@@ -231,8 +231,8 @@ only — the pipeline never touches the GPU.
 | Cold (new process: import + load model + classify) | 1.86 s |
 | Cold, full `predict` command with every figure | 5.62 s |
 
-The cold total is almost all fixed overhead — ~574 ms to rebuild the subspaces
-plus interpreter startup — so a service should load the model once and reuse the
+The cold total is almost all fixed overhead, about 574 ms to rebuild the subspaces
+plus interpreter startup, so a service should load the model once and reuse the
 instance. `dense` mode is ~48× the patch mode because it evaluates 5625 vectors
 instead of 1; that is the price of the maps, not of the decision. Rendering the
 five matplotlib figures dominates the full command.
@@ -248,7 +248,7 @@ five matplotlib figures dominates the full command.
 | **Total** | **18.84 s** |
 
 Extraction is 93% of the training time (4.4 ms per image) and is the only stage
-that grows with the dataset — it is embarrassingly parallel and currently runs
+that grows with the dataset. It is embarrassingly parallel and currently runs
 single-threaded. Fitting the subspaces is cheap because each one sees at most
 `--max-samples` vectors of 22 dimensions.
 
@@ -273,7 +273,7 @@ uv run pytest
 
 The suite uses synthetic images and covers the descriptor, training, the
 `save`/`load` round trip, prediction in both modes and the generation of every
-figure — without needing the dataset or TensorFlow.
+figure, without needing the dataset or TensorFlow.
 
 ---
 
