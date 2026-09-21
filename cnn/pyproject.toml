@@ -3,6 +3,7 @@ name = "cnn"
 version = "0.1.0"
 description = "Colorectal histology: ResNet-18 and YOLO11 classification with controlled initialization"
 readme = "README.md"
+license = "BSD-3-Clause"
 requires-python = ">=3.10,<3.13"
 dependencies = [
     "polygarbor", "tensorflow==2.20.0", "tensorflow-datasets>=4.9",
